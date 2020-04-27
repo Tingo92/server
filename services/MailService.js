@@ -130,7 +130,7 @@ module.exports = {
     )
   },
 
-  sendStudentTryUsEmail: function(options, callback) {
+  sendStudentGiveUsATryEmail: function(options, callback) {
     const email = options.email
     const firstName = options.firstName
     const firstNameCapitalized =

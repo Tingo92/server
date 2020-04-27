@@ -16,7 +16,7 @@ const jobTemplates: JobTemplate[] = [
     options: { repeat: { cron: '0 4 * * *', tz: 'America/New_York' } } // each day at 4am
   },
   {
-    name: Jobs.SendStudentTryUsEmail,
+    name: Jobs.SendStudentGiveUsATryEmail,
     options: { repeat: { cron: '0 15 * * *', tz: 'America/New_York' } } // each day at 3pm
   }
 ];

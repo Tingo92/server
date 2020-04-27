@@ -26,7 +26,7 @@ export default async (): Promise<void> => {
         student.pastSessions.length === 0
       ) {
         const { firstname: firstName, email } = student;
-        MailService.sendStudentTryUsEmail({ firstName, email });
+        MailService.sendStudentGiveUsATryEmail({ firstName, email });
       }
     }
     log(`updated ${size(students)} students`);
