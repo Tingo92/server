@@ -1,5 +1,6 @@
 const config = require('../config')
 const sgMail = require('@sendgrid/mail')
+const isCertified = require('../utils/is-certified')
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -124,6 +125,31 @@ module.exports = {
         coachGuideLink,
         scheduleLink,
         trainingLink
+      },
+      config.sendgrid.unsubscribeGroup.account,
+      callback
+    )
+  },
+
+  sendFinishOnboardingEmail: function(options, callback) {
+    const {
+      availabilityLastModifiedAt,
+      certifications,
+      firstname: firstName,
+      email
+    } = options.volunteer
+    const firstNameCapitalized =
+      firstName.charAt(0).toUpperCase() + firstName.slice(1)
+
+    sendEmail(
+      email,
+      config.mail.senders.noreply,
+      'UPchieve',
+      config.sendgrid.testTemplate,
+      {
+        firstName: firstNameCapitalized,
+        isCertified: isCertified(certifications),
+        availabilityLastModifiedAt: !!availabilityLastModifiedAt
       },
       config.sendgrid.unsubscribeGroup.account,
       callback
