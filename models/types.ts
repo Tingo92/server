@@ -3,6 +3,7 @@ import { Document } from 'mongoose';
 interface Certification {
   passed: boolean;
   tries: number;
+  lastAttemptedAt?: Date;
 }
 
 export interface User extends Document {
