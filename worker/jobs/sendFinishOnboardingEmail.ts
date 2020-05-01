@@ -5,6 +5,7 @@ import * as MailService from '../../services/MailService';
 import { User } from '../../models/types';
 import * as dbconnect from '../../dbutils/dbconnect';
 import { log } from '../logger';
+import * as UserService from '../../services/UserService';
 
 export default async (): Promise<void> => {
   try {
@@ -14,25 +15,27 @@ export default async (): Promise<void> => {
       .exec()) as User[];
 
     for (const volunteer of volunteers) {
-      const { createdAt } = volunteer;
+      const {
+        createdAt,
+        certifications,
+        availabilityLastModifiedAt,
+        email,
+        firstname: firstName
+      } = volunteer;
       const volunteerCreatedAtInMS = new Date(createdAt).getTime();
       const todaysDateInMS = new Date().getTime();
       const fourDays = 1000 * 60 * 60 * 24 * 4;
       const threeDays = 1000 * 60 * 60 * 24 * 3;
+      const isCertified = UserService.isCertified(certifications);
 
       if (
+        (!isCertified || !availabilityLastModifiedAt) &&
         volunteerCreatedAtInMS <= todaysDateInMS - threeDays &&
         volunteerCreatedAtInMS >= todaysDateInMS - fourDays
       ) {
-        const {
-          availabilityLastModifiedAt,
-          certifications,
-          email,
-          firstname: firstName
-        } = volunteer;
         MailService.sendFinishOnboardingEmail({
           availabilityLastModifiedAt,
-          certifications,
+          isCertified,
           email,
           firstName
         });
