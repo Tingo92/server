@@ -1,6 +1,6 @@
 const config = require('../config')
 const sgMail = require('@sendgrid/mail')
-const isCertified = require('../utils/is-certified')
+const Sentry = require('@sentry/node')
 const { capitalize } = require('lodash')
 
 sgMail.setApiKey(config.sendgrid.apiKey)
@@ -33,7 +33,7 @@ const sendEmail = function(
     asm
   }
 
-  sgMail.send(msg, callback)
+  return sgMail.send(msg, callback)
 }
 
 module.exports = {
@@ -146,28 +146,29 @@ module.exports = {
     )
   },
 
-  sendFinishOnboardingEmail: function(options, callback) {
+  sendFinishOnboardingEmail: async function(options) {
     const {
       availabilityLastModifiedAt,
-      certifications,
-      firstname: firstName,
+      isCertified,
+      firstName,
       email
-    } = options.volunteer
-    const firstNameCapitalized =
-      firstName.charAt(0).toUpperCase() + firstName.slice(1)
+    } = options
 
-    sendEmail(
-      email,
-      config.mail.senders.noreply,
-      'UPchieve',
-      config.sendgrid.testTemplate,
-      {
-        firstName: firstNameCapitalized,
-        isCertified: isCertified(certifications),
-        availabilityLastModifiedAt: !!availabilityLastModifiedAt
-      },
-      config.sendgrid.unsubscribeGroup.account,
-      callback
-    )
+    try {
+      await sendEmail(
+        email,
+        config.mail.senders.noreply,
+        'UPchieve',
+        config.sendgrid.testTemplate,
+        {
+          firstName: capitalize(firstName),
+          isCertified,
+          availabilityLastModifiedAt: !!availabilityLastModifiedAt
+        },
+        config.sendgrid.unsubscribeGroup.account
+      );
+    } catch (error) {
+      Sentry.captureException(error);
+    }
   }
 }
