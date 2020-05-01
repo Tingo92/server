@@ -15,16 +15,27 @@ export default async (): Promise<void> => {
 
     for (const volunteer of volunteers) {
       const { createdAt } = volunteer;
-      const volunteerCreatedAtInMS: number = new Date(createdAt).getTime();
-      const todaysDateInMS: number = new Date().getTime();
-      const fourDays: number = 1000 * 60 * 60 * 24 * 4;
-      const threeDays: number = 1000 * 60 * 60 * 24 * 3;
+      const volunteerCreatedAtInMS = new Date(createdAt).getTime();
+      const todaysDateInMS = new Date().getTime();
+      const fourDays = 1000 * 60 * 60 * 24 * 4;
+      const threeDays = 1000 * 60 * 60 * 24 * 3;
 
       if (
         volunteerCreatedAtInMS <= todaysDateInMS - threeDays &&
         volunteerCreatedAtInMS >= todaysDateInMS - fourDays
       ) {
-        MailService.sendFinishOnboardingEmail({ volunteer });
+        const {
+          availabilityLastModifiedAt,
+          certifications,
+          email,
+          firstname: firstName
+        } = volunteer;
+        MailService.sendFinishOnboardingEmail({
+          availabilityLastModifiedAt,
+          certifications,
+          email,
+          firstName
+        });
       }
     }
     log(`updated ${size(volunteers)} volunteers`);
