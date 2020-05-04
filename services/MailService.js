@@ -166,9 +166,9 @@ module.exports = {
           availabilityLastModifiedAt: !!availabilityLastModifiedAt
         },
         config.sendgrid.unsubscribeGroup.account
-      );
+      )
     } catch (error) {
-      Sentry.captureException(error);
+      Sentry.captureException(error)
     }
   }
 }
