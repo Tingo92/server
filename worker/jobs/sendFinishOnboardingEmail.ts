@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/node';
 import { size } from 'lodash';
+import moment from 'moment-timezone';
 import * as UserModel from '../../models/User';
 import * as MailService from '../../services/MailService';
 import { User } from '../../models/types';
@@ -22,17 +23,15 @@ export default async (): Promise<void> => {
         email,
         firstname: firstName
       } = volunteer;
-      const volunteerCreatedAtInMS = new Date(createdAt).getTime();
-      const todaysDateInMS = new Date().getTime();
-      const fourDays = 1000 * 60 * 60 * 24 * 4;
-      const threeDays = 1000 * 60 * 60 * 24 * 3;
+      const threeDaysAgo = moment().subtract(3, 'days');
+      const fourDaysAgo = moment().subtract(4, 'days');
+      const wasRecentlyCreated = moment(createdAt).isBetween(
+        fourDaysAgo,
+        threeDaysAgo
+      );
       const isCertified = UserService.isCertified(certifications);
 
-      if (
-        (!isCertified || !availabilityLastModifiedAt) &&
-        volunteerCreatedAtInMS <= todaysDateInMS - threeDays &&
-        volunteerCreatedAtInMS >= todaysDateInMS - fourDays
-      ) {
+      if ((!isCertified || !availabilityLastModifiedAt) && wasRecentlyCreated) {
         MailService.sendFinishOnboardingEmail({
           availabilityLastModifiedAt,
           isCertified,
