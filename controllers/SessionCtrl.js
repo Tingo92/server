@@ -31,8 +31,7 @@ module.exports = function(socketService) {
 
       const savedSession = await session.save()
       const isNewStudent =
-        !user.isVolunteer &&
-        user.pastSessions && user.pastSessions.length === 0
+        !user.isVolunteer && user.pastSessions && user.pastSessions.length === 0
 
       if (isNewStudent)
         setTimeout(() => {
