@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 import User from './User.ts';
 
 const schemaOptions = {
-  discriminatorKey: 'user',
   toJSON: {
     virtuals: true
   },

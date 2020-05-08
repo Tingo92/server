@@ -102,7 +102,6 @@ const availabilitySchema = new mongoose.Schema(
 );
 
 const volunteerSchemaOptions = {
-  discriminatorKey: 'user',
   toJSON: {
     virtuals: true
   },
@@ -117,22 +116,11 @@ const VolunteerSchema = new mongoose.Schema(
     volunteerPartnerOrg: String,
     isFailsafeVolunteer: {
       type: Boolean,
-      default: false,
-      validate: {
-        validator: function(v) {
-          return this.isVolunteer || !v;
-        },
-        message: 'A student cannot be a failsafe volunteer'
-      }
+      default: false
     },
     phone: {
       type: String,
-      required: [
-        function() {
-          return this.isVolunteer;
-        },
-        'Phone number is required.'
-      ]
+      required: true
       // @todo: server-side validation of international phone format
     },
     favoriteAcademicSubject: String,
@@ -264,7 +252,6 @@ const VolunteerSchema = new mongoose.Schema(
 
 // Given a user record, strip out sensitive data for public consumption
 VolunteerSchema.methods.parseProfile = function() {
-  console.log('checing here', this.isOnboarded);
   return {
     _id: this._id,
     email: this.email,
