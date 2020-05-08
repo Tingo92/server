@@ -1,4 +1,4 @@
-const User = require('../models/User')
+const Volunteer = require('../models/Volunteer')
 const Session = require('../models/Session')
 const Message = require('../models/Message')
 
@@ -32,9 +32,11 @@ module.exports = function(io) {
       userSockets[userId] = socket
 
       // query database to see if user is a volunteer
-      const user = await User.findById(userId, 'isVolunteer').exec()
+      const volunteer = await Volunteer.findOne({ _id: userId })
+        .lean()
+        .exec();
 
-      if (user && user.isVolunteer) {
+      if (volunteer) {
         socket.join('volunteers')
       }
 
@@ -45,7 +47,7 @@ module.exports = function(io) {
           endedAt: { $exists: false }
         },
         '_id'
-      ).exec()
+      ).exec();
 
       // join all rooms corresponding to active sessions
       activeSessions.forEach(session => socket.join(session._id))
