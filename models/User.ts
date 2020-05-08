@@ -4,8 +4,26 @@ const validator = require('validator');
 const config = require('../config.js');
 const { USER_BAN_REASON } = require('../constants');
 
-// userSchema is a base schema that the Student and Volunteer schema inherit from
-const userSchema = new mongoose.Schema(
+const baseUserSchemaOptions = {
+  /**
+   * https://mongoosejs.com/docs/discriminators.html#discriminator-keys
+   * The discriminator key is used to discern the different inherited models. The value of the disciminatorKey
+   * is the property that is added to a model and resolves to that type of model e.g:
+   * new Student()   --> type: "Student"
+   * new Volunteer() --> type: "Volunteer"
+   *
+   **/
+  discriminatorKey: 'type',
+  toJSON: {
+    virtuals: true
+  },
+  toObject: {
+    virtuals: true
+  }
+};
+
+// baseUserSchema is a base schema that the Student and Volunteer schema inherit from
+const baseUserSchema = new mongoose.Schema(
   {
     createdAt: { type: Date, default: Date.now },
     email: {
@@ -109,21 +127,19 @@ const userSchema = new mongoose.Schema(
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'IpAddress' }],
       default: [],
       select: false
-    }
-  },
-  {
-    toJSON: {
-      virtuals: true
     },
 
-    toObject: {
-      virtuals: true
+    // This field is created from the value set for the discriminatorKey.
+    // Added to help migrate existing users to also have this field.
+    type: {
+      type: String
     }
-  }
+  },
+  baseUserSchemaOptions
 );
 
 // Given a user record, strip out sensitive data for public consumption
-userSchema.methods.parseProfile = function() {
+baseUserSchema.methods.parseProfile = function() {
   return {
     _id: this._id,
     email: this.email,
@@ -134,7 +150,6 @@ userSchema.methods.parseProfile = function() {
     isAdmin: this.isAdmin,
     isTestUser: this.isTestUser,
     createdAt: this.createdAt,
-    phone: this.phone,
     availability: this.availability,
     availabilityLastModifiedAt: this.availabilityLastModifiedAt,
     timezone: this.timezone,
@@ -146,11 +161,11 @@ userSchema.methods.parseProfile = function() {
 };
 
 // Placeholder method to support asynchronous profile parsing
-userSchema.methods.getProfile = function(cb) {
+baseUserSchema.methods.getProfile = function(cb) {
   cb(null, this.parseProfile());
 };
 
-userSchema.methods.hashPassword = function(password, cb) {
+baseUserSchema.methods.hashPassword = function(password, cb) {
   bcrypt.genSalt(config.saltRounds, function(err, salt) {
     if (err) {
       cb(err);
@@ -160,7 +175,7 @@ userSchema.methods.hashPassword = function(password, cb) {
   });
 };
 
-userSchema.statics.verifyPassword = (candidatePassword, userPassword) => {
+baseUserSchema.statics.verifyPassword = (candidatePassword, userPassword) => {
   return new Promise((resolve, reject) => {
     bcrypt.compare(candidatePassword, userPassword, (error, isMatch) => {
       if (error) {
@@ -172,6 +187,6 @@ userSchema.statics.verifyPassword = (candidatePassword, userPassword) => {
   });
 };
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model('User', baseUserSchema);
 
 export = User;
