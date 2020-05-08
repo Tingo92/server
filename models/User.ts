@@ -165,14 +165,14 @@ baseUserSchema.methods.getProfile = function(cb) {
   cb(null, this.parseProfile());
 };
 
-baseUserSchema.methods.hashPassword = function(password, cb) {
-  bcrypt.genSalt(config.saltRounds, function(err, salt) {
-    if (err) {
-      cb(err);
-    } else {
-      bcrypt.hash(password, salt, cb);
-    }
-  });
+baseUserSchema.methods.hashPassword = async function(password) {
+  try {
+    const salt = await bcrypt.genSalt(config.saltRounds);
+    const hash = await bcrypt.hash(password, salt);
+    return hash;
+  } catch (error) {
+    throw new error(error);
+  }
 };
 
 baseUserSchema.statics.verifyPassword = (candidatePassword, userPassword) => {

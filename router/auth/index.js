@@ -3,16 +3,20 @@ const passport = require('passport')
 const Sentry = require('@sentry/node')
 const base64url = require('base64url')
 const { findKey } = require('lodash')
-const authPassport = require('./passport')
+const { capitalize } = require('lodash')
 const VerificationCtrl = require('../../controllers/VerificationCtrl')
 const ResetPasswordCtrl = require('../../controllers/ResetPasswordCtrl')
 const MailService = require('../../services/MailService')
 const IpAddressService = require('../../services/IpAddressService')
 const config = require('../../config.js')
-const User = require('../../models/User.js')
+const User = require('../../models/User')
+const Student = require('../../models/Student')
+const Volunteer = require('../../models/Volunteer')
 const School = require('../../models/School.js')
 const UserActionCtrl = require('../../controllers/UserActionCtrl')
 const { USER_BAN_REASON } = require('../../constants')
+const authPassport = require('./passport')
+const { promisify } = require('util')
 
 // Validation functions
 function checkPassword(password) {
@@ -20,10 +24,10 @@ function checkPassword(password) {
     return 'Password must be 8 characters or longer'
   }
 
-  var numUpper = 0
-  var numLower = 0
-  var numNumber = 0
-  for (var i = 0; i < password.length; i++) {
+  let numUpper = 0
+  let numLower = 0
+  let numNumber = 0
+  for (let i = 0; i < password.length; i++) {
     if (!isNaN(password[i])) {
       numNumber += 1
     } else if (password[i].toUpperCase() === password[i]) {
@@ -53,7 +57,7 @@ module.exports = function(app) {
   app.use(passport.initialize())
   app.use(passport.session())
 
-  var router = new express.Router()
+  const router = new express.Router()
 
   router.get('/logout', function(req, res) {
     req.session.destroy()
@@ -73,9 +77,9 @@ module.exports = function(app) {
   )
 
   router.post('/register/checkcred', function(req, res) {
-    var email = req.body.email
+    const email = req.body.email
 
-    var password = req.body.password
+    const password = req.body.password
 
     if (!email || !password) {
       return res.status(422).json({
@@ -84,7 +88,7 @@ module.exports = function(app) {
     }
 
     // Verify password for registration
-    let checkResult = checkPassword(password)
+    const checkResult = checkPassword(password)
     if (checkResult !== true) {
       return res.status(422).json({
         err: checkResult
@@ -105,22 +109,26 @@ module.exports = function(app) {
   })
 
   router.post('/register', async function(req, res, next) {
-    const isVolunteer = req.body.isVolunteer
-    const email = req.body.email
-    const password = req.body.password
-    const code = req.body.code
-    const volunteerPartnerOrg = req.body.volunteerPartnerOrg
-    const studentPartnerOrg = req.body.studentPartnerOrg
-    const partnerUserId = req.body.partnerUserId
-    const highSchoolUpchieveId = req.body.highSchoolId
-    const zipCode = req.body.zipCode
-    const college = req.body.college
-    const phone = req.body.phone
-    const favoriteAcademicSubject = req.body.favoriteAcademicSubject
-    const firstName = req.body.firstName.trim()
-    const lastName = req.body.lastName.trim()
-    const terms = req.body.terms
-    const referredByCode = req.body.referredByCode
+    const {
+      isVolunteer,
+      email,
+      password,
+      code,
+      volunteerPartnerOrg,
+      studentPartnerOrg,
+      partnerUserId,
+      highSchoolId: highSchoolUpchieveId,
+      zipCode,
+      college,
+      phone,
+      favoriteAcademicSubject,
+      terms,
+      referredByCode,
+      firstName,
+      lastName
+    } = req.body
+    const firstNameFormatted = capitalize(firstName.trim())
+    const lastNameFormatted = capitalize(lastName.trim())
 
     if (!terms) {
       return res.status(422).json({
@@ -177,7 +185,7 @@ module.exports = function(app) {
     }
 
     // Verify password for registration
-    let checkResult = checkPassword(password)
+    const checkResult = checkPassword(password)
     if (checkResult !== true) {
       return res.status(422).json({
         err: checkResult
@@ -187,47 +195,19 @@ module.exports = function(app) {
     const highSchoolProvided = !!highSchoolUpchieveId
     const highSchoolApprovalRequired = !studentPartnerOrg && !zipCode
 
-    // Look up high school
-    const highschoolLookupPromise = new Promise((resolve, reject) => {
-      if (isVolunteer) {
-        // don't look up high schools for volunteers
-        return resolve({
-          isVolunteer: true
-        })
-      } else if (!highSchoolProvided) {
-        // Don't look up high school for students who didn't provide one (it's not required for certain partner orgs)
-        return resolve({
-          isVolunteer: false
-        })
-      }
+    let school
+    if (highSchoolProvided)
+      school = await School.findByUpchieveId(highSchoolUpchieveId)
 
-      School.findByUpchieveId(highSchoolUpchieveId, (err, school) => {
-        if (err) {
-          return reject(err)
-        } else if (!highSchoolApprovalRequired) {
-          // Don't require valid high school for students referred from partner or with eligible zip code
-          return resolve({
-            isVolunteer: false,
-            school
-          })
-        } else if (highSchoolApprovalRequired && !school.isApproved) {
-          return reject(
-            new Error(`School ${highSchoolUpchieveId} is not approved`)
-          )
-        } else {
-          return resolve({
-            isVolunteer: false,
-            school
-          })
-        }
-      })
-    })
+    if (highSchoolApprovalRequired && school && !school.isApproved)
+      new Error(`School ${highSchoolUpchieveId} is not approved`)
 
     let referredById
-
     if (referredByCode) {
       try {
-        const referredBy = await User.findOne({ referralCode: referredByCode })
+        const referredBy = await User.findOne({
+          referralCode: referredByCode
+        })
           .select('_id')
           .lean()
           .exec()
@@ -238,93 +218,76 @@ module.exports = function(app) {
       }
     }
 
-    highschoolLookupPromise
-      .then(async ({ isVolunteer, school }) => {
-        const user = new User()
-        user.email = email
-        user.isVolunteer = isVolunteer
-        user.registrationCode = code
-        user.volunteerPartnerOrg = volunteerPartnerOrg
-        user.studentPartnerOrg = studentPartnerOrg
-        user.partnerUserId = partnerUserId
-        user.approvedHighschool = school
-        user.zipCode = zipCode
-        user.college = college
-        user.phonePretty = phone
-        user.favoriteAcademicSubject = favoriteAcademicSubject
-        user.firstname = firstName
-        user.lastname = lastName
-        user.verified = !isVolunteer // Currently only volunteers need to verify their email
-        user.referralCode = base64url(Buffer.from(user.id, 'hex'))
-        user.referredBy = referredById
+    const user = new User()
+    user.email = email
+    user.isVolunteer = isVolunteer
+    user.registrationCode = code
+    user.volunteerPartnerOrg = volunteerPartnerOrg
+    user.studentPartnerOrg = studentPartnerOrg
+    user.partnerUserId = partnerUserId
+    user.approvedHighschool = school
+    user.zipCode = zipCode
+    user.college = college
+    user.phonePretty = phone
+    user.favoriteAcademicSubject = favoriteAcademicSubject
+    user.firstname = firstNameFormatted
+    user.lastname = lastNameFormatted
+    user.verified = !isVolunteer // Currently only volunteers need to verify their email
+    user.referralCode = base64url(Buffer.from(user.id, 'hex'))
+    user.referredBy = referredById
+    user.password = await user.hashPassword(password)
 
-        if (!user.isVolunteer) {
-          const {
-            country_code: countryCode
-          } = await IpAddressService.getIpWhoIs(req.ip)
-          if (countryCode && countryCode !== 'US') {
-            user.isBanned = true
-            user.banReason = USER_BAN_REASON.NON_US_SIGNUP
-          }
-        }
+    if (!user.isVolunteer) {
+      const { country_code: countryCode } = await IpAddressService.getIpWhoIs(
+        req.ip
+      )
+      if (countryCode && countryCode !== 'US') {
+        user.isBanned = true
+        user.banReason = USER_BAN_REASON.NON_US_SIGNUP
+      }
+    }
 
-        user.hashPassword(password, function(err, hash) {
-          user.password = hash // Note the salt is embedded in the final hash
+    try {
+      await user.save()
+      // req.login loses its `this` binding when passed into promisify causing `this` not to point to req
+      const loginUser = promisify(req.login.bind(req))
+      await loginUser(user)
+    } catch (error) {
+      next(error)
+    }
 
-          if (err) {
-            return next(err)
-          }
-
-          user.save(function(err) {
-            if (err) {
-              next(err)
-            } else {
-              req.login(user, function(err) {
-                if (err) {
-                  return next(err)
-                }
-
-                if (user.isVolunteer) {
-                  // Send internal email alert if new volunteer is from a partner org
-                  if (user.volunteerPartnerOrg) {
-                    MailService.sendPartnerOrgSignupAlert({
-                      name: `${user.firstname} ${user.lastname}`,
-                      email: user.email,
-                      company: volunteerPartnerOrg,
-                      upchieveId: user._id
-                    })
-                  }
-
-                  VerificationCtrl.initiateVerification({ user }, err => {
-                    if (err) {
-                      Sentry.captureException(err)
-                    }
-                  })
-                } else {
-                  MailService.sendStudentWelcomeEmail({
-                    email: user.email,
-                    firstName: user.firstname
-                  })
-                }
-
-                const ipAddress = req.ip
-
-                UserActionCtrl.createdAccount(
-                  user._id,
-                  ipAddress
-                ).catch(error => Sentry.captureException(error))
-
-                return res.json({
-                  user: user
-                })
-              })
-            }
-          })
+    if (user.isVolunteer) {
+      // Send internal email alert if new volunteer is from a partner org
+      if (user.volunteerPartnerOrg) {
+        MailService.sendPartnerOrgSignupAlert({
+          name: `${user.firstname} ${user.lastname}`,
+          email: user.email,
+          company: volunteerPartnerOrg,
+          upchieveId: user._id
         })
+      }
+
+      VerificationCtrl.initiateVerification({ user }, err => {
+        if (err) {
+          Sentry.captureException(err)
+        }
       })
-      .catch(err => {
-        next(err)
+    } else {
+      MailService.sendStudentWelcomeEmail({
+        email: user.email,
+        firstName: user.firstname
       })
+    }
+
+    const ipAddress = req.ip
+
+    UserActionCtrl.createdAccount(user._id, ipAddress).catch(error =>
+      Sentry.captureException(error)
+    )
+
+    return res.json({
+      user: user
+    })
   })
 
   router.get('/partner/volunteer', function(req, res) {
@@ -441,7 +404,7 @@ module.exports = function(app) {
     })
 
   router.post('/reset/send', function(req, res, next) {
-    var email = req.body.email
+    const email = req.body.email
     if (!email) {
       return res.status(422).json({
         err: 'Must supply an email for password reset'
@@ -464,13 +427,13 @@ module.exports = function(app) {
   })
 
   router.post('/reset/confirm', function(req, res, next) {
-    var email = req.body.email
+    const email = req.body.email
 
-    var password = req.body.password
+    const password = req.body.password
 
-    var newpassword = req.body.newpassword
+    const newpassword = req.body.newpassword
 
-    var token = req.body.token
+    const token = req.body.token
 
     if (!token) {
       return res.status(422).json({
