@@ -1,4 +1,5 @@
 const User = require('../models/User')
+const Volunteer = require('../models/Volunteer')
 const Session = require('../models/Session')
 
 // helper to check for errors before getting user profile
@@ -14,7 +15,7 @@ function getProfileIfSuccessful(callback) {
 
 // helper to iterate through keys to be added to an update object
 function iterateKeys(update, data, callback) {
-  var hasUpdate = false
+  let hasUpdate = false
 
   ;[
     'firstname',
@@ -38,17 +39,6 @@ function iterateKeys(update, data, callback) {
 }
 
 module.exports = {
-  get: function(options, callback) {
-    var userId = options.userId
-    User.findById(userId, function(err, user) {
-      if (err || !user) {
-        callback(new Error('Could not get user'))
-      } else {
-        user.getProfile(callback)
-      }
-    })
-  },
-
   getVolunteerStats: async user => {
     const pastSessions = await Session.find({ volunteer: user._id })
       .select('volunteerJoinedAt endedAt')
@@ -88,14 +78,11 @@ module.exports = {
   },
 
   update: function(options, callback) {
-    var userId = options.userId
-
-    var data = options.data || {}
-
-    var update = {}
-
+    const userId = options.userId
+    const data = options.data || {}
+    let update = {}
     // Keys to virtual properties
-    var virtualProps = ['phonePretty']
+    const virtualProps = ['phonePretty']
 
     if (
       virtualProps.some(function(key) {
@@ -103,12 +90,13 @@ module.exports = {
       })
     ) {
       // load model object into memory
-      User.findById(userId, function(err, user) {
+      // @note: Currently only a volunteer is able to update their profile
+      Volunteer.findById(userId, function(err, user) {
         if (err) {
           callback(err)
         } else {
           if (!user) {
-            update = new User()
+            update = new Volunteer()
           } else {
             update = user
           }
@@ -127,7 +115,7 @@ module.exports = {
           return callback(new Error('No fields defined to update'))
         }
         // update the document directly (more efficient, but ignores virtual props)
-        User.findByIdAndUpdate(
+        Volunteer.findByIdAndUpdate(
           userId,
           update,
           { new: true, runValidators: true },
