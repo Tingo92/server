@@ -127,5 +127,24 @@ module.exports = {
 
   deleteUserByEmail: function(userEmail) {
     return User.deleteOne({ email: userEmail }).exec()
+  },
+
+  checkReferral: async function(referredByCode){
+    let referredById;
+    if (!referredByCode) return referredById
+    try {
+      referredById = await User.findOne({
+        referredByCode
+      })
+        .select('_id')
+        .lean()
+        .exec()
+
+      referredById = referredBy._id
+    } catch (error) {
+      Sentry.captureException(error)
+    } finally {
+      return referredById
+    }
   }
 }
