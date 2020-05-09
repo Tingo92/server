@@ -17,6 +17,7 @@ const UserActionCtrl = require('../../controllers/UserActionCtrl')
 const { USER_BAN_REASON } = require('../../constants')
 const authPassport = require('./passport')
 const { promisify } = require('util')
+const UserCtrl = require('../../controllers/UserCtrl')
 
 // Validation functions
 function checkPassword(password) {
@@ -108,27 +109,20 @@ module.exports = function(app) {
     })
   })
 
-  router.post('/register', async function(req, res, next) {
+  router.post('/register/student', async function(req, res, next) {
+    const { ip } = req
     const {
-      isVolunteer,
       email,
       password,
-      code,
-      volunteerPartnerOrg,
       studentPartnerOrg,
       partnerUserId,
       highSchoolId: highSchoolUpchieveId,
       zipCode,
-      college,
-      phone,
-      favoriteAcademicSubject,
       terms,
       referredByCode,
       firstName,
       lastName
     } = req.body
-    const firstNameFormatted = capitalize(firstName.trim())
-    const lastNameFormatted = capitalize(lastName.trim())
 
     if (!terms) {
       return res.status(422).json({
@@ -142,8 +136,15 @@ module.exports = function(app) {
       })
     }
 
-    const isStudentPartnerSignup =
-      !isVolunteer && !highSchoolUpchieveId && !zipCode
+    // Verify password for registration
+    const checkResult = checkPassword(password)
+    if (checkResult !== true) {
+      return res.status(422).json({
+        err: checkResult
+      })
+    }
+
+    const isStudentPartnerSignup = !highSchoolUpchieveId && !zipCode
 
     // Student partner org check (if no high school or zip code provided)
     if (isStudentPartnerSignup) {
@@ -158,8 +159,111 @@ module.exports = function(app) {
       }
     }
 
+    const highSchoolProvided = !!highSchoolUpchieveId
+
+    let school
+    if (highSchoolProvided)
+      school = await School.findByUpchieveId(highSchoolUpchieveId)
+
+    const highSchoolApprovalRequired = !studentPartnerOrg && !zipCode
+    if (highSchoolApprovalRequired && school && !school.isApproved)
+      return next(new Error(`School ${highSchoolUpchieveId} is not approved`));
+
+    const { country_code: countryCode } = await IpAddressService.getIpWhoIs(ip)
+    let isBanned = false
+    let banReason
+
+    if (countryCode && countryCode !== 'US') {
+      isBanned = true
+      banReason = USER_BAN_REASON.NON_US_SIGNUP
+    }
+
+    const referredBy = await UserCtrl.checkReferral(referredByCode)
+    const student = new Student({
+      firstname: capitalize(firstName.trim()),
+      lastname: capitalize(lastName.trim()),
+      email,
+      zipCode,
+      studentPartnerOrg,
+      partnerUserId,
+      approvedHighschool: school,
+      isVolunteer: false,
+      verified: true, // Students are automatically verified
+      referredBy,
+      isBanned,
+      banReason
+    })
+    student.referralCode = base64url(Buffer.from(student.id, 'hex'))
+
+    try {
+      student.password = await student.hashPassword(password)
+      await student.save()
+
+      // req.login loses its `this` binding when passed into promisify causing `this` not to point to `req`
+      const loginUser = promisify(req.login.bind(req))
+      await loginUser(student)
+    } catch (err) {
+      Sentry.captureException(err)
+      return next(err)
+    }
+
+    try {
+      await MailService.sendStudentWelcomeEmail({
+        email: student.email,
+        firstName: student.firstname
+      })
+    } catch (err) {
+      Sentry.captureException(err)
+    }
+
+    try {
+      await UserActionCtrl.createdAccount(student._id, ip)
+    } catch (err) {
+      Sentry.captureException(err)
+    }
+
+    return res.json({
+      user: student
+    })
+  })
+
+  router.post('/register/volunteer', async function(req, res, next) {
+    const {
+      email,
+      password,
+      code,
+      volunteerPartnerOrg,
+      college,
+      phone,
+      favoriteAcademicSubject,
+      terms,
+      referredByCode,
+      firstName,
+      lastName
+    } = req.body
+
+    if (!terms) {
+      return res.status(422).json({
+        err: 'Must accept the user agreement'
+      })
+    }
+
+    if (!email || !password) {
+      return res.status(422).json({
+        err: 'Must supply an email and password for registration'
+      })
+    }
+
+    // Verify password for registration
+    const checkResult = checkPassword(password)
+    if (checkResult !== true) {
+      return res.status(422).json({
+        err: checkResult
+      })
+    }
+ 
     // Volunteer partner org check (if no signup code provided)
-    if (isVolunteer && !code) {
+    if (!code) {
       const allVolunteerPartnerManifests = config.volunteerPartnerManifests
       const volunteerPartnerManifest =
         allVolunteerPartnerManifests[volunteerPartnerOrg]
@@ -184,109 +288,60 @@ module.exports = function(app) {
       }
     }
 
-    // Verify password for registration
-    const checkResult = checkPassword(password)
-    if (checkResult !== true) {
-      return res.status(422).json({
-        err: checkResult
+    const referredBy = await UserCtrl.checkReferral(referredByCode)
+
+    const volunteer = new Volunteer({
+      email,
+      isVolunteer: true,
+      registrationCode: code,
+      volunteerPartnerOrg,
+      college,
+      phonePretty: phone,
+      favoriteAcademicSubject,
+      firstname: capitalize(firstName.trim()),
+      lastname: capitalize(lastName.trim()),
+      verified: false,
+      referredBy
+    });
+    volunteer.referralCode = base64url(Buffer.from(volunteer.id, 'hex'))
+
+    try {
+      volunteer.password = await volunteer.hashPassword(password)
+      await volunteer.save()
+
+      // req.login loses its `this` binding when passed into promisify causing `this` not to point to `req`
+      const loginUser = promisify(req.login.bind(req))
+      await loginUser(volunteer)
+    } catch (err) {
+      Sentry.captureException(err)
+      return next(err)
+    }
+
+    // Send internal email alert if new volunteer is from a partner org
+    if (volunteer.volunteerPartnerOrg) {
+      MailService.sendPartnerOrgSignupAlert({
+        name: `${volunteer.firstname} ${volunteer.lastname}`,
+        email: volunteer.email,
+        company: volunteerPartnerOrg,
+        upchieveId: volunteer._id
       })
-    }
-
-    const highSchoolProvided = !!highSchoolUpchieveId
-    const highSchoolApprovalRequired = !studentPartnerOrg && !zipCode
-
-    let school
-    if (highSchoolProvided)
-      school = await School.findByUpchieveId(highSchoolUpchieveId)
-
-    if (highSchoolApprovalRequired && school && !school.isApproved)
-      new Error(`School ${highSchoolUpchieveId} is not approved`)
-
-    let referredById
-    if (referredByCode) {
-      try {
-        const referredBy = await User.findOne({
-          referralCode: referredByCode
-        })
-          .select('_id')
-          .lean()
-          .exec()
-
-        referredById = referredBy._id
-      } catch (error) {
-        Sentry.captureException(error)
-      }
-    }
-
-    const user = new User()
-    user.email = email
-    user.isVolunteer = isVolunteer
-    user.registrationCode = code
-    user.volunteerPartnerOrg = volunteerPartnerOrg
-    user.studentPartnerOrg = studentPartnerOrg
-    user.partnerUserId = partnerUserId
-    user.approvedHighschool = school
-    user.zipCode = zipCode
-    user.college = college
-    user.phonePretty = phone
-    user.favoriteAcademicSubject = favoriteAcademicSubject
-    user.firstname = firstNameFormatted
-    user.lastname = lastNameFormatted
-    user.verified = !isVolunteer // Currently only volunteers need to verify their email
-    user.referralCode = base64url(Buffer.from(user.id, 'hex'))
-    user.referredBy = referredById
-    user.password = await user.hashPassword(password)
-
-    if (!user.isVolunteer) {
-      const { country_code: countryCode } = await IpAddressService.getIpWhoIs(
-        req.ip
-      )
-      if (countryCode && countryCode !== 'US') {
-        user.isBanned = true
-        user.banReason = USER_BAN_REASON.NON_US_SIGNUP
-      }
     }
 
     try {
-      await user.save()
-      // req.login loses its `this` binding when passed into promisify causing `this` not to point to req
-      const loginUser = promisify(req.login.bind(req))
-      await loginUser(user)
-    } catch (error) {
-      next(error)
+      await VerificationCtrl.initiateVerification({ user: volunteer })
+    } catch (err) {
+      Sentry.captureException(err)
     }
 
-    if (user.isVolunteer) {
-      // Send internal email alert if new volunteer is from a partner org
-      if (user.volunteerPartnerOrg) {
-        MailService.sendPartnerOrgSignupAlert({
-          name: `${user.firstname} ${user.lastname}`,
-          email: user.email,
-          company: volunteerPartnerOrg,
-          upchieveId: user._id
-        })
-      }
-
-      VerificationCtrl.initiateVerification({ user }, err => {
-        if (err) {
-          Sentry.captureException(err)
-        }
-      })
-    } else {
-      MailService.sendStudentWelcomeEmail({
-        email: user.email,
-        firstName: user.firstname
-      })
+    try {
+      const { ip } = req
+      await UserActionCtrl.createdAccount(volunteer._id, ip)
+    } catch (err) {
+      Sentry.captureException(err)
     }
-
-    const ipAddress = req.ip
-
-    UserActionCtrl.createdAccount(user._id, ipAddress).catch(error =>
-      Sentry.captureException(error)
-    )
 
     return res.json({
-      user: user
+      user: volunteer
     })
   })
 
@@ -386,7 +441,7 @@ module.exports = function(app) {
       return
     }
 
-    const isVolunteerCode = User.checkCode(code)
+    const isVolunteerCode = Volunteer.checkCode(code)
 
     res.json({
       isValid: isVolunteerCode
