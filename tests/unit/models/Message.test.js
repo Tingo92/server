@@ -1,8 +1,7 @@
-const test = require('ava')
-const Message = require('../../../models//Message')
-const User = require('../../../models/User')
+import Volunteer from '../../../models/Volunteer'
+const Message = require('../../../models/Message')
 
-const user = new User({
+const user = new Volunteer({
   email: 'email@email.com',
   password: 'password',
 
@@ -207,11 +206,11 @@ const user = new User({
   pastSessions: null
 })
 
-test('Test creation of Message scheme object', t => {
-  let message = new Message({ contents: 'message' })
+test('Test creation of Message scheme object', () => {
+  const message = new Message({ contents: 'message' })
   message.user = user
 
-  t.is(message.createdAt.getDate(), new Date().getDate())
-  t.is(message.contents, 'message')
-  t.is(message.user.email, 'email@email.com')
+  expect(message.createdAt.getDate()).toBe(new Date().getDate())
+  expect(message.contents).toBe('message')
+  expect(message.user.email).toBe('email@email.com')
 })

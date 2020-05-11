@@ -2,7 +2,6 @@
  * This file is a placeholder for future unit tests, since there is no logic involved. 
  */
 
-const test = require('ava')
 const School = require('../../../models/School')
 
 //Place holder for school object.
@@ -78,21 +77,21 @@ const school = new School({
 })
 
 //Placeholder
-test('Test creation of School scheme object', t => {
+test('Test creation of School scheme object', () => {
 	school.nameStored = "newname"
 	let temp = school.nameStored
-	t.is(temp, "newname")
-}) 
+	expect(temp).toBe("newname")
+})
 
-test('Check districtName setters/getterss', t => {
+test('Check districtName setters/getterss', () => {
 	school.districtName = "newname"
 	let temp = school.districtName
-	t.is(temp, "newname")
-}) 
+	expect(temp).toBe("newname")
+})
 
-test('Check state setters/getterss', t => {
+test('Check state setters/getterss', () => {
 	school.state = "newname"
 	let temp = school.state
-	t.is(temp, "newname")
+	expect(temp).toBe("newname")
 }) 
 
