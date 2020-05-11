@@ -167,7 +167,9 @@ module.exports = function(app) {
 
     const highSchoolApprovalRequired = !studentPartnerOrg && !zipCode
     if (highSchoolApprovalRequired && school && !school.isApproved)
-      return next(new Error(`School ${highSchoolUpchieveId} is not approved`));
+      return res.status(422).json({
+        err: `School ${highSchoolUpchieveId} is not approved`
+      })
 
     const { country_code: countryCode } = await IpAddressService.getIpWhoIs(ip)
     let isBanned = false
