@@ -130,11 +130,12 @@ module.exports = {
   },
 
   checkReferral: async function(referredByCode){
-    let referredById;
+    let referredById
     if (!referredByCode) return referredById
+
     try {
       referredById = await User.findOne({
-        referredByCode
+        referralCode: referredByCode
       })
         .select('_id')
         .lean()
