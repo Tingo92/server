@@ -1,5 +1,5 @@
 const _ = require('lodash')
-const Volunteer = require('../models/Volunteer')
+const Volunteer = require('../models/Volunteer').default
 
 module.exports = {
   updateSchedule: function(options, callback) {

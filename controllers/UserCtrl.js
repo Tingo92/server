@@ -1,5 +1,5 @@
-const User = require('../models/User')
-const Volunteer = require('../models/Volunteer')
+const User = require('../models/User').default
+const Volunteer = require('../models/Volunteer').default
 const Session = require('../models/Session')
 
 // helper to check for errors before getting user profile
