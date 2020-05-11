@@ -9,9 +9,9 @@ const ResetPasswordCtrl = require('../../controllers/ResetPasswordCtrl')
 const MailService = require('../../services/MailService')
 const IpAddressService = require('../../services/IpAddressService')
 const config = require('../../config.js')
-const User = require('../../models/User')
-const Student = require('../../models/Student')
-const Volunteer = require('../../models/Volunteer')
+const User = require('../../models/User').default
+const Student = require('../../models/Student').default
+const Volunteer = require('../../models/Volunteer').default
 const School = require('../../models/School.js')
 const UserActionCtrl = require('../../controllers/UserActionCtrl')
 const { USER_BAN_REASON } = require('../../constants')
@@ -167,7 +167,9 @@ module.exports = function(app) {
 
     const highSchoolApprovalRequired = !studentPartnerOrg && !zipCode
     if (highSchoolApprovalRequired && school && !school.isApproved)
-      return next(new Error(`School ${highSchoolUpchieveId} is not approved`));
+      return res.status(422).json({
+        err: `School ${highSchoolUpchieveId} is not approved`
+      })
 
     const { country_code: countryCode } = await IpAddressService.getIpWhoIs(ip)
     let isBanned = false

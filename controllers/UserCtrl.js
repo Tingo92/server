@@ -1,5 +1,5 @@
-const User = require('../models/User')
-const Volunteer = require('../models/Volunteer')
+const User = require('../models/User').default
+const Volunteer = require('../models/Volunteer').default
 const Session = require('../models/Session')
 
 // helper to check for errors before getting user profile
@@ -130,11 +130,12 @@ module.exports = {
   },
 
   checkReferral: async function(referredByCode){
-    let referredById;
+    let referredById
     if (!referredByCode) return referredById
+
     try {
       referredById = await User.findOne({
-        referredByCode
+        referralCode: referredByCode
       })
         .select('_id')
         .lean()

@@ -1,4 +1,4 @@
-const User = require('../models/User')
+const User = require('../models/User').default
 
 module.exports = {
   addPastSession: async function(user, session) {

@@ -3,7 +3,7 @@ var crypto = require('crypto')
 
 var MailService = require('../services/MailService')
 
-var User = require('../models/User')
+var User = require('../models/User').default
 
 module.exports = {
   initiateReset: function(options, callback) {
