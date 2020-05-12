@@ -141,7 +141,7 @@ module.exports = function(socketService) {
           ).catch(error => Sentry.captureException(error))
         }
 
-        socketService.joinUserToSession(sessionId, user._id, socket)
+        socketService.emitSessionChange(session._id)
       } catch (err) {
         // data passed so client knows whether the session has ended or was fulfilled
         socketService.bump(

@@ -70,11 +70,19 @@ module.exports = function(io, sessionStore) {
     })
 
     socket.on('typing', function(data) {
-      socket.broadcast.to(data.sessionId).emit('is-typing')
+      socketService.emitToOtherUser(
+        data.sessionId,
+        socket.request.user,
+        'is-typing'
+      )
     })
 
     socket.on('notTyping', function(data) {
-      socket.broadcast.to(data.sessionId).emit('not-typing')
+      socketService.emitToOtherUser(
+        data.sessionId,
+        socket.request.user,
+        'not-typing'
+      )
     })
 
     socket.on('message', async function(data) {
