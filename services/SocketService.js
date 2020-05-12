@@ -92,7 +92,10 @@ module.exports = function(io) {
         ])
         .exec()
 
-      this.emitToUser(session.otherParticipant(user), event, args)
+      const otherUser = session.otherParticipant(user)
+      if (otherUser) {
+        this.emitToUser(otherUser, event, args)
+      }
     },
 
     bump: function(socket, data, err) {
