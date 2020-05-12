@@ -4,7 +4,7 @@ const validator = require('validator')
 const config = require('../config.js')
 const { USER_BAN_REASON } = require('../constants')
 
-const baseUserSchemaOptions = {
+const schemaOptions = {
   /**
    * https://mongoosejs.com/docs/discriminators.html#discriminator-keys
    * The discriminator key is used to discern the different inherited models. The value of the disciminatorKey
@@ -135,7 +135,7 @@ const baseUserSchema = new mongoose.Schema(
       type: String
     }
   },
-  baseUserSchemaOptions
+  schemaOptions
 )
 
 // Given a user record, strip out sensitive data for public consumption
