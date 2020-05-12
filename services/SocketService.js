@@ -70,10 +70,6 @@ module.exports = function(io) {
       await this.updateSessionList()
     },
 
-    emitSessionEnd: function(sessionId) {
-      return emitSessionChange(sessionId)
-    },
-
     emitSessionChange: async function(sessionId) {
       const session = await getSessionData(sessionId)
 
@@ -96,7 +92,7 @@ module.exports = function(io) {
         ])
         .exec()
 
-      emitToUser(session.otherParticipant(user), event, args)
+      this.emitToUser(session.otherParticipant(user), event, args)
     },
 
     bump: function(socket, data, err) {
