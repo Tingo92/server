@@ -200,20 +200,7 @@ sessionSchema.statics.getUnfulfilledSessions = async function() {
     .sort({ createdAt: -1 })
     .exec()
 
-  const oneMinuteAgo = moment().subtract(1, 'minutes')
-
-  return sessions.filter(session => {
-    const isNewStudent =
-      session.student.pastSessions && session.student.pastSessions.length === 0
-    const wasSessionCreatedAMinuteAgo = moment(oneMinuteAgo).isBefore(
-      session.createdAt
-    )
-    // Don't show new students' sessions for a minute (they often cancel immediately)
-    if (isNewStudent && wasSessionCreatedAMinuteAgo) return false
-    // Don't show banned students' sessions
-    if (session.student.isBanned) return false
-    return true
-  })
+  return sessions.filter(session => !session.student.isBanned)
 }
 
 module.exports = mongoose.model('Session', sessionSchema)
