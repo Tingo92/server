@@ -28,13 +28,13 @@
     "report-dir": "coverage"
   },
   "ava": {
-		"extensions": [
-			"ts"
-		],
-		"require": [
-			"ts-node/register"
-		]
-	},
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  },
   "dependencies": {
     "@sendgrid/mail": "^6.4.0",
     "@sentry/node": "^5.8.0",
