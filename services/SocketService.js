@@ -28,14 +28,12 @@ async function getSessionData(sessionId) {
 module.exports = function(io) {
   return {
     // to be called by router/api/sockets.js when user connects socket and authenticates
-    connectUser: async function(userId, socket) {
+    connectUser: async function(user, socket) {
+      const userId = user._id
       if (!userSockets[userId]) {
         userSockets[userId] = []
       }
       userSockets[userId].push(socket)
-
-      // query database to see if user is a volunteer
-      const user = await User.findById(userId, 'isVolunteer').exec()
 
       if (user && user.isVolunteer) {
         socket.join('volunteers')

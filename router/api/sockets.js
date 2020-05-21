@@ -40,7 +40,7 @@ module.exports = function(io, sessionStore) {
   io.on('connection', async function(socket) {
     // store user and socket in SocketService
     const connectPromise = socketService.connectUser(
-      socket.request.user._id,
+      socket.request.user,
       socket
     )
 
