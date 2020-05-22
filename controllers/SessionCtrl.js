@@ -31,7 +31,7 @@ module.exports = function(socketService) {
 
       const savedSession = await session.save()
 
-      socketService.emitNewSession(savedSession)
+      socketService.updateSessionList()
 
       if (!user.isBanned) {
         twilioService.beginRegularNotifications(savedSession)
@@ -41,14 +41,12 @@ module.exports = function(socketService) {
       return savedSession
     },
 
-    end: async function(options) {
-      const user = options.user
-
-      if (!options.sessionId) {
+    end: async function({ sessionId, user }) {
+      if (!sessionId) {
         throw new Error('No session ID specified')
       }
 
-      const session = await Session.findById(options.sessionId).exec()
+      const session = await Session.findById(sessionId).exec()
 
       if (!session) {
         throw new Error('No session found')
@@ -67,10 +65,10 @@ module.exports = function(socketService) {
 
       await sessionService.endSession(session, user)
 
-      socketService.emitSessionChange(options.sessionId)
+      socketService.emitSessionChange(sessionId)
 
-      WhiteboardCtrl.saveDocToSession(options.sessionId).then(() => {
-        WhiteboardCtrl.clearDocFromCache(options.sessionId)
+      WhiteboardCtrl.saveDocToSession(sessionId).then(() => {
+        WhiteboardCtrl.clearDocFromCache(sessionId)
       })
 
       return session
@@ -156,30 +154,6 @@ module.exports = function(socketService) {
       }
     },
 
-    // deliver a message
-    message: async function(data) {
-      const message = {
-        user: data.user,
-        contents: data.message
-      }
-      const sessionId = data.sessionId
-
-      const session = await Session.findById(sessionId).exec()
-      if (!session) {
-        throw new Error('No session found with that ID!')
-      }
-
-      this.verifySessionParticipant(
-        session,
-        data.user,
-        new Error('Only session participants are allowed to send messages')
-      )
-
-      const savedMessage = await session.saveMessage(message)
-
-      socketService.deliverMessage(savedMessage, sessionId)
-    },
-
     // verify that a user is a session participant
     verifySessionParticipant: function(session, user, error) {
       // all participants in the session
@@ -194,15 +168,6 @@ module.exports = function(socketService) {
       ) {
         throw error
       }
-    },
-
-    verifySessionParticipantBySessionId: async function(
-      sessionId,
-      user,
-      error
-    ) {
-      const session = await Session.findById(sessionId)
-      this.verifySessionParticipant(session, user, error)
     }
   }
 }

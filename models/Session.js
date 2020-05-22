@@ -75,31 +75,6 @@ const sessionSchema = new mongoose.Schema({
   ]
 })
 
-sessionSchema.methods.saveMessage = function(messageObj, cb) {
-  const session = this
-  this.messages = this.messages.concat({
-    user: messageObj.user._id,
-    contents: messageObj.contents
-  })
-
-  const messageId = this.messages[this.messages.length - 1]._id
-  const promise = this.save().then(() => {
-    const savedMessageIndex = session.messages.findIndex(function(message) {
-      return message._id === messageId
-    })
-
-    const savedMessage = session.messages[savedMessageIndex]
-
-    return savedMessage
-  })
-
-  if (cb) {
-    promise.then(cb)
-  } else {
-    return promise
-  }
-}
-
 // helper function for handling joins that fail because session is fulfilled or has ended
 function failJoin(session, user, error) {
   if (user.isVolunteer) {

@@ -9,6 +9,7 @@ const Session = require('../../models/Session.js')
 
 const config = require('../../config')
 const SessionCtrl = require('../../controllers/SessionCtrl.js')
+const SessionService = require('../../services/SessionService.js')
 const SocketService = require('../../services/SocketService.js')
 const Sentry = require('@sentry/node')
 
@@ -38,31 +39,24 @@ module.exports = function(io, sessionStore) {
   )
 
   io.on('connection', async function(socket) {
-    // store user and socket in SocketService
-    const connectPromise = socketService.connectUser(
-      socket.request.user,
-      socket
-    )
+    const user = socket.request.user
+    socketService.addUserSocket(user._id, socket)
 
-    // Session management
-    socket.on('join', async function(data) {
-      if (!data || !data.sessionId) {
-        return
-      }
+    if (user.isVolunteer) socket.join('volunteers')
 
-      // wait for socketService.connectUser to complete before joining
-      await connectPromise.then(() => {
-        sessionCtrl.join(socket, {
-          sessionId: data.sessionId,
-          user: socket.request.user
-        })
-      })
+    // On initial connection, emit current session
+    SessionService.getCurrentSession(user._id).then(currentSession => {
+      socket.emit('session-change', currentSession || {})
     })
 
     socket.on('disconnect', function(reason) {
       console.log(`${reason} - User ID: ${socket.request.user._id}`)
+      socketService.removeUserSocket(socket.request.user._id, socket)
+    })
 
-      socketService.disconnectUser(socket)
+    socket.on('error', function(error) {
+      console.log('Socket error: ', error)
+      Sentry.captureException(error)
     })
 
     socket.on('list', async function() {
@@ -70,31 +64,63 @@ module.exports = function(io, sessionStore) {
       socket.emit('sessions', sessions)
     })
 
-    socket.on('typing', function(data) {
-      socketService.emitToOtherUser(
-        data.sessionId,
-        socket.request.user._id,
-        'is-typing'
-      )
+    socket.on('join', async function({ sessionId }) {
+      try {
+        sessionCtrl.join(socket, {
+          sessionId,
+          user: socket.request.user
+        })
+      } catch (err) {
+        console.log(err)
+      }
     })
 
-    socket.on('notTyping', function(data) {
-      socketService.emitToOtherUser(
-        data.sessionId,
-        socket.request.user._id,
-        'not-typing'
-      )
+    socket.on('typing', async function({ sessionId }) {
+      try {
+        const userId = socket.request.user._id
+        const partnerSockets = await socketService.getPartnerSockets(sessionId, userId)
+
+        for (const socket of partnerSockets) {
+          socket.emit('is-typing')
+        }
+      } catch (err) {
+        console.log(err)
+      }
     })
 
-    socket.on('message', async function(data) {
-      if (!data.sessionId) return
+    socket.on('notTyping', async function({ sessionId }) {
+      try {
+        const userId = socket.request.user._id
+        const partnerSockets = await socketService.getPartnerSockets(sessionId, userId)
 
-      await sessionCtrl.message(data)
+        for (const socket of partnerSockets) {
+          socket.emit('not-typing')
+        }
+      } catch (err) {
+        console.log(err)
+      }
     })
 
-    socket.on('error', function(error) {
-      console.log('Socket error: ', error)
-      Sentry.captureException(error)
+    socket.on('message', async function({ sessionId, contents }) {
+      try {
+        const userId = socket.request.user._id
+        const partnerSockets = await socketService.getPartnerSockets(sessionId, userId)
+        const ownSockets = socketService.getUserSockets(userId)
+
+        const messageData = {
+          contents,
+          user: userId,
+          createdAt: Date.now()
+        }
+
+        for (const socket of partnerSockets.concat(ownSockets)) {
+          socket.emit('messageSend', messageData)
+        }
+
+        await SessionService.addMessage({ sessionId, user: socket.request.user, contents })
+      } catch (err) {
+        console.log(err)
+      }
     })
   })
 }
