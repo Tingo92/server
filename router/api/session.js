@@ -111,7 +111,7 @@ module.exports = function(router, io) {
     const userId = ObjectId(data.user_id)
 
     try {
-      const currentSession = await Session.current(userId)
+      const currentSession = await SessionService.getCurrentSession(userId)
       if (!currentSession) {
         res.status(404).json({ err: 'No current session' })
       } else {
