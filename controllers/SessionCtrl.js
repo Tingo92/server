@@ -46,7 +46,9 @@ module.exports = function(socketService) {
         throw new Error('No session ID specified')
       }
 
-      const session = await Session.findById(sessionId).exec()
+      const session = await Session.findById(sessionId)
+        .lean()
+        .exec()
 
       if (!session) {
         throw new Error('No session found')

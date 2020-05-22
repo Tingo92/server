@@ -48,8 +48,7 @@ module.exports = {
   },
 
   endSession: async function(session, user) {
-    var student = session.student
-    var volunteer = session.volunteer
+    const { student, volunteer } = session
 
     // add session to the student and volunteer's pastSessions
     this.addPastSession(student, session)
@@ -57,7 +56,10 @@ module.exports = {
       this.addPastSession(volunteer, session)
     }
 
-    await session.endSession(user)
+    await Session.updateOne(
+      { _id: session._id },
+      { endedAt: Date.now(), endedBy: user }
+    )
   },
 
   isSessionFulfilled: function(session) {
