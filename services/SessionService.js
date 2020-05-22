@@ -41,7 +41,10 @@ module.exports = {
       user,
       contents
     }
-    await Session.updateOne({ _id: sessionId }, { $addToSet: { messages: message } })
+    await Session.updateOne(
+      { _id: sessionId },
+      { $addToSet: { messages: message } }
+    )
   },
 
   endSession: async function(session, user) {

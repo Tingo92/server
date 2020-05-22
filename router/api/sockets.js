@@ -78,7 +78,10 @@ module.exports = function(io, sessionStore) {
     socket.on('typing', async function({ sessionId }) {
       try {
         const userId = socket.request.user._id
-        const partnerSockets = await socketService.getPartnerSockets(sessionId, userId)
+        const partnerSockets = await socketService.getPartnerSockets(
+          sessionId,
+          userId
+        )
 
         for (const socket of partnerSockets) {
           socket.emit('is-typing')
@@ -91,7 +94,10 @@ module.exports = function(io, sessionStore) {
     socket.on('notTyping', async function({ sessionId }) {
       try {
         const userId = socket.request.user._id
-        const partnerSockets = await socketService.getPartnerSockets(sessionId, userId)
+        const partnerSockets = await socketService.getPartnerSockets(
+          sessionId,
+          userId
+        )
 
         for (const socket of partnerSockets) {
           socket.emit('not-typing')
@@ -104,7 +110,10 @@ module.exports = function(io, sessionStore) {
     socket.on('message', async function({ sessionId, contents }) {
       try {
         const userId = socket.request.user._id
-        const partnerSockets = await socketService.getPartnerSockets(sessionId, userId)
+        const partnerSockets = await socketService.getPartnerSockets(
+          sessionId,
+          userId
+        )
         const ownSockets = socketService.getUserSockets(userId)
 
         const messageData = {
@@ -117,7 +126,11 @@ module.exports = function(io, sessionStore) {
           socket.emit('messageSend', messageData)
         }
 
-        await SessionService.addMessage({ sessionId, user: socket.request.user, contents })
+        await SessionService.addMessage({
+          sessionId,
+          user: socket.request.user,
+          contents
+        })
       } catch (err) {
         console.log(err)
       }

@@ -1,11 +1,9 @@
 const { get } = require('lodash')
-const User = require('../models/User')
 const Session = require('../models/Session')
-const Message = require('../models/Message')
 
 const userSockets = {} // userId => [sockets]
 
-const getUserSockets = (userId) => {
+const getUserSockets = userId => {
   return get(userSockets, userId, [])
 }
 
@@ -35,8 +33,7 @@ module.exports = function(io) {
         .lean()
         .exec()
 
-      if (!(session.student && session.volunteer))
-        return []
+      if (!(session.student && session.volunteer)) return []
 
       if (session.student.equals(userId)) {
         return getUserSockets(session.volunteer)
