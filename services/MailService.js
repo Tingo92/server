@@ -1,6 +1,5 @@
 const config = require('../config')
 const sgMail = require('@sendgrid/mail')
-const { capitalize } = require('lodash')
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -109,7 +108,7 @@ module.exports = {
       'UPchieve',
       config.sendgrid.volunteerWelcomeTemplate,
       {
-        firstName: capitalize(firstName),
+        firstName,
         coachGuideLink,
         scheduleLink,
         trainingLink
@@ -124,9 +123,7 @@ module.exports = {
       config.mail.senders.noreply,
       'UPchieve',
       config.sendgrid.studentWelcomeTemplate,
-      {
-        firstName: capitalize(firstName)
-      },
+      { firstName },
       config.sendgrid.unsubscribeGroup.account
     )
   },

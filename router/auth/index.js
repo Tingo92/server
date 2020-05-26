@@ -2,7 +2,6 @@ const express = require('express')
 const passport = require('passport')
 const Sentry = require('@sentry/node')
 const { findKey } = require('lodash')
-const { capitalize } = require('lodash')
 const ResetPasswordCtrl = require('../../controllers/ResetPasswordCtrl')
 const IpAddressService = require('../../services/IpAddressService')
 const config = require('../../config')
@@ -182,8 +181,8 @@ module.exports = function(app) {
 
     const referredBy = await UserCtrl.checkReferral(referredByCode)
     const studentData = {
-      firstname: capitalize(firstName.trim()),
-      lastname: capitalize(lastName.trim()),
+      firstname: firstName.trim(),
+      lastname: lastName.trim(),
       email,
       zipCode,
       studentPartnerOrg,
@@ -282,8 +281,8 @@ module.exports = function(app) {
       college,
       phone,
       favoriteAcademicSubject,
-      firstname: capitalize(firstName.trim()),
-      lastname: capitalize(lastName.trim()),
+      firstname: firstName.trim(),
+      lastname: lastName.trim(),
       verified: false,
       referredBy,
       password,
