@@ -68,26 +68,30 @@ module.exports = function(io) {
       userSockets[userId].splice(socketIndex, 1)
 
       // update session partner on connection status
-      const currentSession = await Session.current(userId);
+      const currentSession = await Session.current(userId)
       if (currentSession) {
         this.updateConnectionStatus(currentSession, userId, false)
       }
     },
 
-    updateConnectionStatus: function(currentSession, userId, isConnectionAlive) {
+    updateConnectionStatus: function(
+      currentSession,
+      userId,
+      isConnectionAlive
+    ) {
       const sessionPartner = currentSession.student._id.equals(userId)
         ? currentSession.volunteer
-        : (currentSession.volunteer._id.equals(userId)
-          ? currentSession.student
-          : null
-        )
+        : currentSession.volunteer._id.equals(userId)
+        ? currentSession.student
+        : null
 
       if (sessionPartner) {
         // update user on session partner's connection status
         this.emitToUser(userId, 'partner-status', {
-          isSessionPartnerConnectionAlive: !!userSockets[sessionPartner._id].length
+          isSessionPartnerConnectionAlive: !!userSockets[sessionPartner._id]
+            .length
         })
-    
+
         // update user's session partner on connection status
         this.emitToUser(sessionPartner._id, 'partner-status', {
           isSessionPartnerConnectionAlive: isConnectionAlive
