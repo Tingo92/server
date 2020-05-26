@@ -10,6 +10,7 @@ const UserService = require('../../services/UserService')
 const MailService = require('../../services/MailService')
 const recordIpAddress = require('../../middleware/record-ip-address')
 const passport = require('../auth/passport')
+const mapMultiWordSubtopic = require('../../utils/map-multi-word-subtopic')
 const { USER_BAN_REASON } = require('../../constants')
 
 module.exports = function(router, io) {
@@ -22,8 +23,12 @@ module.exports = function(router, io) {
     .post(recordIpAddress, async function(req, res, next) {
       const data = req.body || {}
       const sessionType = data.sessionType
-      const sessionSubTopic = data.sessionSubTopic
+      let sessionSubTopic = data.sessionSubTopic
       const { user, ip } = req
+
+      // Map multi-word categories from lowercased to how it's defined in the User model
+      // ex: 'physicsone' -> 'physicsOne' and stores 'physicsOne' on the session
+      sessionSubTopic = mapMultiWordSubtopic(sessionSubTopic)
 
       try {
         const session = await sessionCtrl.create({

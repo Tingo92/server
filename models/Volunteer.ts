@@ -202,6 +202,50 @@ const volunteerSchema = new mongoose.Schema(
         },
         lastAttemptedAt: { type: Date }
       },
+      integratedMathOne: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      integratedMathTwo: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      integratedMathThree: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      integratedMathFour: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
       applications: {
         passed: {
           type: Boolean,
@@ -236,6 +280,28 @@ const volunteerSchema = new mongoose.Schema(
         lastAttemptedAt: { type: Date }
       },
       biology: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      chemistry: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      physicsOne: {
         passed: {
           type: Boolean,
           default: false
