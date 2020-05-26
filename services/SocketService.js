@@ -45,11 +45,15 @@ module.exports = function(io) {
       const currentSession = await Session.current(userId)
       if (user) {
         socket.emit('session-change', currentSession || {})
+
+        if (currentSession) {
+          this.updateConnectionStatus(currentSession, userId, true)
+        }
       }
     },
 
     // to be called by router/api/sockets.js when user socket disconnects
-    disconnectUser: function(socket) {
+    disconnectUser: async function(socket) {
       const userId = Object.keys(userSockets).find(
         id =>
           userSockets[id].findIndex(
@@ -62,6 +66,33 @@ module.exports = function(io) {
       )
 
       userSockets[userId].splice(socketIndex, 1)
+
+      // update session partner on connection status
+      const currentSession = await Session.current(userId);
+      if (currentSession) {
+        this.updateConnectionStatus(currentSession, userId, false)
+      }
+    },
+
+    updateConnectionStatus: function(currentSession, userId, isConnectionAlive) {
+      const sessionPartner = currentSession.student._id.equals(userId)
+        ? currentSession.volunteer
+        : (currentSession.volunteer._id.equals(userId)
+          ? currentSession.student
+          : null
+        )
+
+      if (sessionPartner) {
+        // update user on session partner's connection status
+        this.emitToUser(userId, 'partner-status', {
+          isSessionPartnerConnectionAlive: !!userSockets[sessionPartner._id].length
+        })
+    
+        // update user's session partner on connection status
+        this.emitToUser(sessionPartner._id, 'partner-status', {
+          isSessionPartnerConnectionAlive: isConnectionAlive
+        })
+      }
     },
 
     emitToUser: function(userId, event, ...args) {
