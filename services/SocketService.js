@@ -1,5 +1,6 @@
 const { get } = require('lodash')
 const Session = require('../models/Session')
+const SessionService = require('../services/SessionService')
 
 const userSockets = {} // userId => [sockets]
 
@@ -70,7 +71,7 @@ module.exports = function(io) {
 
     // update the list of sessions displayed on the volunteer web page
     updateSessionList: async () => {
-      const sessions = await Session.getUnfulfilledSessions()
+      const sessions = await SessionService.getUnfulfilledSessions()
       io.in('volunteers').emit('sessions', sessions)
     },
 

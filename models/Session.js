@@ -1,7 +1,5 @@
 const mongoose = require('mongoose')
-
 const Message = require('./Message')
-const moment = require('moment-timezone')
 
 const validTypes = ['Math', 'College', 'Science']
 
@@ -128,37 +126,6 @@ sessionSchema.methods.addNotifications = function(notificationsToAdd, cb) {
       $push: { notifications: { $each: notificationsToAdd } }
     })
     .exec(cb)
-}
-
-// sessions that have not yet been fulfilled by a volunteer
-sessionSchema.statics.getUnfulfilledSessions = async function() {
-  const queryAttrs = {
-    volunteerJoinedAt: { $exists: false },
-    endedAt: { $exists: false }
-  }
-
-  const sessions = await this.find(queryAttrs)
-    .populate({
-      path: 'student',
-      select: 'firstname isVolunteer isTestUser isBanned pastSessions'
-    })
-    .sort({ createdAt: -1 })
-    .exec()
-
-  const oneMinuteAgo = moment().subtract(1, 'minutes')
-
-  return sessions.filter(session => {
-    const isNewStudent =
-      session.student.pastSessions && session.student.pastSessions.length === 0
-    const wasSessionCreatedAMinuteAgo = moment(oneMinuteAgo).isBefore(
-      session.createdAt
-    )
-    // Don't show new students' sessions for a minute (they often cancel immediately)
-    if (isNewStudent && wasSessionCreatedAMinuteAgo) return false
-    // Don't show banned students' sessions
-    if (session.student.isBanned) return false
-    return true
-  })
 }
 
 module.exports = mongoose.model('Session', sessionSchema)

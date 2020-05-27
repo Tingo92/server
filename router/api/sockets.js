@@ -60,7 +60,7 @@ module.exports = function(io, sessionStore) {
     })
 
     socket.on('list', async function() {
-      const sessions = await Session.getUnfulfilledSessions()
+      const sessions = await SessionService.getUnfulfilledSessions()
       socket.emit('sessions', sessions)
     })
 
