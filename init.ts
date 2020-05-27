@@ -18,10 +18,16 @@ db.once('open', function() {
   // Data about the seed data we intend to import / update from this file
   const seedDataMetadata = [
     {
-      folder: 'users/',
+      folder: 'students/',
       idField: 'email',
-      model: 'User',
-      files: ['test_users']
+      model: 'Student',
+      files: ['test_students']
+    },
+    {
+      folder: 'volunteers/',
+      idField: 'email',
+      model: 'Volunteer',
+      files: ['test_volunteers']
     },
     {
       folder: 'schools/',
