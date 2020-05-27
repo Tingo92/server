@@ -1,6 +1,8 @@
 const UserCtrl = require('../../controllers/UserCtrl')
+const User = require('../../models/User')
+const Volunteer = require('../../models/Volunteer')
 const passport = require('../auth/passport')
-const config = require('../../config.js')
+const config = require('../../config')
 
 module.exports = function(router) {
   router.route('/user').get(function(req, res) {
@@ -27,28 +29,43 @@ module.exports = function(router) {
     }
   })
 
-  router.put('/user', function(req, res, next) {
-    var data = req.body || {}
-    UserCtrl.update(
-      {
-        userId: req.user._id,
-        data: {
-          phone: data.phone,
-          phonePretty: data.phonePretty,
-          college: data.college,
-          favoriteAcademicSubject: data.favoriteAcademicSubject
-        }
-      },
-      function(err, parsedUser) {
-        if (err) {
-          next(err)
-        } else {
-          res.json({
-            user: parsedUser
-          })
-        }
-      }
-    )
+  // @note: Currently, only volunteers are able to update their profile
+  router.put('/user', async (req, res, next) => {
+    const { _id } = req.user
+    const { phone, college, favoriteAcademicSubject } = req.body
+
+    try {
+      await Volunteer.updateOne(
+        { _id },
+        { phone, college, favoriteAcademicSubject }
+      )
+      res.sendStatus(200)
+    } catch (err) {
+      next(err)
+    }
+  })
+
+  router.get('/user/:userId', passport.isAdmin, async function(req, res, next) {
+    const { userId } = req.params
+
+    try {
+      const user = await User.findOne({ _id: userId })
+        .populate({
+          path: 'pastSessions',
+          options: {
+            sort: { createdAt: -1 },
+            limit: 50
+          }
+        })
+        .populate('approvedHighschool')
+        .lean()
+        .exec()
+
+      res.json({ user })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   })
 
   /**

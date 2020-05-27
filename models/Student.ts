@@ -1,5 +1,5 @@
-import mongoose from 'mongoose'
-import User from './User.ts'
+import mongoose from 'mongoose';
+import User from './User';
 
 const schemaOptions = {
   toJSON: {
@@ -8,7 +8,7 @@ const schemaOptions = {
   toObject: {
     virtuals: true
   }
-}
+};
 
 const studentSchema = new mongoose.Schema(
   {
@@ -22,30 +22,10 @@ const studentSchema = new mongoose.Schema(
     studentPartnerOrg: String
   },
   schemaOptions
-)
-
-// Given a user record, strip out sensitive data for public consumption
-studentSchema.methods.parseProfile = function() {
-  return {
-    _id: this._id,
-    email: this.email,
-    verified: this.verified,
-    firstname: this.firstname,
-    lastname: this.lastname,
-    isVolunteer: this.isVolunteer,
-    isAdmin: this.isAdmin,
-    isTestUser: this.isTestUser,
-    createdAt: this.createdAt,
-    isFakeUser: this.isFakeUser
-  }
-}
-
-// Placeholder method to support asynchronous profile parsing
-studentSchema.methods.getProfile = function(cb) {
-  cb(null, this.parseProfile())
-}
+);
 
 // Use the user schema as the base schema for Student
-const Student = User.discriminator('Student', studentSchema)
+const Student = User.discriminator('Student', studentSchema);
 
-export default Student
+module.exports = Student;
+export default Student;

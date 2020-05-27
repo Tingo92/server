@@ -11,10 +11,7 @@ test('Called getSubcategories using nonexistant category', () => {
   }).toThrowError(ReferenceError)
 })
 
-test('Called getSubcategories using wrong capitalization data', () => {
-  const subcategories = Question.getSubcategories('Algebra')
-  expect(subcategories[0]).toBe('linear equations')
-})
+test.todo('Called getSubcategories using wrong capitalization data')
 
 test('Called getSubcategories using wrong type', () => {
   expect(() => {

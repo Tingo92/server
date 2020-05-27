@@ -7,7 +7,7 @@ const MessagingResponse = require('twilio').twiml.MessagingResponse
 
 const config = require('../../config')
 const twilioService = require('../../services/twilio')
-const Volunteer = require('../../models/Volunteer').default
+const Volunteer = require('../../models/Volunteer')
 const UserActionCtrl = require('../../controllers/UserActionCtrl')
 
 module.exports = function(app) {
@@ -91,7 +91,7 @@ module.exports = function(app) {
           twiml.message('The student has cancelled their help request')
         } else {
           // Handle: No issues, so send the session URL
-          const sessionUrl = twilioService.getSessionUrl(session._id)
+          const sessionUrl = twilioService.getSessionUrl(session)
           twiml.message(sessionUrl)
         }
       } catch (err) {

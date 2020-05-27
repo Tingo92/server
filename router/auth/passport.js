@@ -1,6 +1,6 @@
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
-const User = require('../../models/User').default
+const User = require('../../models/User')
 
 passport.serializeUser(function(user, done) {
   done(null, user._id)
@@ -9,7 +9,6 @@ passport.serializeUser(function(user, done) {
 passport.deserializeUser(async function(id, done) {
   try {
     const user = await User.findById(id).lean()
-    if (!user) return done(new Error('no user found'))
     return done(null, user)
   } catch (error) {
     return done(error)
