@@ -1,7 +1,6 @@
 const twilio = require('twilio')
 const moment = require('moment-timezone')
-const base64url = require('base64url')
-const config = require('../config.js')
+const config = require('../config')
 const User = require('../models/User')
 const queue = require('./QueueService')
 const Session = require('../models/Session')
@@ -10,6 +9,7 @@ const twilioClient =
   config.accountSid && config.authToken
     ? twilio(config.accountSid, config.authToken)
     : null
+const formatMultiWordSubtopic = require('../utils/format-multi-word-subtopic')
 
 // get the availability field to query for the current time
 function getCurrentAvailabilityPath() {
@@ -140,10 +140,11 @@ function sendVoiceMessage(phoneNumber, messageText) {
 }
 
 // the URL that the volunteer can use to join the session on the client
-function getSessionUrl(sessionId) {
+function getSessionUrl(session) {
   const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
-  const sessionIdEncoded = base64url(Buffer.from(sessionId.toString(), 'hex'))
-  return `${protocol}://${config.client.host}/s/${sessionIdEncoded}`
+  return `${protocol}://${config.client.host}/session/${
+    session.type
+  }/${session.subTopic.toLowerCase()}/${session._id}`
 }
 
 const getActiveSessionVolunteers = async () => {
@@ -174,7 +175,7 @@ const getVolunteersNotifiedSince = async sinceDate => {
 }
 
 const notifyVolunteer = async session => {
-  const subtopic = session.subTopic
+  let subtopic = session.subTopic
   const activeSessionVolunteers = await getActiveSessionVolunteers()
   const notifiedLastFifteenMins = await getVolunteersNotifiedSince(
     relativeDate(15 * 60 * 1000)
@@ -215,7 +216,11 @@ const notifyVolunteer = async session => {
 
   if (!volunteer) return null
 
-  const sessionUrl = getSessionUrl(session._id)
+  // Format multi-word subtopics from a key name to a display name
+  // ex: physicsOne -> Physics 1
+  subtopic = formatMultiWordSubtopic(subtopic)
+
+  const sessionUrl = getSessionUrl(session)
   const messageText = `Hi ${volunteer.firstname}, a student needs help in ${subtopic} on UPchieve! ${sessionUrl}`
   const sendPromise = sendTextMessage(volunteer.phone, messageText)
 
@@ -233,7 +238,7 @@ const notifyVolunteer = async session => {
 
 const notifyFailsafe = async function({ session, voice = false }) {
   const subtopic = session.subTopic
-  const sessionUrl = getSessionUrl(session._id)
+  const sessionUrl = getSessionUrl(session)
   const volunteersToNotify = await getFailsafeVolunteers()
   const { isTestUser } = await User.findOne({ _id: session.student })
     .select('isTestUser')
@@ -303,9 +308,7 @@ function recordNotification(sendPromise, notification) {
 module.exports = {
   notifyVolunteer,
 
-  getSessionUrl: function(sessionId) {
-    return getSessionUrl(sessionId)
-  },
+  getSessionUrl,
 
   beginRegularNotifications: async function(session) {
     const student = await User.findOne({ _id: session.student })
