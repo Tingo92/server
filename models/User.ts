@@ -3,7 +3,6 @@ import bcrypt from 'bcrypt';
 import validator from 'validator';
 import config from '../config';
 import { USER_BAN_REASON } from '../constants';
-import { User } from './types';
 
 const schemaOptions = {
   /**
