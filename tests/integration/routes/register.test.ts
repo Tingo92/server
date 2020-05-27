@@ -6,6 +6,7 @@ import School from '../../../models/School';
 import testHighSchools from '../../../seeds/schools/test_high_schools.json';
 import UserAction from '../../../models/UserAction';
 import { USER_ACTION } from '../../../constants';
+jest.mock('../../../services/MailService');
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const registerStudent = app => request(app).post('/auth/register/student');
