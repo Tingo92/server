@@ -1,4 +1,4 @@
-const Volunteer = require('../models/Volunteer').default
+const User = require('../models/User')
 const Session = require('../models/Session')
 const Message = require('../models/Message')
 
@@ -35,11 +35,9 @@ module.exports = function(io) {
       userSockets[userId].push(socket)
 
       // query database to see if user is a volunteer
-      const volunteer = await Volunteer.findOne({ _id: userId })
-        .lean()
-        .exec();
+      const user = await User.findById(userId, 'isVolunteer').exec()
 
-      if (volunteer) {
+      if (user && user.isVolunteer) {
         socket.join('volunteers')
       }
 

@@ -1,4 +1,4 @@
-import Volunteer from '../../../models/Volunteer'
+const Volunteer = require('../../../models/Volunteer')
 const Message = require('../../../models/Message')
 
 const user = new Volunteer({
