@@ -51,8 +51,7 @@ export const Config = Record({
       name: String
     }).And(
       Partial({
-        requiredEmailDomains: Array(String),
-        mathCoachingOnly: Boolean
+        requiredEmailDomains: Array(String)
       })
     )
   ),

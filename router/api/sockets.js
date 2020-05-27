@@ -1,12 +1,8 @@
 /**
  * Processes incoming socket messages
  */
-
 const passportSocketIo = require('passport.socketio')
 const cookieParser = require('cookie-parser')
-
-const Session = require('../../models/Session.js')
-
 const config = require('../../config')
 const SessionCtrl = require('../../controllers/SessionCtrl.js')
 const SessionService = require('../../services/SessionService.js')
