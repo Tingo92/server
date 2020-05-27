@@ -1,3 +1,4 @@
+import { values } from 'lodash';
 import { Document, model, Schema, Types } from 'mongoose';
 import { IP_ADDRESS_STATUS } from '../constants';
 
@@ -21,7 +22,7 @@ const ipAddressSchema = new Schema({
 
   status: {
     type: String,
-    enum: [IP_ADDRESS_STATUS.OK, IP_ADDRESS_STATUS.BANNED],
+    enum: values(IP_ADDRESS_STATUS),
     default: IP_ADDRESS_STATUS.OK
   }
 });

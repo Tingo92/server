@@ -3,6 +3,7 @@
  * such as SMS messages, sent by the app when students
  * request help and new sessions are created.
  */
+import { values } from 'lodash';
 import { Document, model, Schema, Types } from 'mongoose';
 
 enum NotificationType {
@@ -37,16 +38,12 @@ const notificationSchema = new Schema(
     },
     type: {
       type: String,
-      enum: [NotificationType.REGULAR, NotificationType.FAILSAFE],
+      enum: values(NotificationType),
       default: NotificationType.REGULAR
     },
     method: {
       type: String,
-      enum: [
-        NotificationMethod.SMS,
-        NotificationMethod.VOICE,
-        NotificationMethod.EMAIL
-      ]
+      enum: values(NotificationMethod)
     },
     wasSuccessful: {
       type: Boolean,
