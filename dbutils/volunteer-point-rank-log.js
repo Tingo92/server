@@ -4,7 +4,7 @@ const dbconnect = require('./dbconnect')
 
 const User = require('../models/User')
 require('../models/Session')
-require('../models/Notification')
+require('../models/notification').default
 
 dbconnect(mongoose, function() {
   const volunteerQueryMatch = {

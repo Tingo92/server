@@ -1,6 +1,17 @@
-var mongoose = require('mongoose')
+import { Document, model, Schema } from 'mongoose';
 
-var feedbackSchema = new mongoose.Schema({
+export interface Feedback extends Document {
+  sessionId: string;
+  type: string;
+  subTopic: string;
+  responseData: { [key: string]: any };
+  userType: string;
+  studentId: string;
+  volunteerId: string;
+  createdAt: Date;
+}
+
+const feedbackSchema = new Schema({
   sessionId: {
     type: String,
     default: ''
@@ -40,6 +51,6 @@ var feedbackSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
-})
+});
 
-module.exports = mongoose.model('Feedback', feedbackSchema)
+export default model<Feedback>('Feedback', feedbackSchema);

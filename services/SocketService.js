@@ -1,6 +1,6 @@
 const User = require('../models/User')
 const Session = require('../models/Session')
-const Message = require('../models/Message')
+const Message = require('../models/message').default
 
 const userSockets = {} // userId => [sockets]
 

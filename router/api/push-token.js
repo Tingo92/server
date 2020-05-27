@@ -1,4 +1,4 @@
-const PushToken = require('../../models/PushToken')
+const PushToken = require('../../models/pushToken').default
 
 module.exports = function(router) {
   router.post('/push-token/save', async function(req, res) {

@@ -3,12 +3,18 @@
  * to send to users for push notifications
  *
  */
-const mongoose = require('mongoose')
+import { Document, model, Schema, Types } from 'mongoose';
 
-const pushTokenSchema = new mongoose.Schema(
+export interface PushToken extends Document {
+  user: Types.ObjectId;
+  createdAt: Date;
+  token: string;
+}
+
+const pushTokenSchema = new Schema(
   {
     user: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Types.ObjectId,
       ref: 'User'
     },
     createdAt: { type: Date, default: Date.now },
@@ -24,6 +30,6 @@ const pushTokenSchema = new mongoose.Schema(
       virtuals: true
     }
   }
-)
+);
 
-module.exports = mongoose.model('PushToken', pushTokenSchema)
+export default model<PushToken>('PushToken', pushTokenSchema);
