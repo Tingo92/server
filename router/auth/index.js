@@ -244,6 +244,7 @@ module.exports = function(app) {
         err: checkResult
       })
     }
+
     // Volunteer partner org check (if no signup code provided)
     if (!code) {
       const allVolunteerPartnerManifests = config.volunteerPartnerManifests
