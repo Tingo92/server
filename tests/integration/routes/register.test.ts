@@ -1,14 +1,16 @@
-import mongoose from 'mongoose'
-import Student from '../../../models/Student'
-import { app } from '../../../app.ts'
-import School from '../../../models/School'
-import testHighSchools from '../../../seeds/schools/test_high_schools.json'
-import UserAction from '../../../models/UserAction'
-import { USER_ACTION } from '../../../constants'
-const request = require('supertest')
+import mongoose from 'mongoose';
+import request from 'supertest';
+import Student from '../../../models/Student';
+import app from '../../../app';
+import School from '../../../models/School';
+import testHighSchools from '../../../seeds/schools/test_high_schools.json';
+import UserAction from '../../../models/UserAction';
+import { USER_ACTION } from '../../../constants';
 
-const registerStudent = app => request(app).post('/auth/register/student')
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const registerStudent = app => request(app).post('/auth/register/student');
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createStudent = (options = {}) => {
   const student = {
     email: 'student1@upchieve.org',
@@ -20,240 +22,247 @@ const createStudent = (options = {}) => {
     zipCode: '11201',
     studentPartnerOrg: 'example',
     referredByCode: ''
-  }
+  };
 
-  return Object.assign(student, options)
-}
+  return Object.assign(student, options);
+};
+
+const US_IP_ADDRESS = '161.185.160.93';
 
 // db connection
 beforeAll(async () => {
   await mongoose.connect(process.env.MONGO_URL, {
     useNewUrlParser: true
-  })
-  School.insertMany(testHighSchools)
-})
+  });
+  School.insertMany(testHighSchools);
+});
 
 afterAll(async () => {
-  await mongoose.connection.close()
-})
+  await mongoose.connection.close();
+});
 
 // Register student tests
 test('Student did not agree with the terms', async () => {
-  const studentOptions = { terms: false }
-  const newStudent = createStudent(studentOptions)
+  const studentOptions = { terms: false };
+  const newStudent = createStudent(studentOptions);
+
   const response = await registerStudent(app)
     .send(newStudent)
     .set('Accept', 'application/json')
-    .expect(422)
+    .expect(422);
 
   const {
     body: { err }
-  } = response
+  } = response;
 
-  const expectedErrorMessage = 'Must accept the user agreement'
+  const expectedErrorMessage = 'Must accept the user agreement';
 
-  expect(err).toEqual(expectedErrorMessage)
-})
+  expect(err).toEqual(expectedErrorMessage);
+});
 
 test('Student did not provide an email', async () => {
-  const studentOptions = { email: '' }
-  const newStudent = createStudent(studentOptions)
+  const studentOptions = { email: '' };
+  const newStudent = createStudent(studentOptions);
 
   const response = await registerStudent(app)
     .send(newStudent)
     .set('Accept', 'application/json')
-    .expect(422)
+    .expect(422);
 
   const {
     body: { err }
-  } = response
+  } = response;
 
   const expectedErrorMessage =
-    'Must supply an email and password for registration'
+    'Must supply an email and password for registration';
 
-  expect(err).toEqual(expectedErrorMessage)
-})
+  expect(err).toEqual(expectedErrorMessage);
+});
 
 test('Student did not provide a password', async () => {
-  const studentOptions = { password: '' }
-  const newStudent = createStudent(studentOptions)
+  const studentOptions = { password: '' };
+  const newStudent = createStudent(studentOptions);
 
   const response = await registerStudent(app)
     .send(newStudent)
     .set('Accept', 'application/json')
-    .expect(422)
+    .expect(422);
 
   const {
     body: { err }
-  } = response
+  } = response;
 
   const expectedErrorMessage =
-    'Must supply an email and password for registration'
+    'Must supply an email and password for registration';
 
-  expect(err).toEqual(expectedErrorMessage)
-})
+  expect(err).toEqual(expectedErrorMessage);
+});
 
 test('Student did not provide a sufficient password', async () => {
-  const studentOptions = { password: 'password' }
-  const newStudent = createStudent(studentOptions)
+  const studentOptions = { password: 'password' };
+  const newStudent = createStudent(studentOptions);
   const response = await registerStudent(app)
     .send(newStudent)
     .set('Accept', 'application/json')
-    .expect(422)
+    .expect(422);
 
   const {
     body: { err }
-  } = response
+  } = response;
 
   const expectedErrorMessage =
-    'Password must contain at least one uppercase letter'
+    'Password must contain at least one uppercase letter';
 
-  expect(err).toEqual(expectedErrorMessage)
-})
+  expect(err).toEqual(expectedErrorMessage);
+});
 
 test('Student is not with a valid student partner organization', async () => {
   const studentOptions = {
     highSchoolId: '',
     zipCode: '',
     studentPartnerOrg: 'invalid'
-  }
-  const newStudent = createStudent(studentOptions)
+  };
+  const newStudent = createStudent(studentOptions);
   const response = await registerStudent(app)
     .send(newStudent)
     .set('Accept', 'application/json')
-    .expect(422)
+    .expect(422);
 
   const {
     body: { err }
-  } = response
+  } = response;
 
-  const expectedErrorMessage = 'Invalid student partner organization'
+  const expectedErrorMessage = 'Invalid student partner organization';
 
-  expect(err).toEqual(expectedErrorMessage)
-})
+  expect(err).toEqual(expectedErrorMessage);
+});
 
 test('Student registers with a highschool that is not approved and no partner org', async () => {
   const studentOptions = {
     highSchoolId: '12345678',
     zipCode: '',
     studentPartnerOrg: ''
-  }
-  const newStudent = createStudent(studentOptions)
+  };
+  const newStudent = createStudent(studentOptions);
   const response = await registerStudent(app)
     .send(newStudent)
     .set('Accept', 'application/json')
-    .expect(422)
+    .expect(422);
 
   const {
     body: { err }
-  } = response
+  } = response;
 
-  const expectedErrorMessage = `School ${studentOptions.highSchoolId} is not approved`
+  const expectedErrorMessage = `School ${studentOptions.highSchoolId} is not approved`;
 
-  expect(err).toEqual(expectedErrorMessage)
-})
+  expect(err).toEqual(expectedErrorMessage);
+});
 
 describe('Successful student registration', () => {
   beforeEach(async () => {
-    await Student.remove()
-  })
+    await Student.remove({});
+  });
 
   test('Create a student from outside the US', async () => {
-    const canadianIpAddress = '162.219.162.233'
-    const newStudent = createStudent()
+    const canadianIpAddress = '162.219.162.233';
+    const newStudent = createStudent();
     const response = await registerStudent(app)
       .send(newStudent)
       .set('Accept', 'application/json')
       .set('X-Forwarded-For', canadianIpAddress)
-      .expect(200)
+      .expect(200);
 
     const {
       body: { user }
-    } = response
+    } = response;
     const expectedBannedStatus = {
       isBanned: true,
       banReason: 'NON US SIGNUP'
-    }
+    };
 
-    expect(user).toMatchObject(expectedBannedStatus)
-  })
+    expect(user).toMatchObject(expectedBannedStatus);
+  });
 
   test('Student was referred from another student', async () => {
     // Create the first student
-    const newStudentOne = createStudent()
+    const newStudentOne = createStudent();
     const studentOneResponse = await registerStudent(app)
       .send(newStudentOne)
       .set('Accept', 'application/json')
-      .expect(200)
+      .set('X-Forwarded-For', US_IP_ADDRESS)
+      .expect(200);
 
     const {
       body: { user: studentOne }
-    } = studentOneResponse
-    const studentOneReferralCode = studentOne.referralCode
-    const studentOneId = studentOne._id
+    } = studentOneResponse;
+    const studentOneReferralCode = studentOne.referralCode;
+    const studentOneId = studentOne._id;
 
     // Create the second student
     const studentTwoOptions = {
       email: 'student2@upchieve.org',
       referredByCode: studentOneReferralCode
-    }
-    const newStudentTwo = createStudent(studentTwoOptions)
+    };
+    const newStudentTwo = createStudent(studentTwoOptions);
     const studentTwoResponse = await registerStudent(app)
       .send(newStudentTwo)
       .set('Accept', 'application/json')
-      .expect(200)
+      .set('X-Forwarded-For', US_IP_ADDRESS)
+      .expect(200);
 
     const {
       body: { user: studentTwo }
-    } = studentTwoResponse
+    } = studentTwoResponse;
 
-    const result = studentTwo.referredBy
-    const expected = studentOneId
+    const result = studentTwo.referredBy;
+    const expected = studentOneId;
 
-    expect(result).toEqual(expected)
-  })
+    expect(result).toEqual(expected);
+  });
 
-  // Issue with showing up banned
   test('Student registered with a student partner org', async () => {
     const studentOptions = {
       highSchoolId: '',
       zipCode: '',
       studentPartnerOrg: 'example'
-    }
-    const newStudent = createStudent(studentOptions)
+    };
+    const newStudent = createStudent(studentOptions);
     const response = await registerStudent(app)
       .send(newStudent)
       .set('Accept', 'application/json')
-      .expect(200)
+      .set('X-Forwarded-For', US_IP_ADDRESS)
+      .expect(200);
 
     const {
       body: { user }
-    } = response
-    const expectedStudentPartnerOrg = 'example'
-    const result = user.studentPartnerOrg
+    } = response;
 
-    expect(result).toEqual(expectedStudentPartnerOrg)
-  })
+    const expectedStudentPartnerOrg = 'example';
+    const result = user.studentPartnerOrg;
+
+    expect(result).toEqual(expectedStudentPartnerOrg);
+  });
 
   test('User action account created was created', async () => {
-    const newStudent = createStudent()
+    const newStudent = createStudent();
     const response = await registerStudent(app)
       .send(newStudent)
       .set('Accept', 'application/json')
-      .expect(200)
+      .set('X-Forwarded-For', US_IP_ADDRESS)
+      .expect(200);
 
     const {
       body: { user }
-    } = response
-    const { _id } = user
+    } = response;
+    const { _id } = user;
 
-    const userAction = await UserAction.findOne({ user: _id })
+    const userAction = await UserAction.findOne({ user: _id });
 
-    const result = userAction.action
-    const expected = USER_ACTION.ACCOUNT.CREATED
+    const result = userAction.action;
+    const expected = USER_ACTION.ACCOUNT.CREATED;
 
-    expect(result).toEqual(expected)
-  })
+    expect(result).toEqual(expected);
+  });
 
-  test.todo('Test if MailService was invoked')
-})
+  test.todo('Test if MailService was invoked');
+});
