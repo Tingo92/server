@@ -52,7 +52,7 @@ module.exports = {
     const { student, volunteer } = session
 
     // add session to the student and volunteer's pastSessions
-    this.addPastSession(student, session)
+    this.addPastSession(student, session) // TODO: remove `this.`?
     if (volunteer) {
       this.addPastSession(volunteer, session)
     }

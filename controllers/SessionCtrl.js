@@ -55,10 +55,12 @@ module.exports = function(socketService) {
       }
 
       if (session.endedAt) {
+        // TODO: improve
         // Session has already ended (the other user ended it)
         return session
       }
 
+      // TODO: remove?
       this.verifySessionParticipant(
         session,
         user,

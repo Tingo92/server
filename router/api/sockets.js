@@ -41,21 +41,35 @@ module.exports = function(io, sessionStore) {
     if (user.isVolunteer) socket.join('volunteers')
 
     // On initial connection, emit current session
+    // use async await here?
     SessionService.getCurrentSession(user._id).then(currentSession => {
       socket.emit('session-change', currentSession || {})
     })
+
+    /**
+     * TODO
+     * remove more model methods (especially session.joinUser, session.end)
+     * decide: what goes in SessionCtrl, what goes in SessionService?
+     * simplify join & end
+     * have everyone connect to socket.io on load & stop disconnecting on session end / waitlist teardown
+     * remove /session/current
+     * make sessions end via sockets?
+     * over using session-change?
+     * race conditions?
+     * test
+     */
 
     socket.on('disconnect', function(reason) {
       console.log(`${reason} - User ID: ${socket.request.user._id}`)
       socketService.removeUserSocket(socket.request.user._id, socket)
     })
 
-    socket.on('error', function(error) {
+    socket.on('error', (error) => {
       console.log('Socket error: ', error)
       Sentry.captureException(error)
     })
 
-    socket.on('list', async function() {
+    socket.on('list', async () => {
       const sessions = await SessionService.getUnfulfilledSessions()
       socket.emit('sessions', sessions)
     })
@@ -89,7 +103,7 @@ module.exports = function(io, sessionStore) {
       }
     })
 
-    socket.on('typing', async function({ sessionId }) {
+    socket.on('typing', async ({ sessionId }) => {
       try {
         const userId = socket.request.user._id
         const partnerSockets = await socketService.getPartnerSockets(
@@ -101,11 +115,12 @@ module.exports = function(io, sessionStore) {
           socket.emit('is-typing')
         }
       } catch (err) {
+        // capture w/ sentry?
         console.log(err)
       }
     })
 
-    socket.on('notTyping', async function({ sessionId }) {
+    socket.on('notTyping', async ({ sessionId }) => {
       try {
         const userId = socket.request.user._id
         const partnerSockets = await socketService.getPartnerSockets(
@@ -121,7 +136,7 @@ module.exports = function(io, sessionStore) {
       }
     })
 
-    socket.on('message', async function({ sessionId, contents }) {
+    socket.on('message', async ({ sessionId, contents }) => {
       try {
         const userId = socket.request.user._id
         const partnerSockets = await socketService.getPartnerSockets(
