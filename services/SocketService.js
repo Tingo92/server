@@ -27,6 +27,10 @@ async function getSessionData(sessionId) {
 
 module.exports = function(io) {
   return {
+    isConnected: function(userId) {
+      return !!(userSockets[userId] && userSockets[userId].length)
+    },
+
     // to be called by router/api/sockets.js when user connects socket and authenticates
     connectUser: async function(userId, socket) {
       if (!userSockets[userId]) {
