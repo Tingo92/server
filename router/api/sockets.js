@@ -64,7 +64,7 @@ module.exports = function(io, sessionStore) {
       socketService.removeUserSocket(socket.request.user._id, socket)
     })
 
-    socket.on('error', (error) => {
+    socket.on('error', error => {
       console.log('Socket error: ', error)
       Sentry.captureException(error)
     })
@@ -78,7 +78,7 @@ module.exports = function(io, sessionStore) {
       const session = await SessionService.getSession(sessionId)
 
       console.log(`joining session: ${session._id}`)
-      
+
       if (!session) socket.emit('bump')
 
       try {
