@@ -4,7 +4,7 @@ const moment = require('moment-timezone')
 
 module.exports = {
   getSession: async sessionId => {
-    return Session.findOne({ _id: sessionId })
+    return Session.findById(sessionId)
       .lean()
       .exec()
   },

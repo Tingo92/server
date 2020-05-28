@@ -88,72 +88,46 @@ module.exports = function(socketService) {
 
     // Given a sessionId and userId, join the user to the session and send necessary
     // socket events and notifications
-    join: async function(socket, options) {
-      const sessionId = options.sessionId
-      const user = options.user
-      const userAgent = socket.request.headers['user-agent']
-      const ipAddress = socket.handshake.address
+    join: async ({ session, user, userAgent, ipAddress }) => {
+      const sessionNotLean = await Session.findById(session._id).exec()
+      await sessionNotLean.joinUser(user)
+      const isInitialVolunteerJoin = user.isVolunteer && !session.volunteer
 
-      if (!user) {
-        throw new Error('User not authenticated')
-      }
+      if (isInitialVolunteerJoin) {
+        UserActionCtrl.joinedSession(
+          user._id,
+          session._id,
+          userAgent,
+          ipAddress
+        ).catch(error => Sentry.captureException(error))
 
-      const session = await Session.findById(sessionId).exec()
-      if (!session) {
-        throw new Error('No session found!')
-      }
+        const pushTokens = await PushToken.find({ user: session.student })
+          .lean()
+          .exec()
 
-      try {
-        const isInitialVolunteerJoin = user.isVolunteer && !session.volunteer
-
-        await session.joinUser(user)
-
-        if (isInitialVolunteerJoin) {
-          UserActionCtrl.joinedSession(
-            user._id,
-            session._id,
-            userAgent,
-            ipAddress
-          ).catch(error => Sentry.captureException(error))
-
-          const pushTokens = await PushToken.find({ user: session.student })
-            .lean()
-            .exec()
-
-          if (pushTokens && pushTokens.length > 0) {
-            const tokens = pushTokens.map(token => token.token)
-            PushTokenService.sendVolunteerJoined(session, tokens)
-          }
+        if (pushTokens && pushTokens.length > 0) {
+          const tokens = pushTokens.map(token => token.token)
+          PushTokenService.sendVolunteerJoined(session, tokens)
         }
-
-        // After 30 seconds of the this.createdAt, we can assume the user is
-        // rejoining the session instead of joining for the first time
-        const thirtySecondsElapsed = 1000 * 30
-        if (
-          !isInitialVolunteerJoin &&
-          Date.parse(session.createdAt) + thirtySecondsElapsed < Date.now()
-        ) {
-          UserActionCtrl.rejoinedSession(
-            user._id,
-            session._id,
-            userAgent,
-            ipAddress
-          ).catch(error => Sentry.captureException(error))
-        }
-
-        socketService.emitSessionChange(session._id)
-      } catch (err) {
-        // data passed so client knows whether the session has ended or was fulfilled
-        socketService.bump(
-          socket,
-          {
-            endedAt: session.endedAt,
-            volunteer: session.volunteer || null,
-            student: session.student
-          },
-          err
-        )
       }
+
+      // After 30 seconds of the this.createdAt, we can assume the user is
+      // rejoining the session instead of joining for the first time
+      const thirtySecondsElapsed = 1000 * 30
+      if (
+        !isInitialVolunteerJoin &&
+        Date.parse(session.createdAt) + thirtySecondsElapsed < Date.now()
+      ) {
+        UserActionCtrl.rejoinedSession(
+          user._id,
+          session._id,
+          userAgent,
+          ipAddress
+        ).catch(error => Sentry.captureException(error))
+      }
+
+      // TODO: do this in sockets.js
+      socketService.emitSessionChange(session._id)
     },
 
     // verify that a user is a session participant

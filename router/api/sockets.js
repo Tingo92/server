@@ -60,14 +60,32 @@ module.exports = function(io, sessionStore) {
       socket.emit('sessions', sessions)
     })
 
-    socket.on('join', async function({ sessionId }) {
+    socket.on('join', async ({ sessionId }) => {
+      const session = await SessionService.getSession(sessionId)
+
+      console.log(`joining session: ${session._id}`)
+      
+      if (!session) socket.emit('bump')
+
       try {
-        sessionCtrl.join(socket, {
-          sessionId,
-          user: socket.request.user
+        await sessionCtrl.join({
+          session,
+          user: socket.request.user,
+          userAgent: socket.request.headers['user-agent'],
+          ipAddress: socket.handshake.address
         })
+
+        // TODO:
+        // update session list here
+        // emit session change?
       } catch (err) {
-        console.log(err)
+        const failJoinData = {
+          endedAt: session.endedAt,
+          volunteer: session.volunteer || null,
+          student: session.student
+        }
+
+        socket.emit('bump', failJoinData, err.toString())
       }
     })
 
