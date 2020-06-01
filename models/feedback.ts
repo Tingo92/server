@@ -4,7 +4,7 @@ export interface Feedback extends Document {
   sessionId: string;
   type: string;
   subTopic: string;
-  responseData: { [key: string]: any };
+  responseData: { [key: string]: any }; // eslint-disable-line @typescript-eslint/no-explicit-any
   userType: string;
   studentId: string;
   volunteerId: string;
