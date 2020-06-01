@@ -208,12 +208,74 @@ module.exports = function(app) {
     }
   })
 
+  router.post('/register/volunteer/open', async function(req, res) {
+    const { ip } = req
+    const {
+      email,
+      password,
+      college,
+      phone,
+      favoriteAcademicSubject,
+      terms,
+      referredByCode,
+      firstName,
+      lastName
+    } = req.body
+
+    if (!terms) {
+      return res.status(422).json({
+        err: 'Must accept the user agreement'
+      })
+    }
+
+    if (!email || !password) {
+      return res.status(422).json({
+        err: 'Must supply an email and password for registration'
+      })
+    }
+
+    // Verify password for registration
+    const checkResult = checkPassword(password)
+    if (checkResult !== true) {
+      return res.status(422).json({
+        err: checkResult
+      })
+    }
+
+    const referredBy = await UserCtrl.checkReferral(referredByCode)
+
+    const volunteerData = {
+      email,
+      isVolunteer: true,
+      college,
+      phone,
+      favoriteAcademicSubject,
+      firstname: firstName.trim(),
+      lastname: lastName.trim(),
+      verified: false,
+      referredBy,
+      password,
+      ip
+    }
+
+    try {
+      const volunteer = await UserCtrl.createVolunteer(volunteerData)
+      await req.login(volunteer)
+      return res.json({
+        user: volunteer
+      })
+    } catch (err) {
+      Sentry.captureException(err)
+      return res.status(422).json({ err: err.message })
+    }
+  })
+
   /**
    * @todo:
    * This route becomes "/register/volunteer/partner"
    * Add new route "/register/volunteer/open"
    */
-  router.post('/register/volunteer', async function(req, res) {
+  router.post('/register/volunteer/partner', async function(req, res) {
     const { ip } = req
     const {
       email,
