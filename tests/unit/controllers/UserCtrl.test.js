@@ -13,7 +13,6 @@ const goodUser = new Volunteer({
 
   verified: true,
   verificationToken: 'verificationToken',
-  registrationCode: 'registrationCode',
   passwordResetToken: 'passwordResetToken',
 
   // Profile data

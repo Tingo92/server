@@ -6,7 +6,6 @@ const ResetPasswordCtrl = require('../../controllers/ResetPasswordCtrl')
 const IpAddressService = require('../../services/IpAddressService')
 const config = require('../../config')
 const User = require('../../models/User')
-const Volunteer = require('../../models/Volunteer')
 const School = require('../../models/School.js')
 const { USER_BAN_REASON } = require('../../constants')
 const authPassport = require('./passport')
@@ -209,12 +208,16 @@ module.exports = function(app) {
     }
   })
 
+  /**
+   * @todo:
+   * This route becomes "/register/volunteer/partner"
+   * Add new route "/register/volunteer/open"
+   */
   router.post('/register/volunteer', async function(req, res) {
     const { ip } = req
     const {
       email,
       password,
-      code,
       volunteerPartnerOrg,
       college,
       phone,
@@ -245,29 +248,27 @@ module.exports = function(app) {
       })
     }
 
-    // Volunteer partner org check (if no signup code provided)
-    if (!code) {
-      const allVolunteerPartnerManifests = config.volunteerPartnerManifests
-      const volunteerPartnerManifest =
-        allVolunteerPartnerManifests[volunteerPartnerOrg]
+    // Volunteer partner org check
+    const allVolunteerPartnerManifests = config.volunteerPartnerManifests
+    const volunteerPartnerManifest =
+      allVolunteerPartnerManifests[volunteerPartnerOrg]
 
-      if (!volunteerPartnerManifest) {
+    if (!volunteerPartnerManifest) {
+      return res.status(422).json({
+        err: 'Invalid volunteer partner organization'
+      })
+    }
+
+    const volunteerPartnerDomains =
+      volunteerPartnerManifest.requiredEmailDomains
+
+    // Confirm email has one of volunteer partner's required domains
+    if (volunteerPartnerDomains && volunteerPartnerDomains.length) {
+      const userEmailDomain = email.split('@')[1]
+      if (volunteerPartnerDomains.indexOf(userEmailDomain) === -1) {
         return res.status(422).json({
-          err: 'Invalid volunteer partner organization'
+          err: 'Invalid email domain for volunteer partner organization'
         })
-      }
-
-      const volunteerPartnerDomains =
-        volunteerPartnerManifest.requiredEmailDomains
-
-      // Confirm email has one of volunteer partner's required domains
-      if (volunteerPartnerDomains && volunteerPartnerDomains.length) {
-        const userEmailDomain = email.split('@')[1]
-        if (volunteerPartnerDomains.indexOf(userEmailDomain) === -1) {
-          return res.status(422).json({
-            err: 'Invalid email domain for volunteer partner organization'
-          })
-        }
       }
     }
 
@@ -276,7 +277,6 @@ module.exports = function(app) {
     const volunteerData = {
       email,
       isVolunteer: true,
-      registrationCode: code,
       volunteerPartnerOrg,
       college,
       phone,
@@ -385,23 +385,6 @@ module.exports = function(app) {
     }
 
     return res.json({ studentPartnerKey })
-  })
-
-  router.post('/register/check', function(req, res, next) {
-    const code = req.body.code
-
-    if (!code) {
-      res.status(422).json({
-        err: 'No registration code given'
-      })
-      return
-    }
-
-    const isVolunteerCode = Volunteer.checkCode(code)
-
-    res.json({
-      isValid: isVolunteerCode
-    })
   })
 
   // List all valid registration codes (admins only)

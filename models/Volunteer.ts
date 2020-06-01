@@ -106,7 +106,6 @@ const volunteerSchemaOptions = {
 
 const volunteerSchema = new mongoose.Schema(
   {
-    registrationCode: { type: String, select: false },
     volunteerPartnerOrg: String,
     isFailsafeVolunteer: {
       type: Boolean,
@@ -357,17 +356,6 @@ volunteerSchema.virtual('isOnboarded').get(function() {
 
   return !!this.availabilityLastModifiedAt && isCertified;
 });
-
-// Static method to determine if a registration code is valid
-volunteerSchema.statics.checkCode = function(code): boolean {
-  const volunteerCodes = config.VOLUNTEER_CODES.split(',');
-
-  const isVolunteerCode = volunteerCodes.some(volunteerCode => {
-    return volunteerCode.toUpperCase() === code.toUpperCase();
-  });
-
-  return isVolunteerCode;
-};
 
 // Use the user schema as the base schema for Volunteer
 const Volunteer = User.discriminator('Volunteer', volunteerSchema);

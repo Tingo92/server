@@ -8,7 +8,6 @@ const user = new User({
 
   verified: true,
   verificationToken: 'verificationToken',
-  registrationCode: 'registrationCode',
   passwordResetToken: 'passwordResetToken',
 
   // Profile data

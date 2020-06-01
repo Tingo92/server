@@ -82,7 +82,6 @@ export const Config = Record({
   // voice to use to render speech
   voice: Literal('man'),
 
-  VOLUNTEER_CODES: String,
   workerQueueName: String,
   redisConnectionString: String,
   firebase: Record({
