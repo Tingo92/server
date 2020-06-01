@@ -270,11 +270,6 @@ module.exports = function(app) {
     }
   })
 
-  /**
-   * @todo:
-   * This route becomes "/register/volunteer/partner"
-   * Add new route "/register/volunteer/open"
-   */
   router.post('/register/volunteer/partner', async function(req, res) {
     const { ip } = req
     const {
@@ -448,16 +443,6 @@ module.exports = function(app) {
 
     return res.json({ studentPartnerKey })
   })
-
-  // List all valid registration codes (admins only)
-  router
-    .route('/register/volunteercodes')
-    .all(authPassport.isAdmin)
-    .get(function(req, res, next) {
-      res.json({
-        volunteerCodes: config.VOLUNTEER_CODES.split(',')
-      })
-    })
 
   router.post('/reset/send', function(req, res, next) {
     const email = req.body.email
