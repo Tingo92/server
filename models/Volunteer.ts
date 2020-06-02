@@ -105,6 +105,10 @@ const volunteerSchemaOptions = {
 
 const volunteerSchema = new mongoose.Schema(
   {
+    isApproved: {
+      type: Boolean,
+      default: false
+    },
     volunteerPartnerOrg: String,
     isFailsafeVolunteer: {
       type: Boolean,
