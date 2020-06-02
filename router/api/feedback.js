@@ -1,4 +1,4 @@
-var Feedback = require('../../models/feedback').default
+var Feedback = require('../../models/Feedback')
 
 module.exports = function(router) {
   router.post('/feedback', function(req, res, next) {

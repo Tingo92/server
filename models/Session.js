@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const Message = require('./message').default
+const Message = require('./Message')
 const moment = require('moment-timezone')
 
 const validTypes = ['Math', 'College', 'Science']

@@ -5,7 +5,7 @@ const sessionService = require('../services/SessionService')
 const twilioService = require('../services/twilio')
 const Sentry = require('@sentry/node')
 const PushTokenService = require('../services/PushTokenService')
-const PushToken = require('../models/pushToken').default
+const PushToken = require('../models/PushToken')
 
 module.exports = function(socketService) {
   return {
