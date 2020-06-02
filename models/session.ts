@@ -242,4 +242,7 @@ sessionSchema.statics.getUnfulfilledSessions = async function(): Promise<
   });
 };
 
-export default model<Session>('Session', sessionSchema);
+const SessionModel = model<Session>('Session', sessionSchema);
+
+module.exports = SessionModel;
+export default SessionModel;

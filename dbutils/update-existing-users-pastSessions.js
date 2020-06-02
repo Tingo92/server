@@ -9,7 +9,7 @@ var async = require('async')
 var dbconnect = require('./dbconnect')
 
 var User = require('../models/user')
-var Session = require('../models/session').default
+var Session = require('../models/Session')
 
 function addSession (user, session) {
   // pushes the session on to the users pastSessions array only if new session

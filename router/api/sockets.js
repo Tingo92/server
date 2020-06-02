@@ -5,7 +5,7 @@
 const passportSocketIo = require('passport.socketio')
 const cookieParser = require('cookie-parser')
 
-const Session = require('../../models/session').default
+const Session = require('../../models/Session')
 
 const config = require('../../config')
 const SessionCtrl = require('../../controllers/SessionCtrl.js')

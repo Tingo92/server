@@ -1,6 +1,6 @@
 const _ = require('lodash')
 
-const Question = require('../models/question').default
+const Question = require('../models/Question')
 const Volunteer = require('../models/Volunteer')
 
 /**

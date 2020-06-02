@@ -15,7 +15,7 @@ const cliProgress = require('cli-progress')
 
 const dbconnect = require('./dbconnect')
 
-const School = require('../models/school').default
+const School = require('../models/School')
 
 // helper to convert names to title case
 function toTitleCaseIfAllCaps (str) {

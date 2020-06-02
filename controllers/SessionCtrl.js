@@ -1,4 +1,4 @@
-const Session = require('../models/session').default
+const Session = require('../models/Session')
 const UserActionCtrl = require('../controllers/UserActionCtrl')
 const WhiteboardCtrl = require('../controllers/WhiteboardCtrl')
 const sessionService = require('../services/SessionService')

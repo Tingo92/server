@@ -3,7 +3,7 @@
  */
 
 const test = require('ava')
-const School = require('../../../models/school').default
+const School = require('../../../models/School')
 
 //Place holder for school object.
 const school = new School({

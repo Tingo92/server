@@ -1,6 +1,6 @@
 import { Schema, Types } from 'mongoose';
-import UserModel, { User } from './user';
-import { School } from './school';
+import UserModel, { User } from './User';
+import { School } from './School';
 
 export interface Student extends User {
   approvedHighschool: School;
@@ -32,4 +32,7 @@ const studentSchema = new Schema(
 );
 
 // Use the user schema as the base schema for Student
-export default UserModel.discriminator<Student>('Student', studentSchema);
+const StudentModel = UserModel.discriminator<Student>('Student', studentSchema);
+
+module.exports = StudentModel;
+export default StudentModel;

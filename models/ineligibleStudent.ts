@@ -17,7 +17,10 @@ const ineligibleStudentSchema = new Schema({
   ipAddress: String
 });
 
-export default model<IneligibleStudent>(
+const IneligibleStudentModel = model<IneligibleStudent>(
   'IneligibleStudent',
   ineligibleStudentSchema
 );
+
+module.exports = IneligibleStudentModel;
+export default IneligibleStudentModel;

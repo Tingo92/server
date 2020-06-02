@@ -268,4 +268,7 @@ schoolSchema.statics.findByUpchieveId = function(
   return this.findOne({ upchieveId: id }, cb);
 };
 
-export default model<School>('School', schoolSchema);
+const SchoolModel = model<School>('School', schoolSchema);
+
+module.exports = SchoolModel;
+export default SchoolModel;

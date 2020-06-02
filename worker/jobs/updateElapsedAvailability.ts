@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/node';
 import { map, size } from 'lodash';
 import VolunteerModel from '../../models/Volunteer';
-import { User } from '../../models/user';
+import { User } from '../../models/User';
 import dbconnect from '../../dbutils/dbconnect';
 import { log } from '../logger';
 import UserCtrl from '../../controllers/UserCtrl';

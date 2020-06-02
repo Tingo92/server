@@ -1,4 +1,4 @@
-const Session = require('../models/session').default
+const Session = require('../models/Session')
 const User = require('../models/user')
 
 module.exports = {

@@ -1,4 +1,4 @@
-const User = require('../models/user').default
+const User = require('../models/User')
 const Student = require('../models/Student')
 const Volunteer = require('../models/Volunteer')
 const Session = require('../models/Session')

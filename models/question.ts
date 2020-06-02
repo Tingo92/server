@@ -163,4 +163,7 @@ questionSchema.statics.getSubcategories = function(category: string): string[] {
   }
 };
 
-export default model<Question>('Question', questionSchema, 'question');
+const QuestionModel = model<Question>('Question', questionSchema, 'question');
+
+module.exports = QuestionModel;
+export default QuestionModel;

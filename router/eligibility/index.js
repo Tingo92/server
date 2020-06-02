@@ -2,9 +2,9 @@ const express = require('express')
 const passport = require('../auth/passport')
 
 const SchoolCtrl = require('../../controllers/SchoolCtrl')
-const School = require('../../models/school').default
+const School = require('../../models/School')
 const ZipCode = require('../../models/ZipCode')
-const IneligibleStudent = require('../../models/ineligibleStudent').default
+const IneligibleStudent = require('../../models/IneligibleStudent')
 
 module.exports = function(app) {
   const router = new express.Router()

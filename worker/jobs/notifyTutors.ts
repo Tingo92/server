@@ -1,5 +1,5 @@
 import { Job } from 'bull';
-import Session from '../../models/session';
+import Session from '../../models/Session';
 import SessionService from '../../services/SessionService';
 import TwilioService from '../../services/twilio';
 import dbconnect from '../../dbutils/dbconnect';

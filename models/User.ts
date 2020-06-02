@@ -3,8 +3,8 @@ import bcrypt from 'bcrypt';
 import validator from 'validator';
 import config from '../config';
 import { USER_BAN_REASON } from '../constants';
-import { Session } from './session';
-import { IpAddress } from './ipAddress';
+import { Session } from './Session';
+import { IpAddress } from './IpAddress';
 
 export interface User extends Document {
   createdAt: Date;
@@ -194,6 +194,7 @@ baseUserSchema.statics.verifyPassword = (
   });
 };
 
-const User = model<User>('User', baseUserSchema);
-module.exports = User;
-export default User;
+const UserModel = model<User>('User', baseUserSchema);
+
+module.exports = UserModel;
+export default UserModel;
