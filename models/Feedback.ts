@@ -1,6 +1,6 @@
 import { Document, model, Schema } from 'mongoose';
 
-export interface Feedback extends Document {
+export interface Feedback {
   sessionId: string;
   type: string;
   subTopic: string;
@@ -10,6 +10,8 @@ export interface Feedback extends Document {
   volunteerId: string;
   createdAt: Date;
 }
+
+export type FeedbackDocument = Feedback & Document;
 
 const feedbackSchema = new Schema({
   sessionId: {
@@ -53,7 +55,7 @@ const feedbackSchema = new Schema({
   }
 });
 
-const FeedbackModel = model<Feedback>('Feedback', feedbackSchema);
+const FeedbackModel = model<FeedbackDocument>('Feedback', feedbackSchema);
 
 module.exports = FeedbackModel;
 export default FeedbackModel;

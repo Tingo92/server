@@ -1,11 +1,13 @@
 import { Document, model, Schema, Types } from 'mongoose';
 import { User } from './User';
 
-export interface Message extends Document {
+export interface Message {
   user: User;
   contents: string;
   createdAt: Date;
 }
+
+export type MessageDocument = Message & Document;
 
 const messageSchema = new Schema(
   {
@@ -49,7 +51,7 @@ messageSchema.virtual('picture').get(function() {
   return this.user.picture;
 });
 
-const MessageModel = model<Message>('Message', messageSchema);
+const MessageModel = model<MessageDocument>('Message', messageSchema);
 
 module.exports = MessageModel;
 export default MessageModel;
