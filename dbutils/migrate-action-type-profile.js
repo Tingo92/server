@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const dbconnect = require('./dbconnect')
-const UserAction = require('../models/userAction')
+const UserAction = require('../models/UserAction')
 
 dbconnect(mongoose, function() {
   console.log('Migrating db...')
