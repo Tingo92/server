@@ -9,7 +9,7 @@ const cliProgress = require('cli-progress')
 
 const dbconnect = require('./dbconnect')
 
-const User = require('../models/user')
+const User = require('../models/User')
 const School = require('../models/School')
 
 dbconnect(mongoose, function () {

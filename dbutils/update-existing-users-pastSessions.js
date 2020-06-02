@@ -8,7 +8,7 @@ var async = require('async')
 
 var dbconnect = require('./dbconnect')
 
-var User = require('../models/user')
+var User = require('../models/User')
 var Session = require('../models/Session')
 
 function addSession (user, session) {

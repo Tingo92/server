@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const dbconnect = require('./dbconnect')
-const User = require('../models/user')
+const User = require('../models/User')
 
 /**
  * Convert old User.referred vals to User.studentPartnerOrg vals
