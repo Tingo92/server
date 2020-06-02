@@ -1,5 +1,5 @@
 const test = require('ava')
-const Feedback = require('../../../models/feedback').default
+const Feedback = require('../../../models/Feedback')
 
 
 test('Check default values on Feedback object', t => {

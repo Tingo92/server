@@ -53,4 +53,7 @@ const feedbackSchema = new Schema({
   }
 });
 
-export default model<Feedback>('Feedback', feedbackSchema);
+const FeedbackModel = model<Feedback>('Feedback', feedbackSchema);
+
+module.exports = FeedbackModel;
+export default FeedbackModel;

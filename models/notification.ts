@@ -70,4 +70,10 @@ notificationSchema.virtual('session', {
   justOne: true
 });
 
-export default model<Notification>('Notification', notificationSchema);
+const NotificationModel = model<Notification>(
+  'Notification',
+  notificationSchema
+);
+
+module.exports = NotificationModel;
+export default NotificationModel;

@@ -49,4 +49,7 @@ messageSchema.virtual('picture').get(function() {
   return this.user.picture;
 });
 
-export default model<Message>('Message', messageSchema);
+const MessageModel = model<Message>('Message', messageSchema);
+
+module.exports = MessageModel;
+export default MessageModel;

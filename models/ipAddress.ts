@@ -27,4 +27,7 @@ const ipAddressSchema = new Schema({
   }
 });
 
-export default model<IpAddress>('IpAddress', ipAddressSchema);
+const IpAddressModel = model<IpAddress>('IpAddress', ipAddressSchema);
+
+module.exports = IpAddressModel;
+export default IpAddressModel;

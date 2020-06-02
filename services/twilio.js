@@ -4,8 +4,8 @@ const config = require('../config')
 const Student = require('../models/student').default
 const Volunteer = require('../models/Volunteer')
 const queue = require('./QueueService')
-const Session = require('../models/session').default
-const Notification = require('../models/notification').default
+const Session = require('../models/Session')
+const Notification = require('../models/Notification')
 const twilioClient =
   config.accountSid && config.authToken
     ? twilio(config.accountSid, config.authToken)

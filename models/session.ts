@@ -1,8 +1,8 @@
 import moment from 'moment-timezone';
 import { Document, model, Schema, Types } from 'mongoose';
-import MessageModel, { Message } from './message';
-import { Notification } from './notification';
-import { User } from './user';
+import MessageModel, { Message } from './Message';
+import { Notification } from './Notification';
+import { User } from './User';
 
 export interface Session extends Document {
   student: User;

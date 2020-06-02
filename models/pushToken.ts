@@ -32,4 +32,7 @@ const pushTokenSchema = new Schema(
   }
 );
 
-export default model<PushToken>('PushToken', pushTokenSchema);
+const PushTokenModel = model<PushToken>('PushToken', pushTokenSchema);
+
+module.exports = PushTokenModel;
+export default PushTokenModel;
