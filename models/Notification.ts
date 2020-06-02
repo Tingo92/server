@@ -17,7 +17,7 @@ enum NotificationMethod {
   EMAIL = 'EMAIL'
 }
 
-export interface Notification extends Document {
+export interface Notification {
   volunteer: Types.ObjectId;
   sentAt: Date;
   type: NotificationType;
@@ -25,6 +25,8 @@ export interface Notification extends Document {
   wasSuccessful: boolean;
   messageId: string;
 }
+
+export type NotificationDocument = Notification & Document;
 
 const notificationSchema = new Schema(
   {
@@ -70,7 +72,7 @@ notificationSchema.virtual('session', {
   justOne: true
 });
 
-const NotificationModel = model<Notification>(
+const NotificationModel = model<NotificationDocument>(
   'Notification',
   notificationSchema
 );

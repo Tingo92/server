@@ -5,11 +5,13 @@
  */
 import { Document, model, Schema, Types } from 'mongoose';
 
-export interface PushToken extends Document {
+export interface PushToken {
   user: Types.ObjectId;
   createdAt: Date;
   token: string;
 }
+
+export type PushTokenDocument = PushToken & Document;
 
 const pushTokenSchema = new Schema(
   {
@@ -32,7 +34,7 @@ const pushTokenSchema = new Schema(
   }
 );
 
-const PushTokenModel = model<PushToken>('PushToken', pushTokenSchema);
+const PushTokenModel = model<PushTokenDocument>('PushToken', pushTokenSchema);
 
 module.exports = PushTokenModel;
 export default PushTokenModel;
