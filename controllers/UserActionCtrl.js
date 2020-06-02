@@ -1,4 +1,4 @@
-const UserAction = require('../models/UserAction')
+const UserAction = require('../models/userAction')
 const { USER_ACTION } = require('../constants')
 const getSupercategory = require('../utils/getSupercategory')
 const getDeviceFromUserAgent = require('../utils/getDeviceFromUserAgent')

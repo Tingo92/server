@@ -9,7 +9,7 @@ var chalk = require('chalk')
 
 var dbconnect = require('./dbconnect')
 
-var User = require('../models/User')
+var User = require('../models/user')
 
 dbconnect(mongoose, function () {
   // see http://regexlib.com/REDetails.aspx?regexp_id=58

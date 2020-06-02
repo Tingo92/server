@@ -1,7 +1,7 @@
 const axios = require('axios')
 const Sentry = require('@sentry/node')
 const IpAddress = require('../models/ipAddress').default
-const User = require('../models/User')
+const User = require('../models/user')
 const { IP_ADDRESS_STATUS, USER_BAN_REASON } = require('../constants')
 
 const cleanIpString = rawIpString => {

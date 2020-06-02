@@ -1,8 +1,36 @@
-import mongoose from 'mongoose';
+import { Document, model, Schema, Types } from 'mongoose';
 import bcrypt from 'bcrypt';
 import validator from 'validator';
 import config from '../config';
 import { USER_BAN_REASON } from '../constants';
+import { Session } from './session';
+import { IpAddress } from './ipAddress';
+
+export interface User extends Document {
+  createdAt: Date;
+  email: string;
+  password: string;
+  verified: boolean;
+  verificationToken: string;
+  passwordResetToken: string;
+  firstname: string;
+  lastname: string;
+  isVolunteer: boolean;
+  isAdmin: boolean;
+  isBanned: boolean;
+  banReason: USER_BAN_REASON;
+  isTestUser: boolean;
+  isFakeUser: boolean;
+  pastSessions: Session[];
+  partnerUserId: string;
+  lastActivityAt: Date;
+  referralCode: string;
+  referredBy: User;
+  ipAddresses: IpAddress[];
+  type: string;
+  availabilityLastModifiedAt: Date;
+  elapsedAvailability: number;
+}
 
 const schemaOptions = {
   /**
@@ -23,7 +51,7 @@ const schemaOptions = {
 };
 
 // baseUserSchema is a base schema that the Student and Volunteer schema inherit from
-const baseUserSchema = new mongoose.Schema(
+const baseUserSchema = new Schema(
   {
     createdAt: { type: Date, default: Date.now },
     email: {
@@ -107,7 +135,7 @@ const baseUserSchema = new mongoose.Schema(
       default: false
     },
 
-    pastSessions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Session' }],
+    pastSessions: [{ type: Types.ObjectId, ref: 'Session' }],
 
     partnerUserId: {
       type: String,
@@ -119,13 +147,13 @@ const baseUserSchema = new mongoose.Schema(
     referralCode: { type: String, unique: true },
 
     referredBy: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Types.ObjectId,
       ref: 'User',
       select: false
     },
 
     ipAddresses: {
-      type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'IpAddress' }],
+      type: [{ type: Types.ObjectId, ref: 'IpAddress' }],
       default: [],
       select: false
     },
@@ -166,7 +194,6 @@ baseUserSchema.statics.verifyPassword = (
   });
 };
 
-const User = mongoose.model('User', baseUserSchema);
-
+const User = model<User>('User', baseUserSchema);
 module.exports = User;
 export default User;

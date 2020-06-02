@@ -1,4 +1,4 @@
-const Question = require('../models/Question')
+const Question = require('../models/question').default
 
 const list = async (filters, cb) => {
   return Question.find(filters)

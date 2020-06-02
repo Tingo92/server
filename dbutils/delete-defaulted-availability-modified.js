@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const dbconnect = require('./dbconnect')
-const User = require('../models/User')
-const UserAction = require('../models/UserAction')
+const User = require('../models/user')
+const UserAction = require('../models/userAction')
 
 // Delete defaulted availability for users that have never modified their availability and delete it for students
 

@@ -1,10 +1,10 @@
 const twilio = require('twilio')
 const moment = require('moment-timezone')
 const config = require('../config')
-const Student = require('../models/Student')
+const Student = require('../models/student').default
 const Volunteer = require('../models/Volunteer')
 const queue = require('./QueueService')
-const Session = require('../models/Session')
+const Session = require('../models/session').default
 const Notification = require('../models/notification').default
 const twilioClient =
   config.accountSid && config.authToken

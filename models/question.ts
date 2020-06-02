@@ -1,25 +1,37 @@
-const mongoose = require('mongoose')
+import { Document, model, Schema } from 'mongoose';
 
-const questionSchema = new mongoose.Schema({
+export interface Question extends Document {
+  questionText: string;
+  possibleAnswers: {
+    txt: string;
+    val: string;
+  }[];
+  correctAnswer: string;
+  category: string;
+  subcategory: string;
+  imageSrc: string;
+}
+
+const questionSchema = new Schema({
   questionText: String,
   possibleAnswers: [{ txt: String, val: String }],
   correctAnswer: String,
   category: String,
   subcategory: String,
   imageSrc: String
-})
+});
 
 // Given a question record, strip out sensitive data for public consumption
-questionSchema.methods.parseQuestion = function() {
+questionSchema.methods.parseQuestion = function(): Partial<Question> {
   return {
     _id: this._id,
     questionText: this.questionText,
     possibleAnswers: this.possibleAnswers,
     imageSrc: this.image
-  }
-}
+  };
+};
 
-questionSchema.statics.getSubcategories = function(category) {
+questionSchema.statics.getSubcategories = function(category: string): string[] {
   const categoryToSubcategoryMap = {
     algebra: [
       'linear equations',
@@ -132,7 +144,7 @@ questionSchema.statics.getSubcategories = function(category) {
       'refraction and reflection',
       'gravity/gen relativity'
     ]
-  }
+  };
 
   if (typeof category !== 'string') {
     throw new TypeError(
@@ -140,15 +152,15 @@ questionSchema.statics.getSubcategories = function(category) {
         category +
         '. It must be a string, not ' +
         typeof category
-    )
+    );
   }
 
   if (categoryToSubcategoryMap.hasOwnProperty(category)) {
-    const subcategories = categoryToSubcategoryMap[category]
-    return subcategories
+    const subcategories = categoryToSubcategoryMap[category];
+    return subcategories;
   } else {
-    throw new ReferenceError(category + ' is not a subcategory.')
+    throw new ReferenceError(category + ' is not a subcategory.');
   }
-}
+};
 
-module.exports = mongoose.model('Question', questionSchema, 'question')
+export default model<Question>('Question', questionSchema, 'question');

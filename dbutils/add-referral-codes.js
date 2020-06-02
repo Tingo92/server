@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const base64url = require('base64url')
 const dbconnect = require('./dbconnect')
-const User = require('../models/User')
+const User = require('../models/user')
 
 dbconnect(mongoose, function() {
   User.find()

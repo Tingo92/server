@@ -1,5 +1,5 @@
 const UserCtrl = require('../../controllers/UserCtrl')
-const User = require('../../models/User')
+const User = require('../../models/user')
 const Volunteer = require('../../models/Volunteer')
 const passport = require('../auth/passport')
 const config = require('../../config')

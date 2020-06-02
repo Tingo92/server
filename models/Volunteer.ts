@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import config from '../config';
-import User from './User';
+import User from './user';
 
 const weeksSince = (date): number => {
   // 604800000 = milliseconds in a week

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const dbconnect = require('./dbconnect')
-const User = require('../models/User')
+const User = require('../models/user')
 
 const main = async () => {
   try {

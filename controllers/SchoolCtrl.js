@@ -1,4 +1,4 @@
-const School = require('../models/School')
+const School = require('../models/school').default
 
 // helper to escape regex special characters
 function escapeRegex(str) {

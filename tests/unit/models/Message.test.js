@@ -1,6 +1,6 @@
 const test = require('ava')
 const Message = require('../../../models/message').default
-const User = require('../../../models/User')
+const User = require('../../../models/user')
 
 const user = new User({
   email: 'email@email.com',

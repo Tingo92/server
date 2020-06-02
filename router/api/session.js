@@ -1,6 +1,6 @@
 const ObjectId = require('mongodb').ObjectId
 const Sentry = require('@sentry/node')
-const Session = require('../../models/Session')
+const Session = require('../../models/session').default
 const Feedback = require('../../models/feedback').default
 const SessionCtrl = require('../../controllers/SessionCtrl')
 const UserActionCtrl = require('../../controllers/UserActionCtrl')

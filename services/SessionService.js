@@ -1,5 +1,5 @@
-const Session = require('../models/Session')
-const User = require('../models/User')
+const Session = require('../models/session').default
+const User = require('../models/user')
 
 module.exports = {
   getSession: async sessionId => {

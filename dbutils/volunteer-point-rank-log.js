@@ -2,8 +2,8 @@ const mongoose = require('mongoose')
 
 const dbconnect = require('./dbconnect')
 
-const User = require('../models/User')
-require('../models/Session')
+const User = require('../models/user')
+require('../models/session').default
 require('../models/notification').default
 
 dbconnect(mongoose, function() {

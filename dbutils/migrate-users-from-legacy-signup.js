@@ -9,8 +9,8 @@ const cliProgress = require('cli-progress')
 
 const dbconnect = require('./dbconnect')
 
-const User = require('../models/User')
-const School = require('../models/School')
+const User = require('../models/user')
+const School = require('../models/school').default
 
 dbconnect(mongoose, function () {
   async.waterfall([
