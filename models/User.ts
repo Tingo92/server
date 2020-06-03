@@ -1,3 +1,4 @@
+import { values } from 'lodash';
 import { Document, model, Schema, Types } from 'mongoose';
 import bcrypt from 'bcrypt';
 import validator from 'validator';
@@ -111,12 +112,7 @@ const baseUserSchema = new Schema(
 
     banReason: {
       type: String,
-      enum: [
-        USER_BAN_REASON.NON_US_SIGNUP,
-        USER_BAN_REASON.BANNED_IP,
-        USER_BAN_REASON.SESSION_REPORTED,
-        USER_BAN_REASON.BANNED_SERVICE_PROVIDER
-      ],
+      enum: values(USER_BAN_REASON),
       select: false
     },
 
