@@ -140,43 +140,64 @@ const tallyVolunteerPoints = (volunteer): number => {
 // subdocument schema for each availability day
 const availabilityDaySchema = new Schema(
   {
-    '12a': { type: Boolean, default: false },
-    '1a': { type: Boolean, default: false },
-    '2a': { type: Boolean, default: false },
-    '3a': { type: Boolean, default: false },
-    '4a': { type: Boolean, default: false },
-    '5a': { type: Boolean, default: false },
-    '6a': { type: Boolean, default: false },
-    '7a': { type: Boolean, default: false },
-    '8a': { type: Boolean, default: false },
-    '9a': { type: Boolean, default: false },
-    '10a': { type: Boolean, default: false },
-    '11a': { type: Boolean, default: false },
-    '12p': { type: Boolean, default: false },
-    '1p': { type: Boolean, default: false },
-    '2p': { type: Boolean, default: false },
-    '3p': { type: Boolean, default: false },
-    '4p': { type: Boolean, default: false },
-    '5p': { type: Boolean, default: false },
-    '6p': { type: Boolean, default: false },
-    '7p': { type: Boolean, default: false },
-    '8p': { type: Boolean, default: false },
-    '9p': { type: Boolean, default: false },
-    '10p': { type: Boolean, default: false },
-    '11p': { type: Boolean, default: false }
+    [HOURS['12AM']]: { type: Boolean, default: false },
+    [HOURS['1AM']]: { type: Boolean, default: false },
+    [HOURS['2AM']]: { type: Boolean, default: false },
+    [HOURS['3AM']]: { type: Boolean, default: false },
+    [HOURS['4AM']]: { type: Boolean, default: false },
+    [HOURS['5AM']]: { type: Boolean, default: false },
+    [HOURS['6AM']]: { type: Boolean, default: false },
+    [HOURS['7AM']]: { type: Boolean, default: false },
+    [HOURS['8AM']]: { type: Boolean, default: false },
+    [HOURS['9AM']]: { type: Boolean, default: false },
+    [HOURS['10AM']]: { type: Boolean, default: false },
+    [HOURS['11AM']]: { type: Boolean, default: false },
+    [HOURS['12PM']]: { type: Boolean, default: false },
+    [HOURS['1PM']]: { type: Boolean, default: false },
+    [HOURS['2PM']]: { type: Boolean, default: false },
+    [HOURS['3PM']]: { type: Boolean, default: false },
+    [HOURS['4PM']]: { type: Boolean, default: false },
+    [HOURS['5PM']]: { type: Boolean, default: false },
+    [HOURS['6PM']]: { type: Boolean, default: false },
+    [HOURS['7PM']]: { type: Boolean, default: false },
+    [HOURS['8PM']]: { type: Boolean, default: false },
+    [HOURS['9PM']]: { type: Boolean, default: false },
+    [HOURS['10PM']]: { type: Boolean, default: false },
+    [HOURS['11PM']]: { type: Boolean, default: false }
   },
   { _id: false }
 );
 
 const availabilitySchema = new Schema(
   {
-    Sunday: { type: availabilityDaySchema, default: availabilityDaySchema },
-    Monday: { type: availabilityDaySchema, default: availabilityDaySchema },
-    Tuesday: { type: availabilityDaySchema, default: availabilityDaySchema },
-    Wednesday: { type: availabilityDaySchema, default: availabilityDaySchema },
-    Thursday: { type: availabilityDaySchema, default: availabilityDaySchema },
-    Friday: { type: availabilityDaySchema, default: availabilityDaySchema },
-    Saturday: { type: availabilityDaySchema, default: availabilityDaySchema }
+    [DAYS.SUNDAY]: {
+      type: availabilityDaySchema,
+      default: availabilityDaySchema
+    },
+    [DAYS.MONDAY]: {
+      type: availabilityDaySchema,
+      default: availabilityDaySchema
+    },
+    [DAYS.TUESDAY]: {
+      type: availabilityDaySchema,
+      default: availabilityDaySchema
+    },
+    [DAYS.WEDNESDAY]: {
+      type: availabilityDaySchema,
+      default: availabilityDaySchema
+    },
+    [DAYS.THURSDAY]: {
+      type: availabilityDaySchema,
+      default: availabilityDaySchema
+    },
+    [DAYS.FRIDAY]: {
+      type: availabilityDaySchema,
+      default: availabilityDaySchema
+    },
+    [DAYS.SATURDAY]: {
+      type: availabilityDaySchema,
+      default: availabilityDaySchema
+    }
   },
   { _id: false }
 );
@@ -216,7 +237,7 @@ const volunteerSchema = new Schema(
     elapsedAvailability: { type: Number, default: 0 },
 
     certifications: {
-      prealgebra: {
+      [SUBJECTS.PREALGREBA]: {
         passed: {
           type: Boolean,
           default: false
@@ -227,7 +248,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      algebra: {
+      [SUBJECTS.ALGREBA]: {
         passed: {
           type: Boolean,
           default: false
@@ -238,7 +259,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      geometry: {
+      [SUBJECTS.GEOMETRY]: {
         passed: {
           type: Boolean,
           default: false
@@ -249,7 +270,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      trigonometry: {
+      [SUBJECTS.TRIGONOMETRY]: {
         passed: {
           type: Boolean,
           default: false
@@ -260,7 +281,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      precalculus: {
+      [SUBJECTS.PRECALCULUS]: {
         passed: {
           type: Boolean,
           default: false
@@ -271,7 +292,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      calculus: {
+      [SUBJECTS.CALCULUS]: {
         passed: {
           type: Boolean,
           default: false
@@ -282,7 +303,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      integratedMathOne: {
+      [SUBJECTS.INTEGRATED_MATH_ONE]: {
         passed: {
           type: Boolean,
           default: false
@@ -293,7 +314,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      integratedMathTwo: {
+      [SUBJECTS.INTEGRATED_MATH_TWO]: {
         passed: {
           type: Boolean,
           default: false
@@ -304,7 +325,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      integratedMathThree: {
+      [SUBJECTS.INTEGRATED_MATH_THREE]: {
         passed: {
           type: Boolean,
           default: false
@@ -315,7 +336,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      integratedMathFour: {
+      [SUBJECTS.INTEGRATED_MATH_FOUR]: {
         passed: {
           type: Boolean,
           default: false
@@ -326,7 +347,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      applications: {
+      [SUBJECTS.APPLICATIONS]: {
         passed: {
           type: Boolean,
           default: false
@@ -337,7 +358,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      essays: {
+      [SUBJECTS.ESSAYS]: {
         passed: {
           type: Boolean,
           default: false
@@ -348,7 +369,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      planning: {
+      [SUBJECTS.PLANNING]: {
         passed: {
           type: Boolean,
           default: false
@@ -359,7 +380,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      biology: {
+      [SUBJECTS.BIOLOGY]: {
         passed: {
           type: Boolean,
           default: false
@@ -370,7 +391,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      chemistry: {
+      [SUBJECTS.CHEMISTRY]: {
         passed: {
           type: Boolean,
           default: false
@@ -381,7 +402,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      physicsOne: {
+      [SUBJECTS.PHYSICS_ONE]: {
         passed: {
           type: Boolean,
           default: false
