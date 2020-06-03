@@ -1,7 +1,8 @@
-import { Document, model, Schema, DocumentQuery } from 'mongoose';
+import { Document, model, Schema, DocumentQuery, Types } from 'mongoose';
 import validator from 'validator';
 
-export interface School extends Document {
+export interface School {
+  _id: Types.ObjectId;
   upchieveId: string;
   nameStored: string;
   districtNameStored: string;
@@ -79,6 +80,8 @@ export interface School extends Document {
   LEVEL?: string;
   IGOFFERED?: string;
 }
+
+export type SchoolDocument = School & Document;
 
 const schoolSchema = new Schema(
   {
@@ -263,12 +266,12 @@ schoolSchema.virtual('studentUsers', {
 
 schoolSchema.statics.findByUpchieveId = function(
   id: string,
-  cb: (err: Error, school: School) => void
-): DocumentQuery<School, School> {
+  cb: (err: Error, school: SchoolDocument) => void
+): DocumentQuery<School, SchoolDocument> {
   return this.findOne({ upchieveId: id }, cb);
 };
 
-const SchoolModel = model<School>('School', schoolSchema);
+const SchoolModel = model<SchoolDocument>('School', schoolSchema);
 
 module.exports = SchoolModel;
 export default SchoolModel;

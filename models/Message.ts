@@ -2,7 +2,8 @@ import { Document, model, Schema, Types } from 'mongoose';
 import { User } from './User';
 
 export interface Message {
-  user: User;
+  _id: Types.ObjectId;
+  user: Types.ObjectId | User;
   contents: string;
   createdAt: Date;
 }

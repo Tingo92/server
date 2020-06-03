@@ -1,11 +1,15 @@
 import { Document, model, Schema, Types } from 'mongoose';
+import { School } from './School';
 
-export interface IneligibleStudent extends Document {
+export interface IneligibleStudent {
+  _id: Types.ObjectId;
   createdAt: Date;
   zipCode: string;
-  school: Types.ObjectId;
+  school: Types.ObjectId | School;
   ipAddress: string;
 }
+
+export type IneligibleStudentDocument = IneligibleStudent & Document;
 
 const ineligibleStudentSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
@@ -17,7 +21,7 @@ const ineligibleStudentSchema = new Schema({
   ipAddress: String
 });
 
-const IneligibleStudentModel = model<IneligibleStudent>(
+const IneligibleStudentModel = model<IneligibleStudentDocument>(
   'IneligibleStudent',
   ineligibleStudentSchema
 );

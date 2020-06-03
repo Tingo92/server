@@ -1,12 +1,14 @@
 import { values } from 'lodash';
 import { Document, model, Schema, Types } from 'mongoose';
 import { IP_ADDRESS_STATUS } from '../constants';
+import { User } from './User';
 
 export interface IpAddress {
+  _id: Types.ObjectId;
   createdAt: Date;
   ip: string;
-  users: Types.ObjectId[];
-  status: IP_ADDRESS_STATUS.OK | IP_ADDRESS_STATUS.BANNED;
+  users: (Types.ObjectId | User)[];
+  status: IP_ADDRESS_STATUS;
 }
 
 export type IpAddressDocument = IpAddress & Document;

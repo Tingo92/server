@@ -6,7 +6,8 @@ import { USER_BAN_REASON } from '../constants';
 import { Session } from './Session';
 import { IpAddress } from './IpAddress';
 
-export interface User extends Document {
+export interface User {
+  _id: Types.ObjectId;
   createdAt: Date;
   email: string;
   password: string;
@@ -31,6 +32,8 @@ export interface User extends Document {
   availabilityLastModifiedAt: Date;
   elapsedAvailability: number;
 }
+
+export type UserDocument = User & Document;
 
 const schemaOptions = {
   /**
@@ -194,7 +197,7 @@ baseUserSchema.statics.verifyPassword = (
   });
 };
 
-const UserModel = model<User>('User', baseUserSchema);
+const UserModel = model<UserDocument>('User', baseUserSchema);
 
 module.exports = UserModel;
 export default UserModel;

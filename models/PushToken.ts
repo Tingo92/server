@@ -4,9 +4,11 @@
  *
  */
 import { Document, model, Schema, Types } from 'mongoose';
+import { User } from './User';
 
 export interface PushToken {
-  user: Types.ObjectId;
+  _id: Types.ObjectId;
+  user: Types.ObjectId | User;
   createdAt: Date;
   token: string;
 }

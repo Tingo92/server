@@ -1,6 +1,7 @@
-import { Document, model, Schema } from 'mongoose';
+import { Document, model, Schema, Types } from 'mongoose';
 
-export interface Question extends Document {
+export interface Question {
+  _id: Types.ObjectId;
   questionText: string;
   possibleAnswers: {
     txt: string;
@@ -11,6 +12,8 @@ export interface Question extends Document {
   subcategory: string;
   imageSrc: string;
 }
+
+export type QuestionDocument = Question & Document;
 
 const questionSchema = new Schema({
   questionText: String,
@@ -163,7 +166,11 @@ questionSchema.statics.getSubcategories = function(category: string): string[] {
   }
 };
 
-const QuestionModel = model<Question>('Question', questionSchema, 'question');
+const QuestionModel = model<QuestionDocument>(
+  'Question',
+  questionSchema,
+  'question'
+);
 
 module.exports = QuestionModel;
 export default QuestionModel;

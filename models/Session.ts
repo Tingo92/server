@@ -1,23 +1,29 @@
 import moment from 'moment-timezone';
 import { Document, model, Schema, Types } from 'mongoose';
-import MessageModel, { Message } from './Message';
+import { isObjectId } from '../utils/typing';
+import MessageModel, { Message, MessageDocument } from './Message';
 import { Notification } from './Notification';
 import { User } from './User';
+import { Student } from './Student';
+import { Volunteer } from './Volunteer';
 
-export interface Session extends Document {
-  student: User;
-  volunteer: User;
+export interface Session {
+  _id: Types.ObjectId;
+  student: Types.ObjectId | Student;
+  volunteer: Types.ObjectId | Volunteer;
   type: string;
   subTopic: string;
   messages: Message[];
   whiteboardDoc: string;
   createdAt: Date;
   volunteerJoinedAt: Date;
-  failedJoins: User[];
+  failedJoins: (Types.ObjectId | User)[];
   endedAt: Date;
-  endedBy: User;
-  notifications: Notification[];
+  endedBy: Types.ObjectId | User;
+  notifications: (Types.ObjectId | Notification)[];
 }
+
+export type SessionDocument = Session & Document;
 
 const validTypes = ['Math', 'College', 'Science'];
 
@@ -92,12 +98,12 @@ const sessionSchema = new Schema({
 });
 
 sessionSchema.methods.saveMessage = function(
-  messageObj: Message,
+  messageObj: Partial<Message>,
   cb: (message: Message) => void
-): Promise<Message> {
+): Promise<MessageDocument> {
   const session: Session = this; // eslint-disable-line @typescript-eslint/no-this-alias
   this.messages = this.messages.concat({
-    user: messageObj.user._id,
+    user: isObjectId(messageObj.user) ? messageObj.user : messageObj.user._id,
     contents: messageObj.contents
   });
 
@@ -117,7 +123,7 @@ sessionSchema.methods.saveMessage = function(
 };
 
 // helper function for handling joins that fail because session is fulfilled or has ended
-const failJoin = (session: Session, user: User, error: Error): void => {
+const failJoin = (session: SessionDocument, user: User, error: Error): void => {
   if (user.isVolunteer) {
     session.failedJoins.push(user._id);
     session.save();
@@ -127,7 +133,9 @@ const failJoin = (session: Session, user: User, error: Error): void => {
 
 // this method should callback with an error on attempts to join by non-participants
 // so that SessionCtrl knows to disconnect the socket
-sessionSchema.methods.joinUser = function(user: User): Promise<Session> {
+sessionSchema.methods.joinUser = function(
+  user: User
+): Promise<SessionDocument> {
   if (this.endedAt) {
     failJoin(this, user, new Error('Session has ended'));
   }
@@ -173,8 +181,8 @@ sessionSchema.methods.endSession = function(userWhoEnded: User): Promise<void> {
 
 sessionSchema.methods.addNotifications = function(
   notificationsToAdd: Message[],
-  cb: (session: Session) => void
-): Promise<Session> {
+  cb: (session: SessionDocument) => void
+): Promise<SessionDocument> {
   return this.model('Session')
     .findByIdAndUpdate(this._id, {
       $push: { notifications: { $each: notificationsToAdd } }
@@ -184,8 +192,8 @@ sessionSchema.methods.addNotifications = function(
 
 sessionSchema.statics.findLatest = function(
   attrs: Partial<Session>,
-  cb: (session: Session) => void
-): Promise<Session> {
+  cb: (session: SessionDocument) => void
+): Promise<SessionDocument> {
   return this.find(attrs)
     .sort({ createdAt: -1 })
     .limit(1)
@@ -198,7 +206,7 @@ sessionSchema.statics.findLatest = function(
 // user's current session
 sessionSchema.statics.current = function(
   userId: Types.ObjectId
-): Promise<Session> {
+): Promise<SessionDocument> {
   return this.findLatest({
     $and: [
       { endedAt: { $exists: false } },
@@ -211,7 +219,7 @@ sessionSchema.statics.current = function(
 
 // sessions that have not yet been fulfilled by a volunteer
 sessionSchema.statics.getUnfulfilledSessions = async function(): Promise<
-  Session[]
+  SessionDocument[]
 > {
   const queryAttrs = {
     volunteerJoinedAt: { $exists: false },
@@ -242,7 +250,7 @@ sessionSchema.statics.getUnfulfilledSessions = async function(): Promise<
   });
 };
 
-const SessionModel = model<Session>('Session', sessionSchema);
+const SessionModel = model<SessionDocument>('Session', sessionSchema);
 
 module.exports = SessionModel;
 export default SessionModel;

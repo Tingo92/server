@@ -10,6 +10,7 @@ import { User } from './User';
 import { Session } from './Session';
 
 export interface UserAction {
+  _id: Types.ObjectId;
   user: User;
   session: Session;
   createdAt: Date;
