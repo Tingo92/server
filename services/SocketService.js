@@ -89,18 +89,21 @@ module.exports = function(io) {
         ? currentSession.student
         : null
 
-      if (sessionPartner) {
-        // update user on session partner's connection status
-        this.emitToUser(userId, 'partner-status', {
-          isSessionPartnerConnectionAlive: !!userSockets[sessionPartner._id]
-            .length
-        })
-
-        // update user's session partner on connection status
-        this.emitToUser(sessionPartner._id, 'partner-status', {
-          isSessionPartnerConnectionAlive: isConnectionAlive
-        })
+      if (!sessionPartner) {
+        // early exit
+        return
       }
+
+      // update user on session partner's connection status
+      this.emitToUser(userId, 'partner-status', {
+        isSessionPartnerConnectionAlive: !!userSockets[sessionPartner._id]
+          .length
+      })
+
+      // update user's session partner on connection status
+      this.emitToUser(sessionPartner._id, 'partner-status', {
+        isSessionPartnerConnectionAlive: isConnectionAlive
+      })
     },
 
     emitToUser: function(userId, event, ...args) {
