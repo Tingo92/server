@@ -52,8 +52,8 @@ module.exports = function(io) {
       if (user) {
         socket.emit('session-change', latestSession || {})
 
-        if (currentSession) {
-          this.updateConnectionStatus(currentSession, userId, true)
+        if (latestSession) {
+          this.updateConnectionStatus(latestSession, userId, true)
         }
       }
     },
