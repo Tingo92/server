@@ -102,8 +102,14 @@ module.exports = async function(app): Promise<void> {
     }
 
     let school;
-    if (highSchoolUpchieveId)
+    if (highSchoolUpchieveId) {
       school = await School.findByUpchieveId(highSchoolUpchieveId);
+      if (!school) {
+        return res.status(422).json({
+          err: 'Invalid UPchieve High School ID'
+        });
+      }
+    }
 
     const highSchoolApprovalRequired = !studentPartnerOrg && !zipCode;
     if (highSchoolApprovalRequired && school && !school.isApproved)
