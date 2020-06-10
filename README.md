@@ -221,7 +221,7 @@ Create a new account for a student based on the information posted.
   "password": "String",
   "studentPartnerOrg": "Donno",
   "partnerUserId": "String",
-  "highSchoolUpchieveId": "String",
+  "highSchoolId": "String",
   "zipCode": "String",
   "terms": "String",
   "referredByCode": "String",
