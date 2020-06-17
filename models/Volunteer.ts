@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { PHOTO_ID_STATUS, REFERENCE_STATUS } from '../constants';
 import User from './User';
 
 const weeksSince = (date): number => {
@@ -94,6 +95,32 @@ const availabilitySchema = new mongoose.Schema(
   { _id: false }
 );
 
+const referenceSchema = new mongoose.Schema({
+  email: { type: String, required: true },
+  name: { type: String, required: true },
+  status: {
+    type: String,
+    required: true,
+    enum: [
+      REFERENCE_STATUS.UNSENT,
+      REFERENCE_STATUS.SENT,
+      REFERENCE_STATUS.SUBMITTED,
+      REFERENCE_STATUS.APPROVED,
+      REFERENCE_STATUS.REJECTED
+    ],
+    default: REFERENCE_STATUS.UNSENT
+  },
+  affiliation: String,
+  relationshipLength: String,
+  patient: Number,
+  positiveRoleModel: Number,
+  agreeableAndApproachable: Number,
+  communicatesEffectively: Number,
+  trustworthyWithChildren: Number,
+  rejectionReason: String,
+  additionalInfo: String
+});
+
 const volunteerSchemaOptions = {
   toJSON: {
     virtuals: true
@@ -109,6 +136,23 @@ const volunteerSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    photoIdS3Key: {
+      type: String,
+      select: false
+    },
+    photoIdStatus: {
+      type: String,
+      enum: [
+        PHOTO_ID_STATUS.EMPTY,
+        PHOTO_ID_STATUS.SUBMITTED,
+        PHOTO_ID_STATUS.REJECTED,
+        PHOTO_ID_STATUS.APPROVED
+      ],
+      default: PHOTO_ID_STATUS.EMPTY
+    },
+    linkedInUrl: String,
+    references: [referenceSchema],
+
     volunteerPartnerOrg: String,
     isFailsafeVolunteer: {
       type: Boolean,

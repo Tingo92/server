@@ -94,3 +94,18 @@ export const PHYSICS_MAPPING = {
 export const FORMAT_PHYSICS = {
   physicsOne: 'Physics 1'
 };
+
+export const PHOTO_ID_STATUS = {
+  EMPTY: 'EMPTY',
+  SUBMITTED: 'SUBMITTED',
+  REJECTED: 'REJECTED',
+  APPROVED: 'APPROVED'
+};
+
+export const REFERENCE_STATUS = {
+  UNSENT: 'UNSENT',
+  SENT: 'SENT',
+  SUBMITTED: 'SUBMITTED',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
