@@ -40,28 +40,58 @@ function isOnboarded(volunteer) {
 module.exports = {
   getVolunteerStats: async user => {
     const pastSessions = await Session.find({ volunteer: user._id })
-      .select('volunteerJoinedAt endedAt')
+      .select('volunteerJoinedAt endedAt messages')
       .lean()
       .exec()
+    const threeHoursMs = 1000 * 60 * 60 * 3
+    const fifteenMinsMs = 1000 * 60 * 15
 
     const millisecondsTutored = pastSessions.reduce((totalMs, session) => {
-      if (!(session.volunteerJoinedAt && session.endedAt)) {
-        return totalMs
-      }
+      const { volunteerJoinedAt, endedAt, messages } = session
 
-      const volunteerJoinDate = new Date(session.volunteerJoinedAt)
-      const sessionEndDate = new Date(session.endedAt)
-      const sessionLengthMs = sessionEndDate - volunteerJoinDate
+      if (!(volunteerJoinedAt && endedAt)) return totalMs
+      // skip if no messages are sent
+      if (messages.length === 0) return totalMs
 
-      // skip if session was longer than 5 hours
-      if (sessionLengthMs > 18000000) {
-        return totalMs
-      }
+      const volunteerJoinDate = new Date(volunteerJoinedAt)
+      const sessionEndDate = new Date(endedAt)
+      let sessionLengthMs = sessionEndDate - volunteerJoinDate
 
       // skip if volunteer joined after the session ended
-      if (sessionLengthMs < 0) {
-        return totalMs
+      if (sessionLengthMs < 0) return totalMs
+
+      let latestMessageIndex = messages.length - 1
+      let wasMessageSentAfterSessionEnded =
+        messages[latestMessageIndex].createdAt > sessionEndDate
+
+      // get the latest message that was sent within a 15 minute window of the message prior.
+      // Sometimes sessions are not ended by either participant and one of the participants may send
+      // a message to see if the other participant is still active before ending the session.
+      // Exclude these messages when getting the total session end time
+      if (sessionLengthMs > threeHoursMs || wasMessageSentAfterSessionEnded) {
+        while (
+          latestMessageIndex > 0 &&
+          (wasMessageSentAfterSessionEnded ||
+            messages[latestMessageIndex].createdAt -
+              messages[latestMessageIndex - 1].createdAt >
+              fifteenMinsMs)
+        ) {
+          latestMessageIndex--
+          wasMessageSentAfterSessionEnded =
+            messages[latestMessageIndex].createdAt > sessionEndDate
+        }
       }
+
+      const latestMessageDate = new Date(messages[latestMessageIndex].createdAt)
+
+      // skip if the latest message was sent before a volunteer joined
+      // or skip if the only messages that were sent were after a session has ended
+      if (
+        latestMessageDate <= volunteerJoinDate ||
+        wasMessageSentAfterSessionEnded
+      )
+        return totalMs
+      sessionLengthMs = latestMessageDate - volunteerJoinDate
 
       return sessionLengthMs + totalMs
     }, 0)
