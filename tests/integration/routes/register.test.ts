@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import request from 'supertest';
+import request, { Test } from 'supertest';
 import Student from '../../../models/Student';
 import app from '../../../app';
 import School from '../../../models/School';
@@ -8,11 +8,29 @@ import UserAction from '../../../models/UserAction';
 import { USER_ACTION } from '../../../constants';
 jest.mock('../../../services/MailService');
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const registerStudent = app => request(app).post('/auth/register/student');
+// @todo: use the Student interface from Student.ts when available
+interface Student {
+  email: string;
+  firstName: string;
+  highSchoolId: string;
+  lastName: string;
+  password: string;
+  zipCode: string;
+  studentPartnerOrg: string;
+  referredByCode: string;
+  terms?: boolean; // @todo - terms is not part of a student
+}
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const createStudent = (options = {}) => {
+const US_IP_ADDRESS = '161.185.160.93';
+
+const registerStudent = (student: Student): Test =>
+  request(app)
+    .post('/auth/register/student')
+    .set('X-Forwarded-For', US_IP_ADDRESS)
+    .set('Accept', 'application/json')
+    .send(student);
+
+const createStudent = (options: Partial<Student> = {}): Student => {
   const student = {
     email: 'student1@upchieve.org',
     firstName: 'Student',
@@ -27,8 +45,6 @@ const createStudent = (options = {}) => {
 
   return Object.assign(student, options);
 };
-
-const US_IP_ADDRESS = '161.185.160.93';
 
 // db connection
 beforeAll(async () => {
@@ -47,10 +63,7 @@ test('Student did not agree with the terms', async () => {
   const studentOptions = { terms: false };
   const newStudent = createStudent(studentOptions);
 
-  const response = await registerStudent(app)
-    .send(newStudent)
-    .set('Accept', 'application/json')
-    .expect(422);
+  const response = await registerStudent(newStudent).expect(422);
 
   const {
     body: { err }
@@ -65,10 +78,7 @@ test('Student did not provide an email', async () => {
   const studentOptions = { email: '' };
   const newStudent = createStudent(studentOptions);
 
-  const response = await registerStudent(app)
-    .send(newStudent)
-    .set('Accept', 'application/json')
-    .expect(422);
+  const response = await registerStudent(newStudent).expect(422);
 
   const {
     body: { err }
@@ -84,10 +94,7 @@ test('Student did not provide a password', async () => {
   const studentOptions = { password: '' };
   const newStudent = createStudent(studentOptions);
 
-  const response = await registerStudent(app)
-    .send(newStudent)
-    .set('Accept', 'application/json')
-    .expect(422);
+  const response = await registerStudent(newStudent).expect(422);
 
   const {
     body: { err }
@@ -102,10 +109,7 @@ test('Student did not provide a password', async () => {
 test('Student did not provide a sufficient password', async () => {
   const studentOptions = { password: 'password' };
   const newStudent = createStudent(studentOptions);
-  const response = await registerStudent(app)
-    .send(newStudent)
-    .set('Accept', 'application/json')
-    .expect(422);
+  const response = await registerStudent(newStudent).expect(422);
 
   const {
     body: { err }
@@ -124,10 +128,7 @@ test('Student is not with a valid student partner organization', async () => {
     studentPartnerOrg: 'invalid'
   };
   const newStudent = createStudent(studentOptions);
-  const response = await registerStudent(app)
-    .send(newStudent)
-    .set('Accept', 'application/json')
-    .expect(422);
+  const response = await registerStudent(newStudent).expect(422);
 
   const {
     body: { err }
@@ -145,10 +146,7 @@ test('Student registers with a highschool that is not approved and no partner or
     studentPartnerOrg: ''
   };
   const newStudent = createStudent(studentOptions);
-  const response = await registerStudent(app)
-    .send(newStudent)
-    .set('Accept', 'application/json')
-    .expect(422);
+  const response = await registerStudent(newStudent).expect(422);
 
   const {
     body: { err }
@@ -167,9 +165,7 @@ describe('Successful student registration', () => {
   test('Create a student from outside the US', async () => {
     const canadianIpAddress = '162.219.162.233';
     const newStudent = createStudent();
-    const response = await registerStudent(app)
-      .send(newStudent)
-      .set('Accept', 'application/json')
+    const response = await registerStudent(newStudent)
       .set('X-Forwarded-For', canadianIpAddress)
       .expect(200);
 
@@ -187,11 +183,7 @@ describe('Successful student registration', () => {
   test('Student was referred from another student', async () => {
     // Create the first student
     const newStudentOne = createStudent();
-    const studentOneResponse = await registerStudent(app)
-      .send(newStudentOne)
-      .set('Accept', 'application/json')
-      .set('X-Forwarded-For', US_IP_ADDRESS)
-      .expect(200);
+    const studentOneResponse = await registerStudent(newStudentOne).expect(200);
 
     const {
       body: { user: studentOne }
@@ -205,11 +197,7 @@ describe('Successful student registration', () => {
       referredByCode: studentOneReferralCode
     };
     const newStudentTwo = createStudent(studentTwoOptions);
-    const studentTwoResponse = await registerStudent(app)
-      .send(newStudentTwo)
-      .set('Accept', 'application/json')
-      .set('X-Forwarded-For', US_IP_ADDRESS)
-      .expect(200);
+    const studentTwoResponse = await registerStudent(newStudentTwo).expect(200);
 
     const {
       body: { user: studentTwo }
@@ -228,11 +216,7 @@ describe('Successful student registration', () => {
       studentPartnerOrg: 'example'
     };
     const newStudent = createStudent(studentOptions);
-    const response = await registerStudent(app)
-      .send(newStudent)
-      .set('Accept', 'application/json')
-      .set('X-Forwarded-For', US_IP_ADDRESS)
-      .expect(200);
+    const response = await registerStudent(newStudent).expect(200);
 
     const {
       body: { user }
@@ -246,11 +230,7 @@ describe('Successful student registration', () => {
 
   test('User action account created was created', async () => {
     const newStudent = createStudent();
-    const response = await registerStudent(app)
-      .send(newStudent)
-      .set('Accept', 'application/json')
-      .set('X-Forwarded-For', US_IP_ADDRESS)
-      .expect(200);
+    const response = await registerStudent(newStudent).expect(200);
 
     const {
       body: { user }
