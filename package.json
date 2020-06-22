@@ -84,9 +84,8 @@
     "validator": "^6.2.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.9.6",
-    "@babel/preset-env": "^7.9.6",
-    "@babel/preset-typescript": "^7.9.0",
+    "@babel/preset-env": "^7.10.3",
+    "@babel/preset-typescript": "^7.10.1",
     "@shelf/jest-mongodb": "^1.1.5",
     "@types/bull": "^3.12.2",
     "@types/cors": "^2.8.6",
@@ -94,6 +93,7 @@
     "@types/lodash": "^4.14.149",
     "@types/mongoose": "^5.7.10",
     "@types/morgan": "^1.9.0",
+    "@types/supertest": "^2.0.9",
     "@typescript-eslint/eslint-plugin": "^2.27.0",
     "@typescript-eslint/parser": "^2.27.0",
     "babel-jest": "^26.0.1",
