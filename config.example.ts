@@ -104,13 +104,18 @@ const config: Static<typeof Config> = {
   // voice to use to render speech
   voice: 'man',
 
-  VOLUNTEER_CODES: process.env.UPCHIEVE_VOLUNTEER_CODES || 'CODE123,CODE987',
   workerQueueName: 'main',
   redisConnectionString: 'redis://127.0.0.1:6379',
   firebase: {
     projectId: 123456789012
   },
-  bannedServiceProviders: ['Example']
+  bannedServiceProviders: ['Example'],
+  awsS3: {
+    accessKeyId: 'ACCESSKEY123',
+    secretAccessKey: 'SECRETACCESSKEY789',
+    region: 'us-east-2',
+    photoIdBucket: 'photo-id-bucket'
+  }
 };
 
 module.exports = config;

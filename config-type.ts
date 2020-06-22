@@ -82,11 +82,16 @@ export const Config = Record({
   // voice to use to render speech
   voice: Literal('man'),
 
-  VOLUNTEER_CODES: String,
   workerQueueName: String,
   redisConnectionString: String,
   firebase: Record({
     projectId: Number
   }),
-  bannedServiceProviders: Array(String)
+  bannedServiceProviders: Array(String),
+  awsS3: Record({
+    accessKeyId: String,
+    secretAccessKey: String,
+    region: String,
+    photoIdBucket: String
+  })
 });

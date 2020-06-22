@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
-import config from '../config';
+import {
+  PHOTO_ID_STATUS,
+  LINKEDIN_STATUS,
+  REFERENCE_STATUS
+} from '../constants';
 import User from './User';
 
 const weeksSince = (date): number => {
@@ -95,6 +99,32 @@ const availabilitySchema = new mongoose.Schema(
   { _id: false }
 );
 
+const referenceSchema = new mongoose.Schema({
+  email: { type: String, required: true },
+  name: { type: String, required: true },
+  status: {
+    type: String,
+    required: true,
+    enum: [
+      REFERENCE_STATUS.UNSENT,
+      REFERENCE_STATUS.SENT,
+      REFERENCE_STATUS.SUBMITTED,
+      REFERENCE_STATUS.APPROVED,
+      REFERENCE_STATUS.REJECTED
+    ],
+    default: REFERENCE_STATUS.UNSENT
+  },
+  affiliation: String,
+  relationshipLength: String,
+  patient: Number,
+  positiveRoleModel: Number,
+  agreeableAndApproachable: Number,
+  communicatesEffectively: Number,
+  trustworthyWithChildren: Number,
+  rejectionReason: String,
+  additionalInfo: String
+});
+
 const volunteerSchemaOptions = {
   toJSON: {
     virtuals: true
@@ -106,7 +136,37 @@ const volunteerSchemaOptions = {
 
 const volunteerSchema = new mongoose.Schema(
   {
-    registrationCode: { type: String, select: false },
+    isApproved: {
+      type: Boolean,
+      default: false
+    },
+    photoIdS3Key: {
+      type: String,
+      select: false
+    },
+    photoIdStatus: {
+      type: String,
+      enum: [
+        PHOTO_ID_STATUS.EMPTY,
+        PHOTO_ID_STATUS.SUBMITTED,
+        PHOTO_ID_STATUS.REJECTED,
+        PHOTO_ID_STATUS.APPROVED
+      ],
+      default: PHOTO_ID_STATUS.EMPTY
+    },
+    linkedInUrl: String,
+    linkedInStatus: {
+      type: String,
+      enum: [
+        LINKEDIN_STATUS.EMPTY,
+        LINKEDIN_STATUS.SUBMITTED,
+        LINKEDIN_STATUS.REJECTED,
+        LINKEDIN_STATUS.APPROVED
+      ],
+      default: LINKEDIN_STATUS.EMPTY
+    },
+    references: [referenceSchema],
+
     volunteerPartnerOrg: String,
     isFailsafeVolunteer: {
       type: Boolean,
@@ -357,17 +417,6 @@ volunteerSchema.virtual('isOnboarded').get(function() {
 
   return !!this.availabilityLastModifiedAt && isCertified;
 });
-
-// Static method to determine if a registration code is valid
-volunteerSchema.statics.checkCode = function(code): boolean {
-  const volunteerCodes = config.VOLUNTEER_CODES.split(',');
-
-  const isVolunteerCode = volunteerCodes.some(volunteerCode => {
-    return volunteerCode.toUpperCase() === code.toUpperCase();
-  });
-
-  return isVolunteerCode;
-};
 
 // Use the user schema as the base schema for Volunteer
 const Volunteer = User.discriminator('Volunteer', volunteerSchema);
