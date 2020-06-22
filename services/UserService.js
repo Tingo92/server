@@ -1,9 +1,25 @@
 const crypto = require('crypto')
+const { omit } = require('lodash')
 const User = require('../models/User')
 const Volunteer = require('../models/Volunteer')
 const { PHOTO_ID_STATUS, REFERENCE_STATUS } = require('../constants')
 
 module.exports = {
+  parseUser: user => {
+    // Approved volunteer
+    if (user.isVolunteer && user.isApproved)
+      return omit(user, [
+        'references',
+        'photoIdS3Key',
+        'photoIdStatus',
+        'linkedInUrl',
+        'linkedInStatus'
+      ])
+
+    // Student or unapproved volunteer
+    return user
+  },
+
   banUser: async ({ userId, banReason }) => {
     return User.updateOne(
       { _id: userId },

@@ -140,10 +140,7 @@ const volunteerSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
-    photoIdS3Key: {
-      type: String,
-      select: false
-    },
+    photoIdS3Key: String,
     photoIdStatus: {
       type: String,
       enum: [
