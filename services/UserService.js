@@ -1,7 +1,11 @@
 const crypto = require('crypto')
 const User = require('../models/User')
 const Volunteer = require('../models/Volunteer')
-const { PHOTO_ID_STATUS, REFERENCE_STATUS } = require('../constants')
+const {
+  PHOTO_ID_STATUS,
+  REFERENCE_STATUS,
+  LINKEDIN_STATUS
+} = require('../constants')
 
 module.exports = {
   banUser: async ({ userId, banReason }) => {
@@ -24,7 +28,10 @@ module.exports = {
     const urlPattern = RegExp(/.*linkedin\.com.*\/in\/.+/)
     const isMatch = urlPattern.test(linkedInUrl)
     if (!isMatch) return false
-    await Volunteer.updateOne({ _id: userId }, { $set: { linkedInUrl } })
+    await Volunteer.updateOne(
+      { _id: userId },
+      { $set: { linkedInUrl, linkedInStatus: LINKEDIN_STATUS.SUBMITTED } }
+    )
     return true
   },
 
