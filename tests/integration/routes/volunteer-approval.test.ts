@@ -1,9 +1,15 @@
+// @note: these tests are false confidence - most of these routes always return status 200 regardless pass or fail
 import mongoose from 'mongoose';
 import request, { Test } from 'supertest';
-
 import app from '../../../app';
-import Volunteer from '../../../models/Volunteer';
+import { insertVolunteer } from '../../utils/db-utils';
+import {
+  buildVolunteer,
+  buildReference,
+  authLogin
+} from '../../utils/generate';
 
+// agent stores the session when making an auth request
 const agent = request.agent(app);
 
 /**
@@ -30,82 +36,11 @@ jest.mock('aws-sdk', () => {
   };
 });
 
-// @todo: clean up - use the Volunteer interface from Volunteer.ts when available
-interface Volunteer {
-  password: string;
-  referralCode: string;
-  hashPassword: (password: string) => string;
-}
-
-let volunteer;
-
-// const createVolunteer = async volunteerData => {
-//   const volunteer: Document | Volunteer = new Volunteer(volunteerData);
-//   volunteer.referralCode = UserCtrl.generateReferralCode(volunteer.id);
-
-//   try {
-//     volunteer.password = await volunteer.hashPassword(password);
-//     await volunteer.save();
-//   } catch (error) {
-//     throw new Error(error);
-//   }
-// };
-
 // db connection
 beforeAll(async () => {
   await mongoose.connect(process.env.MONGO_URL, {
     useNewUrlParser: true
   });
-
-  // Volunteer.remove({});
-
-  const volunteerData = {
-    email: 'volunteer2@upchieve.org',
-    isVolunteer: true,
-    isApproved: false,
-    college: 'Columbia University',
-    phone: '+12345678910',
-    favoriteAcademicSubject: 'Computer Science',
-    firstname: 'Volunteer',
-    lastname: 'UPchieve',
-    verified: true,
-    referredBy: null,
-    password: 'Password123'
-  };
-
-  const { password } = volunteerData;
-  volunteer = new Volunteer(volunteerData);
-  volunteer.referralCode = 'akjsndakjndkajsndkajsndksajnakj';
-
-  try {
-    volunteer.password = await volunteer.hashPassword(password);
-    await volunteer.save();
-  } catch (error) {
-    throw new Error(error);
-  }
-
-  try {
-    // console.log('the volunteer', volunteer);
-    // http://localhost:3000/auth/login
-    const response = await agent
-      .post('/auth/login')
-      .set('Accept', 'application/json')
-      .send({ email: volunteer.email, password: 'Password123' });
-
-    // console.log('the response body', response.body);
-    // console.log(response);
-    // const {
-    //   body: { err }
-    // } = response;
-
-    // const poop = await authLogin(app, {
-    //   username: volunteer.email,
-    //   password: 'Password123'
-    // });
-    // console.log('the pop', err);
-  } catch (error) {
-    console.log('the error', error);
-  }
 });
 
 afterAll(async () => {
@@ -116,6 +51,9 @@ const sendLinkedIn = (linkedInUrl): Test =>
   agent.post('/api/user/volunteer-approval/linkedin').send({ linkedInUrl });
 
 test('Volunteer submits an invalid LinkedIn url', async () => {
+  const volunteerData = buildVolunteer();
+  await insertVolunteer(volunteerData);
+  await authLogin(agent, volunteerData);
   const response = await sendLinkedIn(
     'https://www.linkedin.com/company/upchieve/'
   ).expect(200);
@@ -128,6 +66,9 @@ test('Volunteer submits an invalid LinkedIn url', async () => {
 });
 
 test('Volunteer submits a valid LinkedIn url', async () => {
+  const volunteerData = buildVolunteer();
+  await insertVolunteer(volunteerData);
+  await authLogin(agent, volunteerData);
   const response = await sendLinkedIn(
     'https://www.linkedin.com/in/volunteer1/'
   ).expect(200);
@@ -140,20 +81,30 @@ test('Volunteer submits a valid LinkedIn url', async () => {
 });
 
 test('Volunteer submits a reference', async () => {
+  const reference = buildReference();
+  const references = [reference];
+  const volunteerData = buildVolunteer({ references });
+  await insertVolunteer(volunteerData);
+  await authLogin(agent, volunteerData);
   await agent
     .post('/api/user/volunteer-approval/reference')
     .send({
-      referenceName: 'Volunteer 2',
-      referenceEmail: 'volunteer2@upchieve.org'
+      referenceName: reference.name,
+      referenceEmail: reference.email
     })
     .expect(200);
 });
 
 test('Volunteer deletes a reference', async () => {
+  const reference = buildReference();
+  const references = [reference];
+  const volunteerData = buildVolunteer({ references });
+  await insertVolunteer(volunteerData);
+  await authLogin(agent, volunteerData);
   await agent
     .post('/api/user/volunteer-approval/reference/delete')
     .send({
-      referenceEmail: 'volunteer2@upchieve.org'
+      referenceEmail: reference.email
     })
     .expect(200);
 });
@@ -161,6 +112,9 @@ test('Volunteer deletes a reference', async () => {
 // @todo: clean up
 // see note above for jest.mock('aws-sdk')
 test('Volunteer recieves an error requesting photo id upload url', async () => {
+  const volunteerData = buildVolunteer();
+  await insertVolunteer(volunteerData);
+  await authLogin(agent, volunteerData);
   const response = await agent
     .get('/api/user/volunteer-approval/photo-url')
     .expect(200);
@@ -177,6 +131,9 @@ test('Volunteer recieves an error requesting photo id upload url', async () => {
 // @todo: clean up
 // see note above for jest.mock('aws-sdk')
 test('Volunteer recieves a photo id upload url', async () => {
+  const volunteerData = buildVolunteer();
+  await insertVolunteer(volunteerData);
+  await authLogin(agent, volunteerData);
   const response = await agent
     .get('/api/user/volunteer-approval/photo-url')
     .expect(200);
