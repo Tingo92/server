@@ -28,8 +28,11 @@ const createServer = app => {
 module.exports = function(app) {
   const server = createServer(app)
 
-  const port = config.socketsPort
-  server.listen(port)
+  const port =
+    process.env.NODE_ENV === 'test'
+      ? 4000 + Number(process.env.JEST_WORKER_ID)
+      : config.socketsPort
+
 
   console.log('Sockets.io listening on port ' + port)
 
