@@ -1,17 +1,19 @@
 import faker from 'faker';
+import { Test } from 'supertest';
 import {
   Volunteer,
   Student,
   StudentRegistrationForm,
-  VolunteerRegistrationForm
+  VolunteerRegistrationForm,
+  Reference
 } from './types';
 
-const getEmail = faker.internet.email;
-const getFirstName = faker.name.firstName;
-const getLastName = faker.name.lastName;
-const getPhoneNumber = faker.phone.phoneNumber;
+export const getEmail = faker.internet.email;
+export const getFirstName = faker.name.firstName;
+export const getLastName = faker.name.lastName;
+const getId = faker.random.uuid;
 
-const buildStudent = (overrides = {}): Student => {
+export const buildStudent = (overrides = {}): Student => {
   const firstName = getFirstName();
   const lastName = getLastName();
   const student = {
@@ -25,13 +27,14 @@ const buildStudent = (overrides = {}): Student => {
     zipCode: '11201',
     studentPartnerOrg: 'example',
     referredByCode: '',
+    referralCode: getId(),
     ...overrides
   };
 
   return student;
 };
 
-const buildVolunteer = (overrides = {}): Volunteer => {
+export const buildVolunteer = (overrides = {}): Volunteer => {
   const firstName = getFirstName();
   const lastName = getLastName();
   const volunteer = {
@@ -41,19 +44,19 @@ const buildVolunteer = (overrides = {}): Volunteer => {
     firstname: firstName,
     lastname: lastName,
     password: 'Password123',
-    phone: getPhoneNumber(),
     zipCode: '11201',
     referredByCode: '',
     college: 'Columbia University',
     favoriteAcademicSubject: 'Computer Science',
-    // phone: '+12345678910',
+    phone: '+12345678910',
+    referralCode: getId(),
     ...overrides
   };
 
   return volunteer;
 };
 
-const buildStudentRegistrationForm = (
+export const buildStudentRegistrationForm = (
   overrides = {}
 ): StudentRegistrationForm => {
   const student = buildStudent();
@@ -66,7 +69,7 @@ const buildStudentRegistrationForm = (
   return form;
 };
 
-const buildVolunteerRegistrationForm = (
+export const buildVolunteerRegistrationForm = (
   overrides = {}
 ): VolunteerRegistrationForm => {
   const volunteer = buildVolunteer();
@@ -79,9 +82,15 @@ const buildVolunteerRegistrationForm = (
   return form;
 };
 
-export {
-  buildStudent,
-  buildVolunteer,
-  buildStudentRegistrationForm,
-  buildVolunteerRegistrationForm
+export const buildReference = (): Partial<Reference> => {
+  const referenceName = `${getFirstName()} ${getLastName()}`;
+  const referenceEmail = getEmail();
+
+  return { name: referenceName, email: referenceEmail };
 };
+
+export const authLogin = (agent, { email, password }): Test =>
+  agent
+    .post('/auth/login')
+    .set('Accept', 'application/json')
+    .send({ email, password });

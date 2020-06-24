@@ -1,3 +1,5 @@
+import { Types } from 'mongoose';
+
 // @todo: clean up - use the Student interface from Student.ts when available
 export interface Student {
   email: string;
@@ -11,6 +13,24 @@ export interface Student {
   zipCode: string;
   studentPartnerOrg: string;
   referredByCode: string;
+  referralCode: string;
+}
+
+// @todo: clean up - use the Reference interface from Volunteer.ts when available
+export interface Reference {
+  _id: Types.ObjectId;
+  status: string;
+  email: string;
+  name: string;
+  affiliation: string;
+  relationshipLength: string;
+  patient: number;
+  positiveRoleModel: number;
+  agreeableAndApproachable: number;
+  communicatesEffectively: number;
+  trustworthyWithChildren: number;
+  rejectionReason: string;
+  additionalInfo: string;
 }
 
 // @todo: clean up - use the Volunteer interface from Volunteer.ts when available
@@ -28,6 +48,10 @@ export interface Volunteer {
   favoriteAcademicSubject: string;
   referredByCode: string;
   phone: string;
+  referralCode: string;
+  references?: Array<Reference>;
+  photoIdS3Key?: string;
+  photoIdStatus?: string;
 }
 
 export interface StudentRegistrationForm extends Student {
