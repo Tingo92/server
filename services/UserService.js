@@ -1,4 +1,5 @@
 const crypto = require('crypto')
+const { omit } = require('lodash')
 const User = require('../models/User')
 const Volunteer = require('../models/Volunteer')
 const {
@@ -8,6 +9,21 @@ const {
 } = require('../constants')
 
 module.exports = {
+  parseUser: user => {
+    // Approved volunteer
+    if (user.isVolunteer && user.isApproved)
+      return omit(user, [
+        'references',
+        'photoIdS3Key',
+        'photoIdStatus',
+        'linkedInUrl',
+        'linkedInStatus'
+      ])
+
+    // Student or unapproved volunteer
+    return user
+  },
+
   banUser: async ({ userId, banReason }) => {
     return User.updateOne(
       { _id: userId },
@@ -84,5 +100,86 @@ module.exports = {
       { _id: userId },
       { $pull: { references: { email: referenceEmail } } }
     )
+  },
+
+  getPendingVolunteers: async function(page) {
+    const pageNum = parseInt(page) || 1
+    const PER_PAGE = 15
+    const skip = (pageNum - 1) * PER_PAGE
+
+    try {
+      const volunteers = await Volunteer.aggregate([
+        {
+          $match: {
+            isApproved: false,
+            photoIdS3Key: { $ne: null },
+            photoIdStatus: {
+              $in: [PHOTO_ID_STATUS.SUBMITTED, PHOTO_ID_STATUS.APPROVED]
+            },
+            $or: [
+              { linkedInUrl: { $exists: true }, references: { $size: 1 } },
+              { linkedInUrl: { $exists: false }, references: { $size: 2 } }
+            ],
+            'references.status': {
+              $nin: [
+                REFERENCE_STATUS.REJECTED,
+                REFERENCE_STATUS.UNSENT,
+                REFERENCE_STATUS.SENT
+              ]
+            }
+          }
+        },
+        {
+          $project: {
+            firstname: 1,
+            lastname: 1,
+            email: 1,
+            createdAt: 1
+          }
+        }
+      ])
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(PER_PAGE)
+
+      const isLastPage = volunteers.length < PER_PAGE
+      return { volunteers, isLastPage }
+    } catch (error) {
+      throw new Error(error.message)
+    }
+  },
+
+  updatePendingVolunteerStatus: async function({
+    volunteerId,
+    photoIdStatus,
+    referencesStatus,
+    linkedInStatus
+  }) {
+    const statuses = [...referencesStatus, linkedInStatus]
+    const minApprovedStatuses = 2
+    let amountApproved = 0
+
+    for (const status of statuses) {
+      if (status === REFERENCE_STATUS.APPROVED) amountApproved++
+    }
+
+    // A volunteer must have the following list items approved before being considered an approved volunteer
+    //  1. two references or one reference and a valid LinkedIn url
+    //  2. photo id
+    const isApproved =
+      amountApproved === minApprovedStatuses &&
+      photoIdStatus === PHOTO_ID_STATUS.APPROVED
+
+    const [referenceOneStatus, referenceTwoStatus] = referencesStatus
+    const update = {
+      isApproved,
+      photoIdStatus,
+      linkedInStatus,
+      'references.0.status': referenceOneStatus
+    }
+
+    if (referenceTwoStatus) update['references.1.status'] = referenceTwoStatus
+
+    return Volunteer.update({ _id: volunteerId }, update)
   }
 }
