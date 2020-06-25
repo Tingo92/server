@@ -1,5 +1,7 @@
 import faker from 'faker';
 import { Test } from 'supertest';
+import { Types } from 'mongoose';
+import base64url from 'base64url';
 import {
   Volunteer,
   Student,
@@ -11,12 +13,16 @@ import {
 export const getEmail = faker.internet.email;
 export const getFirstName = faker.name.firstName;
 export const getLastName = faker.name.lastName;
-const getId = faker.random.uuid;
+
+const generateReferralCode = (userId): string =>
+  base64url(Buffer.from(userId, 'hex'));
 
 export const buildStudent = (overrides = {}): Student => {
   const firstName = getFirstName();
   const lastName = getLastName();
+  const _id = Types.ObjectId();
   const student = {
+    _id,
     email: getEmail().toLowerCase(),
     firstName,
     lastName,
@@ -27,7 +33,7 @@ export const buildStudent = (overrides = {}): Student => {
     zipCode: '11201',
     studentPartnerOrg: 'example',
     referredByCode: '',
-    referralCode: getId(),
+    referralCode: generateReferralCode(_id.toString()),
     ...overrides
   };
 
@@ -37,7 +43,9 @@ export const buildStudent = (overrides = {}): Student => {
 export const buildVolunteer = (overrides = {}): Volunteer => {
   const firstName = getFirstName();
   const lastName = getLastName();
+  const _id = Types.ObjectId();
   const volunteer = {
+    _id,
     email: getEmail().toLowerCase(),
     firstName,
     lastName,
@@ -49,7 +57,7 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
     college: 'Columbia University',
     favoriteAcademicSubject: 'Computer Science',
     phone: '+12345678910',
-    referralCode: getId(),
+    referralCode: generateReferralCode(_id.toString()),
     ...overrides
   };
 
@@ -85,8 +93,13 @@ export const buildVolunteerRegistrationForm = (
 export const buildReference = (): Partial<Reference> => {
   const referenceName = `${getFirstName()} ${getLastName()}`;
   const referenceEmail = getEmail();
+  const reference = {
+    _id: Types.ObjectId(),
+    name: referenceName,
+    email: referenceEmail
+  };
 
-  return { name: referenceName, email: referenceEmail };
+  return reference;
 };
 
 export const authLogin = (agent, { email, password }): Test =>
