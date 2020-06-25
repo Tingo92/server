@@ -12,7 +12,7 @@ import {
   buildVolunteerRegistrationForm,
   buildStudent
 } from '../../utils/generate';
-import { insertStudent } from '../../utils/db-utils';
+import { resetDb, insertStudent } from '../../utils/db-utils';
 jest.mock('../../../services/MailService');
 
 const US_IP_ADDRESS = '161.185.160.93';
@@ -153,9 +153,9 @@ describe('Student registration', () => {
   });
 
   describe('Successful student registration', () => {
-    // beforeEach(async () => {
-    //   await resetDb();
-    // });
+    beforeEach(async () => {
+      await resetDb();
+    });
 
     test('Create a student from outside the US', async () => {
       const canadianIpAddress = '162.219.162.233';
@@ -286,9 +286,9 @@ describe('Open volunteer registration', () => {
   });
 
   describe('Successful open volunteer registration', () => {
-    // beforeEach(async () => {
-    //   await resetDb();
-    // });
+    beforeEach(async () => {
+      await resetDb();
+    });
 
     test('Open volunteer creates a new account', async () => {
       const newVolunteer = buildVolunteerRegistrationForm();
@@ -401,9 +401,9 @@ describe('Partner volunteer registration', () => {
   });
 
   describe('Successful partner volunteer registration', () => {
-    // beforeEach(async () => {
-    //   await resetDb();
-    // });
+    beforeEach(async () => {
+      await resetDb();
+    });
 
     test('Partner volunteer creates a new account', async () => {
       const formOptions = {
