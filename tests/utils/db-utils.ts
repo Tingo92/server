@@ -11,7 +11,7 @@ const hashPassword = async function(password): Promise<Error | string> {
     const hash = await bcrypt.hash(password, salt);
     return hash;
   } catch (error) {
-    throw new error(error);
+    throw new Error(error);
   }
 };
 
