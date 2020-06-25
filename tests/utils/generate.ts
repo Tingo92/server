@@ -3,6 +3,11 @@ import { Test } from 'supertest';
 import { Types } from 'mongoose';
 import base64url from 'base64url';
 import {
+  LINKEDIN_STATUS,
+  PHOTO_ID_STATUS,
+  REFERENCE_STATUS
+} from '../../constants';
+import {
   Volunteer,
   Student,
   StudentRegistrationForm,
@@ -13,6 +18,7 @@ import {
 export const getEmail = faker.internet.email;
 export const getFirstName = faker.name.firstName;
 export const getLastName = faker.name.lastName;
+export const getId = faker.random.uuid;
 
 const generateReferralCode = (userId): string =>
   base64url(Buffer.from(userId, 'hex'));
@@ -90,16 +96,67 @@ export const buildVolunteerRegistrationForm = (
   return form;
 };
 
-export const buildReference = (): Partial<Reference> => {
+export const buildReference = (overrides = {}): Partial<Reference> => {
   const referenceName = `${getFirstName()} ${getLastName()}`;
   const referenceEmail = getEmail();
   const reference = {
     _id: Types.ObjectId(),
     name: referenceName,
-    email: referenceEmail
+    email: referenceEmail,
+    ...overrides
   };
 
   return reference;
+};
+
+export const buildReferenceForm = (overrides = {}): Partial<Reference> => {
+  const randomNumToSix = (): number => Math.floor(Math.random() * 6) + 1;
+  const randomNumToFive = (): number => Math.floor(Math.random() * 5) + 1;
+  const form = {
+    affiliation: faker.lorem.word(),
+    relationshipLength: faker.lorem.word(),
+    rejectionReason: faker.lorem.word(),
+    additionalInfo: faker.lorem.sentence(),
+    patient: randomNumToSix(),
+    positiveRoleModel: randomNumToSix(),
+    agreeableAndApproachable: randomNumToSix(),
+    communicatesEffectively: randomNumToSix(),
+    trustworthyWithChildren: randomNumToFive(),
+    status: REFERENCE_STATUS.SUBMITTED,
+    ...overrides
+  };
+
+  return form;
+};
+
+export const buildReferenceWithForm = (overrides = {}): Partial<Reference> => {
+  const data = {
+    ...buildReferenceForm(),
+    ...buildReference(),
+    ...overrides
+  };
+
+  return data;
+};
+
+export const buildLinkedInData = (overrides = {}): Partial<Volunteer> => {
+  const data = {
+    linkedInUrl: `https://www.linkedin.com/in/${getFirstName()}${getLastName()}/`,
+    linkedInStatus: LINKEDIN_STATUS.SUBMITTED,
+    ...overrides
+  };
+
+  return data;
+};
+
+export const buildPhotoIdData = (overrides = {}): Partial<Volunteer> => {
+  const data = {
+    photoIdS3Key: getId(),
+    photoIdStatus: PHOTO_ID_STATUS.SUBMITTED,
+    ...overrides
+  };
+
+  return data;
 };
 
 export const authLogin = (agent, { email, password }): Test =>
