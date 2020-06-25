@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import request, { Test } from 'supertest';
-import StudentModel from '../../../models/Student';
 import {
   StudentRegistrationForm,
   VolunteerRegistrationForm
@@ -8,11 +7,12 @@ import {
 import app from '../../../app';
 import School from '../../../models/School';
 import testHighSchools from '../../../seeds/schools/test_high_schools.json';
-import VolunteerModel from '../../../models/Volunteer';
 import {
   buildStudentRegistrationForm,
-  buildVolunteerRegistrationForm
+  buildVolunteerRegistrationForm,
+  buildStudent
 } from '../../utils/generate';
+import { resetDb, insertStudent } from '../../utils/db-utils';
 jest.mock('../../../services/MailService');
 
 const US_IP_ADDRESS = '161.185.160.93';
@@ -154,7 +154,7 @@ describe('Student registration', () => {
 
   describe('Successful student registration', () => {
     beforeEach(async () => {
-      await StudentModel.remove({});
+      await resetDb();
     });
 
     test('Create a student from outside the US', async () => {
@@ -176,35 +176,29 @@ describe('Student registration', () => {
     });
 
     test('Student was referred from another student', async () => {
-      // Create the first student
-      const newStudentOne = buildStudentRegistrationForm();
-      const studentOneResponse = await registerStudent(newStudentOne).expect(
-        200
-      );
+      const studentOne = buildStudent();
+      await insertStudent(studentOne);
 
-      const {
-        body: { user: studentOne }
-      } = studentOneResponse;
       const studentOneReferralCode = studentOne.referralCode;
       const studentOneId = studentOne._id;
 
       // Create the second student
-      const studentTwoOptions = {
+      const formOptions = {
         referredByCode: studentOneReferralCode
       };
-      const newStudentTwo = buildStudentRegistrationForm(studentTwoOptions);
-      const studentTwoResponse = await registerStudent(newStudentTwo).expect(
+      const newStudentRegistationForm = buildStudentRegistrationForm(
+        formOptions
+      );
+      const response = await registerStudent(newStudentRegistationForm).expect(
         200
       );
 
       const {
         body: { user: studentTwo }
-      } = studentTwoResponse;
+      } = response;
 
-      const result = studentTwo.referredBy;
       const expected = studentOneId;
-
-      expect(result).toEqual(expected);
+      expect(studentTwo.referredBy.toString()).toEqual(expected.toString());
     });
 
     test('Student registered with a student partner org', async () => {
@@ -293,7 +287,7 @@ describe('Open volunteer registration', () => {
 
   describe('Successful open volunteer registration', () => {
     beforeEach(async () => {
-      await VolunteerModel.remove({});
+      await resetDb();
     });
 
     test('Open volunteer creates a new account', async () => {
@@ -408,7 +402,7 @@ describe('Partner volunteer registration', () => {
 
   describe('Successful partner volunteer registration', () => {
     beforeEach(async () => {
-      await VolunteerModel.remove({});
+      await resetDb();
     });
 
     test('Partner volunteer creates a new account', async () => {
