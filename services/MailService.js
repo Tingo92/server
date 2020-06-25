@@ -31,7 +31,14 @@ const sendEmail = (
     asm
   }
 
-  sgMail.send(msg, callback)
+  return sgMail.send(msg, callback)
+}
+
+// @todo: use this in other MailService methods
+const buildLink = path => {
+  const { host } = config.client
+  const protocol = config.NODE_ENV === 'production' ? 'https' : 'http'
+  return `${protocol}://${host}/${path}`
 }
 
 module.exports = {
@@ -135,6 +142,23 @@ module.exports = {
       'UPchieve',
       config.sendgrid.reportedSessionAlertTemplate,
       { sessionId, reportedByEmail, reportMessage },
+      config.sendgrid.unsubscribeGroup.account
+    )
+  },
+
+  sendReferenceForm: ({ reference, volunteer }) => {
+    const emailData = {
+      referenceUrl: buildLink(`reference-form/${reference._id}`),
+      referenceName: reference.name,
+      volunteerName: `${volunteer.firstname} ${volunteer.lastname}`
+    }
+
+    return sendEmail(
+      reference.email,
+      config.mail.senders.noreply,
+      'UPchieve',
+      config.sendgrid.referenceFormTemplate,
+      emailData,
       config.sendgrid.unsubscribeGroup.account
     )
   }
