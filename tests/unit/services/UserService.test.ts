@@ -7,7 +7,14 @@ import {
   REFERENCE_STATUS
 } from '../../../constants';
 import { Volunteer } from '../../utils/types';
-import { buildVolunteer, buildReference } from '../../utils/generate';
+import {
+  buildVolunteer,
+  buildReference,
+  buildReferenceForm,
+  buildLinkedInData,
+  buildPhotoIdData,
+  buildReferenceWithForm
+} from '../../utils/generate';
 import { insertVolunteer, resetDb } from '../../utils/db-utils';
 
 beforeAll(async () => {
@@ -169,17 +176,7 @@ test('Should save reference form data', async () => {
 
   const referenceFormInput = {
     referenceId: reference._id,
-    referenceFormData: {
-      affiliation: 'Manager',
-      relationshipLength: '2 years',
-      patient: 4,
-      positiveRoleModel: 4,
-      agreeableAndApproachable: 4,
-      communicatesEffectively: 4,
-      trustworthyWithChildren: 4,
-      rejectionReason: 'N/A',
-      additionalInfo: 'Great person to work with!'
-    }
+    referenceFormData: buildReferenceForm()
   };
 
   await UserService.saveReferenceForm(referenceFormInput);
@@ -196,4 +193,71 @@ test('Should save reference form data', async () => {
   const [updatedReference] = updatedReferences;
 
   expect(updatedReference).toMatchObject(referenceFormInput.referenceFormData);
+});
+
+test.todo('Admin should get pending volunteers');
+
+test('Pending volunteer should not be approved after being rejected', async () => {
+  const options = {
+    references: [buildReferenceWithForm(), buildReferenceWithForm()],
+    ...buildLinkedInData(),
+    ...buildPhotoIdData()
+  };
+  const volunteer = buildVolunteer(options);
+  await insertVolunteer(volunteer);
+  const input = {
+    volunteerId: volunteer._id,
+    photoIdStatus: PHOTO_ID_STATUS.APPROVED,
+    referencesStatus: [REFERENCE_STATUS.APPROVED, REFERENCE_STATUS.REJECTED],
+    linkedInStatus: LINKEDIN_STATUS.REJECTED
+  };
+
+  await UserService.updatePendingVolunteerStatus(input);
+  const updatedVolunteer = await VolunteerModel.findOne({ _id: volunteer._id })
+    .lean()
+    .select('photoIdStatus references.status linkedInStatus isApproved')
+    .exec();
+
+  const expectedResult = {
+    photoIdStatus: input.photoIdStatus,
+    linkedInStatus: input.linkedInStatus,
+    references: [
+      { status: input.referencesStatus[0] },
+      { status: input.referencesStatus[1] }
+    ],
+    isApproved: false
+  };
+
+  expect(updatedVolunteer).toMatchObject(expectedResult);
+});
+
+test('Pending volunteer should be approved after approval', async () => {
+  const options = {
+    references: [buildReferenceWithForm()],
+    ...buildLinkedInData(),
+    ...buildPhotoIdData()
+  };
+  const volunteer = buildVolunteer(options);
+  await insertVolunteer(volunteer);
+  const input = {
+    volunteerId: volunteer._id,
+    photoIdStatus: PHOTO_ID_STATUS.APPROVED,
+    referencesStatus: [REFERENCE_STATUS.APPROVED],
+    linkedInStatus: LINKEDIN_STATUS.APPROVED
+  };
+
+  await UserService.updatePendingVolunteerStatus(input);
+  const updatedVolunteer = await VolunteerModel.findOne({ _id: volunteer._id })
+    .lean()
+    .select('photoIdStatus references.status linkedInStatus isApproved')
+    .exec();
+
+  const expectedResult = {
+    photoIdStatus: input.photoIdStatus,
+    linkedInStatus: input.linkedInStatus,
+    references: [{ status: input.referencesStatus[0] }],
+    isApproved: true
+  };
+
+  expect(updatedVolunteer).toMatchObject(expectedResult);
 });
