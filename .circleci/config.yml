@@ -5,7 +5,6 @@ jobs:
   build:
     docker:
       - image: circleci/node:11
-      - image: circleci/mongo:3.6-stretch-ram
 
     working_directory: ~/repo
 
