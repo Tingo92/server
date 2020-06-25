@@ -1,94 +1,51 @@
 import mongoose from 'mongoose';
 import UserService from '../../../services/UserService';
-import Volunteer from '../../../models/Volunteer';
+import VolunteerModel from '../../../models/Volunteer';
 import {
   PHOTO_ID_STATUS,
   LINKEDIN_STATUS,
   REFERENCE_STATUS
 } from '../../../constants';
+import { Volunteer } from '../../utils/types';
+import { buildVolunteer, buildReference } from '../../utils/generate';
+import { insertVolunteer, resetDb } from '../../utils/db-utils';
 
-interface References {
-  _id: mongoose.Types.ObjectId;
-  status: string;
-  email: string;
-  name: string;
-  affiliation: string;
-  relationshipLength: string;
-  patient: number;
-  positiveRoleModel: number;
-  agreeableAndApproachable: number;
-  communicatesEffectively: number;
-  trustworthyWithChildren: number;
-  rejectionReason: string;
-  additionalInfo: string;
-}
-
-// @todo: clean up - use the Volunteer interface from Volunteer.ts when available
-interface Volunteer {
-  _id: mongoose.Types.ObjectId;
-  photoIdS3Key: string;
-  photoIdStatus: string;
-  linkedInUrl: string;
-  linkedInStatus: string;
-  references: Array<References>;
-}
-
-let volunteer;
-
-// db connection
 beforeAll(async () => {
   await mongoose.connect(process.env.MONGO_URL, {
     useNewUrlParser: true
   });
-
-  const volunteerData = {
-    email: 'volunteer1@upchieve.org',
-    isVolunteer: true,
-    isApproved: false,
-    college: 'Columbia University',
-    phone: '+12345678910',
-    favoriteAcademicSubject: 'Computer Science',
-    firstname: 'Volunteer',
-    lastname: 'UPchieve',
-    verified: true,
-    referredBy: null,
-    password: 'Password123'
-  };
-
-  const { password } = volunteerData;
-  volunteer = new Volunteer(volunteerData);
-  volunteer.referralCode = '123';
-
-  try {
-    volunteer.password = await volunteer.hashPassword(password);
-    await volunteer.save();
-  } catch (error) {
-    throw new Error(error);
-  }
 });
 
 afterAll(async () => {
   await mongoose.connection.close();
 });
 
-test('Successfully adds photoIdS3Key and photoIdStatus', async () => {
-  const { _id: userId } = volunteer;
-  const photoIdS3Key = await UserService.addPhotoId({ userId });
+beforeEach(async () => {
+  await resetDb();
+});
 
-  const updatedVolunteer: Partial<Volunteer> = await Volunteer.findOne({
+test('Successfully adds photoIdS3Key and photoIdStatus', async () => {
+  const volunteer = buildVolunteer();
+  await insertVolunteer(volunteer);
+  const { _id: userId } = volunteer;
+  const newPhotoIdS3Key = await UserService.addPhotoId({ userId });
+
+  const updatedVolunteer: Partial<Volunteer> = await VolunteerModel.findOne({
     _id: userId
   })
     .select('photoIdS3Key photoIdStatus')
     .lean()
     .exec();
 
-  // @todo: assert photoIdS3Key to regex expression
-  expect(updatedVolunteer.photoIdS3Key).toEqual(photoIdS3Key);
+  expect(newPhotoIdS3Key).toMatch(/^[a-f0-9]{64}$/);
+  expect(updatedVolunteer.photoIdS3Key).toEqual(newPhotoIdS3Key);
   expect(updatedVolunteer.photoIdStatus).toEqual(PHOTO_ID_STATUS.SUBMITTED);
   expect(updatedVolunteer.photoIdStatus).not.toEqual(PHOTO_ID_STATUS.EMPTY);
 });
 
-test('Submits valid LinkedInUrl', async () => {
+test('Submits valid LinkedIn url', async () => {
+  const volunteer = buildVolunteer();
+  await insertVolunteer(volunteer);
   const { _id: userId } = volunteer;
   const linkedInUrl = 'https://www.linkedin.com/in/volunteer/';
   const input = {
@@ -97,7 +54,7 @@ test('Submits valid LinkedInUrl', async () => {
   };
   const isValidLinkedIn = await UserService.addLinkedIn(input);
 
-  const updatedVolunteer: Partial<Volunteer> = await Volunteer.findOne({
+  const updatedVolunteer: Partial<Volunteer> = await VolunteerModel.findOne({
     _id: userId
   })
     .select('linkedInUrl linkedInStatus')
@@ -110,8 +67,9 @@ test('Submits valid LinkedInUrl', async () => {
   expect(updatedVolunteer.linkedInStatus).not.toEqual(LINKEDIN_STATUS.EMPTY);
 });
 
-test('Submits invalid LinkedInUrl', async () => {
-  // @todo: Need to create a volunteer on every test?
+test('Submits invalid LinkedIn url', async () => {
+  const volunteer = buildVolunteer();
+  await insertVolunteer(volunteer);
   const { _id: userId } = volunteer;
   const linkedInUrl = 'https://www.linkedin.com/company/upchieve/';
   const input = {
@@ -120,7 +78,7 @@ test('Submits invalid LinkedInUrl', async () => {
   };
   const isValidLinkedIn = await UserService.addLinkedIn(input);
 
-  const updatedVolunteer: Partial<Volunteer> = await Volunteer.findOne({
+  const updatedVolunteer: Partial<Volunteer> = await VolunteerModel.findOne({
     _id: userId
   })
     .select('linkedInUrl linkedInStatus')
@@ -128,27 +86,24 @@ test('Submits invalid LinkedInUrl', async () => {
     .exec();
 
   expect(isValidLinkedIn).toBeFalsy();
-  // expect(updatedVolunteer.linkedInUrl).toEqual('');
-  // expect(updatedVolunteer.linkedInStatus).toEqual(LINKEDIN_STATUS.EMPTY);
-  // expect(updatedVolunteer.linkedInStatus).not.toEqual(
-  //   LINKEDIN_STATUS.SUBMITTED
-  // );
+  expect(updatedVolunteer.linkedInUrl).toBeUndefined();
+  expect(updatedVolunteer.linkedInStatus).toEqual(LINKEDIN_STATUS.EMPTY);
 });
 
 test('Should add a reference', async () => {
-  // @todo: Need to create a volunteer on every test?
+  const volunteer = buildVolunteer();
+  await insertVolunteer(volunteer);
   const { _id: userId } = volunteer;
+  const reference = buildReference();
   const input = {
     userId,
-    referenceName: 'Jane Doe',
-    referenceEmail: 'janedoe@anon.com'
+    referenceName: reference.name,
+    referenceEmail: reference.email
   };
 
   await UserService.addReference(input);
 
-  expect(volunteer.references.length).toEqual(0);
-
-  const updatedVolunteer: Partial<Volunteer> = await Volunteer.findOne({
+  const updatedVolunteer: Partial<Volunteer> = await VolunteerModel.findOne({
     _id: userId
   })
     .select('references')
@@ -161,77 +116,59 @@ test('Should add a reference', async () => {
     status: REFERENCE_STATUS.UNSENT
   };
 
-  expect(updatedVolunteer.references).toContainEqual(
-    expect.objectContaining({ ...expectedResult })
-  );
+  expect(updatedVolunteer.references[0]).toMatchObject(expectedResult);
   expect(updatedVolunteer.references.length).toEqual(1);
 });
 
 test('Should delete a reference', async () => {
-  // @todo: Need to create a volunteer on every test?
+  const referenceOne = buildReference();
+  const referenceTwo = buildReference();
+  const references = [referenceOne, referenceTwo];
+  const volunteer = buildVolunteer({ references });
+  await insertVolunteer(volunteer);
+
   const { _id: userId } = volunteer;
   const input = {
     userId,
-    referenceName: 'John Doe',
-    referenceEmail: 'johndoe@anon.com'
+    referenceEmail: referenceOne.email
   };
-
-  // @todo: clean up and use a factory method to create the volunteer
-  await UserService.addReference(input);
-
-  const updatedVolunteer: Partial<Volunteer> = await Volunteer.findOne({
-    _id: userId
-  })
-    .select('references')
-    .lean()
-    .exec();
-
-  const expectedResult = {
-    name: input.referenceName,
-    email: input.referenceEmail,
-    status: REFERENCE_STATUS.UNSENT
-  };
-
-  expect(updatedVolunteer.references).toContainEqual(
-    expect.objectContaining({ ...expectedResult })
-  );
 
   await UserService.deleteReference(input);
 
-  const updatedVolunteerTwo: Partial<Volunteer> = await Volunteer.findOne({
+  const updatedVolunteer: Partial<Volunteer> = await VolunteerModel.findOne({
     _id: userId
   })
     .select('references')
     .lean()
     .exec();
 
-  expect(updatedVolunteerTwo.references).not.toContainEqual(
-    expect.objectContaining({ ...expectedResult })
-  );
-});
-
-test('Reference form should save', async () => {
-  // @todo: Need to create a volunteer on every test?
-  const { _id: userId } = volunteer;
-  const input = {
-    userId,
-    referenceName: 'John Doe',
-    referenceEmail: 'johndoe@anon.com'
+  const remainingReference = {
+    name: referenceTwo.name,
+    email: referenceTwo.email,
+    status: REFERENCE_STATUS.UNSENT
   };
 
-  // @todo: clean up and use a factory method to create the volunteer
-  await UserService.addReference(input);
+  const removedReference = {
+    name: referenceOne.name,
+    email: referenceOne.email
+  };
 
-  const { references }: Partial<Volunteer> = await Volunteer.findOne({
-    _id: userId
-  })
-    .select('references')
-    .lean()
-    .exec();
+  expect(updatedVolunteer.references.length).toEqual(1);
+  expect(updatedVolunteer.references).not.toContainEqual(
+    expect.objectContaining({ ...removedReference })
+  );
+  expect(updatedVolunteer.references[0]).toMatchObject(remainingReference);
+});
 
-  const [referenceOne] = references;
+test('Should save reference form data', async () => {
+  const reference = buildReference();
+  const references = [reference];
+  const volunteer = buildVolunteer({ references });
+  await insertVolunteer(volunteer);
+  const { _id: userId } = volunteer;
+
   const referenceFormInput = {
-    referenceId: referenceOne._id,
+    referenceId: reference._id,
     referenceFormData: {
       affiliation: 'Manager',
       relationshipLength: '2 years',
@@ -245,13 +182,11 @@ test('Reference form should save', async () => {
     }
   };
 
-  expect(referenceOne.affiliation).toBeUndefined();
-
   await UserService.saveReferenceForm(referenceFormInput);
 
   const {
     references: updatedReferences
-  }: Partial<Volunteer> = await Volunteer.findOne({
+  }: Partial<Volunteer> = await VolunteerModel.findOne({
     _id: userId
   })
     .select('references')
