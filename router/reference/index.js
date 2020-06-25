@@ -12,5 +12,5 @@ module.exports = function(app) {
     res.sendStatus(200)
   })
 
-  app.use('/reference', router)
+  app.use('/api-public/reference', router)
 }
