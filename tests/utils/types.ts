@@ -13,7 +13,7 @@ export interface Student {
   password: string;
   zipCode: string;
   studentPartnerOrg: string;
-  referredByCode: string;
+  referredByCode: Types.ObjectId | string;
   referralCode: string;
 }
 
