@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import request, { Test } from 'supertest';
 import app from '../../../app';
-import { insertVolunteer } from '../../utils/db-utils';
+import { insertVolunteer, resetDb } from '../../utils/db-utils';
 import {
   buildVolunteer,
   buildReference,
@@ -48,6 +48,13 @@ afterAll(async () => {
   await mongoose.connection.close();
 });
 
+// @todo: fix parallel test issues
+// @note: parallel test issues occur when cleaning up the db before each run current
+//        workaround is to run jest with the '--runInBand' to run the tests serially
+beforeEach(async () => {
+  await resetDb();
+});
+
 test('Volunteer submits an invalid LinkedIn url', async () => {
   const volunteer = buildVolunteer();
   await insertVolunteer(volunteer);
@@ -80,8 +87,7 @@ test('Volunteer submits a valid LinkedIn url', async () => {
 
 test('Volunteer submits a reference', async () => {
   const reference = buildReference();
-  const references = [reference];
-  const volunteer = buildVolunteer({ references });
+  const volunteer = buildVolunteer();
   await insertVolunteer(volunteer);
   await authLogin(agent, volunteer);
   await agent
