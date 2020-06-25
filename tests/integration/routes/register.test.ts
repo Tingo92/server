@@ -386,7 +386,7 @@ describe('Partner volunteer registration', () => {
   });
 
   test('Partner volunteer did not provide a valid partner organization email', async () => {
-    const formOptions = { volunteerPartnerOrg: 'example' };
+    const formOptions = { volunteerPartnerOrg: 'verizon' };
     const newVolunteer = buildVolunteerRegistrationForm(formOptions);
     const response = await registerPartnerVolunteer(newVolunteer).expect(422);
 
