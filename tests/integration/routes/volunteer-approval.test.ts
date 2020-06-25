@@ -1,4 +1,3 @@
-// @note: these tests are false confidence - most of these routes always return status 200 regardless pass or fail
 import mongoose from 'mongoose';
 import request, { Test } from 'supertest';
 import app from '../../../app';
@@ -36,7 +35,9 @@ jest.mock('aws-sdk', () => {
   };
 });
 
-// db connection
+const sendLinkedIn = (linkedInUrl): Test =>
+  agent.post('/api/user/volunteer-approval/linkedin').send({ linkedInUrl });
+
 beforeAll(async () => {
   await mongoose.connect(process.env.MONGO_URL, {
     useNewUrlParser: true
@@ -47,13 +48,10 @@ afterAll(async () => {
   await mongoose.connection.close();
 });
 
-const sendLinkedIn = (linkedInUrl): Test =>
-  agent.post('/api/user/volunteer-approval/linkedin').send({ linkedInUrl });
-
 test('Volunteer submits an invalid LinkedIn url', async () => {
-  const volunteerData = buildVolunteer();
-  await insertVolunteer(volunteerData);
-  await authLogin(agent, volunteerData);
+  const volunteer = buildVolunteer();
+  await insertVolunteer(volunteer);
+  await authLogin(agent, volunteer);
   const response = await sendLinkedIn(
     'https://www.linkedin.com/company/upchieve/'
   ).expect(200);
@@ -66,9 +64,9 @@ test('Volunteer submits an invalid LinkedIn url', async () => {
 });
 
 test('Volunteer submits a valid LinkedIn url', async () => {
-  const volunteerData = buildVolunteer();
-  await insertVolunteer(volunteerData);
-  await authLogin(agent, volunteerData);
+  const volunteer = buildVolunteer();
+  await insertVolunteer(volunteer);
+  await authLogin(agent, volunteer);
   const response = await sendLinkedIn(
     'https://www.linkedin.com/in/volunteer1/'
   ).expect(200);
@@ -83,9 +81,9 @@ test('Volunteer submits a valid LinkedIn url', async () => {
 test('Volunteer submits a reference', async () => {
   const reference = buildReference();
   const references = [reference];
-  const volunteerData = buildVolunteer({ references });
-  await insertVolunteer(volunteerData);
-  await authLogin(agent, volunteerData);
+  const volunteer = buildVolunteer({ references });
+  await insertVolunteer(volunteer);
+  await authLogin(agent, volunteer);
   await agent
     .post('/api/user/volunteer-approval/reference')
     .send({
@@ -98,9 +96,9 @@ test('Volunteer submits a reference', async () => {
 test('Volunteer deletes a reference', async () => {
   const reference = buildReference();
   const references = [reference];
-  const volunteerData = buildVolunteer({ references });
-  await insertVolunteer(volunteerData);
-  await authLogin(agent, volunteerData);
+  const volunteer = buildVolunteer({ references });
+  await insertVolunteer(volunteer);
+  await authLogin(agent, volunteer);
   await agent
     .post('/api/user/volunteer-approval/reference/delete')
     .send({
@@ -109,12 +107,11 @@ test('Volunteer deletes a reference', async () => {
     .expect(200);
 });
 
-// @todo: clean up
-// see note above for jest.mock('aws-sdk')
+// @todo: clean up - see note above for jest.mock('aws-sdk')
 test('Volunteer recieves an error requesting photo id upload url', async () => {
-  const volunteerData = buildVolunteer();
-  await insertVolunteer(volunteerData);
-  await authLogin(agent, volunteerData);
+  const volunteer = buildVolunteer();
+  await insertVolunteer(volunteer);
+  await authLogin(agent, volunteer);
   const response = await agent
     .get('/api/user/volunteer-approval/photo-url')
     .expect(200);
@@ -128,12 +125,11 @@ test('Volunteer recieves an error requesting photo id upload url', async () => {
   expect(success).toBeFalsy();
 });
 
-// @todo: clean up
-// see note above for jest.mock('aws-sdk')
+// @todo: clean up - see note above for jest.mock('aws-sdk')
 test('Volunteer recieves a photo id upload url', async () => {
-  const volunteerData = buildVolunteer();
-  await insertVolunteer(volunteerData);
-  await authLogin(agent, volunteerData);
+  const volunteer = buildVolunteer();
+  await insertVolunteer(volunteer);
+  await authLogin(agent, volunteer);
   const response = await agent
     .get('/api/user/volunteer-approval/photo-url')
     .expect(200);
