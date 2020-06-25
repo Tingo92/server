@@ -33,7 +33,6 @@ module.exports = function(app) {
       ? 4000 + Number(process.env.JEST_WORKER_ID)
       : config.socketsPort
 
-
   console.log('Sockets.io listening on port ' + port)
 
   return socket(server)
