@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 
 // @todo: clean up - use the Student interface from Student.ts when available
 export interface Student {
+  _id: Types.ObjectId;
   email: string;
   // optional use for building registration form
   firstName?: string;
@@ -35,6 +36,7 @@ export interface Reference {
 
 // @todo: clean up - use the Volunteer interface from Volunteer.ts when available
 export interface Volunteer {
+  _id: Types.ObjectId;
   email: string;
   // optional use for building registration form
   firstName?: string;
@@ -52,6 +54,8 @@ export interface Volunteer {
   references?: Array<Reference>;
   photoIdS3Key?: string;
   photoIdStatus?: string;
+  linkedInUrl?: string;
+  linkedInStatus?: string;
 }
 
 export interface StudentRegistrationForm extends Student {
