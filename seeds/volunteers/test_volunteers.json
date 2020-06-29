@@ -56,6 +56,8 @@
     "firstname": "Volunteer",
     "isAdmin": true,
     "isVolunteer": true,
+    "isOnboarded": true,
+    "isApproved": true,
     "lastname": "UPchieve",
     "password": "$2a$10$z.JMHnbX9IubnNZtqI.FOecTPVY1VTU1DJ6AJGIOT/x/OyAtdw3.y",
     "phone": "+12125551212",
