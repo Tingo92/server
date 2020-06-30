@@ -33,5 +33,8 @@ module.exports = function(app) {
 
   console.log('Sockets.io listening on port ' + port)
 
-  return socket(server)
+  return socket(server, {
+    pingInterval: 25000,
+    pingTimeout: 10000
+  })
 }
