@@ -101,7 +101,10 @@ module.exports = function(router) {
         experience,
         background,
         linkedInUrl,
-        languages
+        languages,
+        country,
+        state,
+        city
       } = req.body
 
       const update = {
@@ -109,21 +112,14 @@ module.exports = function(router) {
         experience,
         background,
         linkedInUrl,
-        languages
+        languages,
+        country,
+        state,
+        city
       }
 
       try {
-        const {
-          volunteerPartnerOrg,
-          references,
-          photoIdStatus,
-          isApproved
-        } = await UserService.getUser({ _id })
         await UserService.addBackgroundInfo({
-          isApproved,
-          volunteerPartnerOrg,
-          references,
-          photoIdStatus,
           volunteerId: _id,
           update
         })
