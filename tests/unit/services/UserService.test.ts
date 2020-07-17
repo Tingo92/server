@@ -18,6 +18,7 @@ import {
   buildBackgroundInfo
 } from '../../utils/generate';
 import { insertVolunteer, resetDb } from '../../utils/db-utils';
+jest.mock('../../../services/MailService');
 
 beforeAll(async () => {
   await mongoose.connect(process.env.MONGO_URL, {

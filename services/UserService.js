@@ -178,6 +178,7 @@ module.exports = {
       volunteerBeforeUpdate.background &&
       volunteerBeforeUpdate.background.length > 0 &&
       volunteerBeforeUpdate.country
+
     const statuses = [...referencesStatus, photoIdStatus]
     // A volunteer must have the following list items approved before being considered an approved volunteer
     //  1. two references
@@ -193,8 +194,23 @@ module.exports = {
       'references.1.status': referenceTwoStatus
     }
 
-    if (photoIdStatus === PHOTO_ID_STATUS.REJECTED)
+    await Volunteer.update({ _id: volunteerId }, update)
+
+    if (
+      photoIdStatus === PHOTO_ID_STATUS.REJECTED &&
+      volunteerBeforeUpdate.photoIdStatus !== PHOTO_ID_STATUS.REJECTED
+    ) {
       UserActionCtrl.rejectedPhotoId(volunteerId)
+      await MailService.sendPhotoRejectedEmail(volunteerBeforeUpdate)
+    }
+
+    const isNewlyApproved = isApproved && !volunteerBeforeUpdate.isApproved
+    if (isNewlyApproved) UserActionCtrl.accountApproved(volunteerId)
+    if (isNewlyApproved && !volunteerBeforeUpdate.isOnboarded)
+      MailService.sendApprovedNotOnboardedEmail({
+        volunteerName: volunteerBeforeUpdate.firstname,
+        email: volunteerBeforeUpdate.email
+      })
 
     for (let i = 0; i < referencesStatus.length; i++) {
       if (
@@ -205,11 +221,6 @@ module.exports = {
           referenceEmail: volunteerBeforeUpdate.references[i].email
         })
     }
-
-    // @todo: volunteer-signup - merge with incoming emails pr
-    if (isApproved) UserActionCtrl.accountApproved(volunteerId)
-
-    await Volunteer.update({ _id: volunteerId }, update)
   },
 
   addBackgroundInfo: async function({ volunteerId, update, ip }) {
@@ -217,7 +228,10 @@ module.exports = {
       volunteerPartnerOrg,
       references,
       photoIdStatus,
-      isApproved
+      isApproved,
+      isOnboarded,
+      firstname: firstName,
+      email
     } = await getVolunteer(volunteerId)
     let isFinalApprovalStep = false
 
@@ -241,6 +255,11 @@ module.exports = {
 
     UserActionCtrl.completedBackgroundInfo(volunteerId, ip)
     if (update.isApproved) UserActionCtrl.accountApproved(volunteerId, ip)
+    if (update.isApproved && !isOnboarded)
+      MailService.sendApprovedNotOnboardedEmail({
+        volunteerName: firstName,
+        email
+      })
     return Volunteer.update({ _id: volunteerId }, update)
   }
 }

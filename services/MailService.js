@@ -103,23 +103,24 @@ module.exports = {
     )
   },
 
-  sendVolunteerWelcomeEmail: ({ email, firstName }) => {
-    const { host } = config.client
-    const coachGuideLink = `http://${host}/coach-guide`
-    const scheduleLink = `http://${host}/calendar`
-    const trainingLink = `http://${host}/training`
-
+  sendOpenVolunteerWelcomeEmail: ({ email, volunteerName }) => {
     sendEmail(
       email,
-      config.mail.senders.noreply,
+      config.mail.senders.support,
       'UPchieve',
-      config.sendgrid.volunteerWelcomeTemplate,
-      {
-        firstName,
-        coachGuideLink,
-        scheduleLink,
-        trainingLink
-      },
+      config.sendgrid.openVolunteerWelcomeTemplate,
+      { volunteerName },
+      config.sendgrid.unsubscribeGroup.account
+    )
+  },
+
+  sendPartnerVolunteerWelcomeEmail: ({ email, volunteerName }) => {
+    sendEmail(
+      email,
+      config.mail.senders.support,
+      'UPchieve',
+      config.sendgrid.partnerVolunteerWelcomeTemplate,
+      { volunteerName },
       config.sendgrid.unsubscribeGroup.account
     )
   },
@@ -159,6 +160,39 @@ module.exports = {
       'UPchieve',
       config.sendgrid.referenceFormTemplate,
       emailData,
+      config.sendgrid.unsubscribeGroup.account
+    )
+  },
+
+  sendApprovedNotOnboardedEmail: ({ volunteerName, email }) => {
+    return sendEmail(
+      email,
+      config.mail.senders.support,
+      'UPchieve',
+      config.sendgrid.approvedNotOnboardedTemplate,
+      { volunteerName },
+      config.sendgrid.unsubscribeGroup.account
+    )
+  },
+
+  sendPhotoRejectedEmail: volunteer => {
+    return sendEmail(
+      volunteer.email,
+      config.mail.senders.support,
+      'UPchieve',
+      config.sendgrid.photoRejectedTemplate,
+      { volunteerName: volunteer.firstname },
+      config.sendgrid.unsubscribeGroup.account
+    )
+  },
+
+  sendReadyToCoachEmail: volunteer => {
+    return sendEmail(
+      volunteer.email,
+      config.mail.senders.support,
+      'UPchieve',
+      config.sendgrid.readyToCoachTemplate,
+      { volunteerName: volunteer.firstname },
       config.sendgrid.unsubscribeGroup.account
     )
   }
