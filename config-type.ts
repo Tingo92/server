@@ -30,7 +30,6 @@ export const Config = Record({
     reportedSessionAlertTemplate: String,
     referenceFormTemplate: String,
     approvedNotOnboardedTemplate: String,
-    photoRejectedTemplate: String,
     openReadyToCoachTemplate: String,
     partnerReadyToCoachTemplate: String,
     unsubscribeGroup: Record({

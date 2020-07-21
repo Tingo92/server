@@ -175,17 +175,6 @@ module.exports = {
     )
   },
 
-  sendPhotoRejectedEmail: volunteer => {
-    return sendEmail(
-      volunteer.email,
-      config.mail.senders.support,
-      'UPchieve',
-      config.sendgrid.photoRejectedTemplate,
-      { volunteerName: volunteer.firstname },
-      config.sendgrid.unsubscribeGroup.account
-    )
-  },
-
   sendReadyToCoachEmail: volunteer => {
     const readyToCoachTemplate = volunteer.volunteerPartnerOrg
       ? config.sendgrid.partnerReadyToCoachTemplate
