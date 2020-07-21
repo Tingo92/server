@@ -31,7 +31,8 @@ export const Config = Record({
     referenceFormTemplate: String,
     approvedNotOnboardedTemplate: String,
     photoRejectedTemplate: String,
-    readyToCoachTemplate: String,
+    openReadyToCoachTemplate: String,
+    partnerReadyToCoachTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
       account: Number

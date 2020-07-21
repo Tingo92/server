@@ -187,11 +187,14 @@ module.exports = {
   },
 
   sendReadyToCoachEmail: volunteer => {
+    const readyToCoachTemplate = volunteer.volunteerPartnerOrg
+      ? config.sendgrid.partnerReadyToCoachTemplate
+      : config.sendgrid.openReadyToCoachTemplate
     return sendEmail(
       volunteer.email,
       config.mail.senders.support,
       'UPchieve',
-      config.sendgrid.readyToCoachTemplate,
+      readyToCoachTemplate,
       { volunteerName: volunteer.firstname },
       config.sendgrid.unsubscribeGroup.account
     )
