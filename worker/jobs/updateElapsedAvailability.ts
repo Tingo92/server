@@ -1,6 +1,5 @@
 import { map, size } from 'lodash';
-import VolunteerModel from '../../models/Volunteer';
-import { User } from '../../models/User';
+import VolunteerModel, { Volunteer } from '../../models/Volunteer';
 import dbconnect from '../../dbutils/dbconnect';
 import { log } from '../logger';
 import UserCtrl from '../../controllers/UserCtrl';
@@ -10,7 +9,7 @@ export default async (): Promise<void> => {
   // Fetch volunteers
   const volunteers = (await VolunteerModel.find()
     .lean()
-    .exec()) as User[];
+    .exec()) as Volunteer[];
   await Promise.all(
     map(volunteers, async volunteer => {
       const updates: {
