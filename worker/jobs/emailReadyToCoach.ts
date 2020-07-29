@@ -1,5 +1,4 @@
-import VolunteerModel from '../../models/Volunteer';
-import { Volunteer } from '../../models/types';
+import VolunteerModel, { Volunteer } from '../../models/Volunteer';
 import MailService from '../../services/MailService';
 import dbconnect from '../../dbutils/dbconnect';
 import { log } from '../logger';

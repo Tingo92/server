@@ -1,8 +1,7 @@
 import { flatten } from 'lodash';
 import dbconnect from '../../dbutils/dbconnect';
 import { log } from '../logger';
-import VolunteerModel from '../../models/Volunteer';
-import { Volunteer, Reference } from '../../models/types';
+import VolunteerModel, { Volunteer, Reference } from '../../models/Volunteer';
 import UserService from '../../services/UserService';
 import { REFERENCE_STATUS } from '../../constants';
 
