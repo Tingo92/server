@@ -186,13 +186,13 @@ const createdAccount = (userId, ipAddress) => {
 }
 
 const addedPhotoId = (userId, ipAddress) =>
-  createAccountAction(userId, ipAddress, USER_ACTION.ACCOUNT.ADDED_PHOTO_ID)
+  createAccountAction(userId, ipAddress, USER_ACTION.ACCOUNT_ADDED_PHOTO_ID)
 
 const addedReference = (userId, ipAddress, options) =>
   createAccountAction(
     userId,
     ipAddress,
-    USER_ACTION.ACCOUNT.ADDED_REFERENCE,
+    USER_ACTION.ACCOUNT_ADDED_REFERENCE,
     options
   )
 
@@ -200,39 +200,39 @@ const completedBackgroundInfo = (userId, ipAddress) =>
   createAccountAction(
     userId,
     ipAddress,
-    USER_ACTION.ACCOUNT.COMPLETED_BACKGROUND_INFO
+    USER_ACTION.ACCOUNT_COMPLETED_BACKGROUND_INFO
   )
 
 const deletedReference = (userId, ipAddress, options) =>
   createAccountAction(
     userId,
     ipAddress,
-    USER_ACTION.ACCOUNT.DELETED_REFERENCE,
+    USER_ACTION.ACCOUNT_DELETED_REFERENCE,
     options
   )
 
 const accountApproved = (userId, ipAddress) =>
-  createAccountAction(userId, ipAddress, USER_ACTION.ACCOUNT.APPROVED)
+  createAccountAction(userId, ipAddress, USER_ACTION.ACCOUNT_APPROVED)
 
 const accountOnboarded = (userId, ipAddress) =>
-  createAccountAction(userId, ipAddress, USER_ACTION.ACCOUNT.ONBOARDED)
+  createAccountAction(userId, ipAddress, USER_ACTION.ACCOUNT_ONBOARDED)
 
 const submittedReferenceForm = (userId, ipAddress, options) =>
   createAccountAction(
     userId,
     ipAddress,
-    USER_ACTION.ACCOUNT.SUBMITTED_REFERENCE_FORM,
+    USER_ACTION.ACCOUNT_SUBMITTED_REFERENCE_FORM,
     options
   )
 
 const rejectedPhotoId = userId =>
-  createAccountAction(userId, '', USER_ACTION.ACCOUNT.REJECTED_PHOTO_ID)
+  createAccountAction(userId, '', USER_ACTION.ACCOUNT_REJECTED_PHOTO_ID)
 
 const rejectedReference = (userId, options) =>
   createAccountAction(
     userId,
     '',
-    USER_ACTION.ACCOUNT.REJECTED_REFERENCE,
+    USER_ACTION.ACCOUNT_REJECTED_REFERENCE,
     options
   )
 
