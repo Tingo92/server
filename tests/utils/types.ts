@@ -1,77 +1,24 @@
-import { Types } from 'mongoose';
+import { SUBJECTS } from '../../models/Volunteer';
 
-export interface User {
-  _id: Types.ObjectId;
-  email: string;
-  // optional use for building registration form
-  firstName?: string;
-  lastName?: string;
-  firstname: string;
-  lastname: string;
-  password: string;
-  referredByCode: Types.ObjectId | string;
-  referralCode: string;
-}
-
-// @todo: clean up - use the Student interface from Student.ts when available
-export interface Student extends User {
-  highSchoolId: string;
-  zipCode: string;
-  studentPartnerOrg: string;
-}
-
-// @todo: clean up - use the Reference interface from Volunteer.ts when available
-export interface Reference {
-  _id: Types.ObjectId;
-  status: string;
-  email: string;
+export interface RegistrationForm {
   firstName: string;
   lastName: string;
-  affiliation: string;
-  relationshipLength: string;
-  patient: number;
-  positiveRoleModel: number;
-  agreeableAndApproachable: number;
-  communicatesEffectively: number;
-  trustworthyWithChildren: number;
-  rejectionReason: string;
-  additionalInfo: string;
-}
-
-// @todo: clean up - use the Volunteer interface from Volunteer.ts when available
-export interface Volunteer extends User {
+  email: string;
+  password: string;
+  referredByCode: string;
+  terms: boolean;
   zipCode: string;
-  college: string;
-  volunteerPartnerOrg?: string;
-  favoriteAcademicSubject: string;
+  partnerUserId: string;
+}
+
+export interface StudentRegistrationForm extends RegistrationForm {
+  studentPartnerOrg: string;
+  highSchoolId: string;
+}
+
+export interface VolunteerRegistrationForm extends RegistrationForm {
+  volunteerPartnerOrg: string;
   phone: string;
-  references?: Array<Reference>;
-  photoIdS3Key?: string;
-  photoIdStatus?: string;
-  isApproved: boolean;
-  isOnboarded: boolean;
-  // background information
-  occupation?: Array<string>;
-  company?: string;
-  experience?: {
-    collegeCounseling: string;
-    mentoring: string;
-    tutoring: string;
-  };
-  languages?: Array<string>;
-  country?: string;
-  state?: string;
-  city?: string;
-  certifications: Certifications;
-  availability: Availability;
-}
-
-export interface StudentRegistrationForm extends Student {
-  terms: boolean;
-}
-
-export interface VolunteerRegistrationForm extends Volunteer {
-  terms: boolean;
 }
 
 export enum DAYS {
@@ -111,25 +58,6 @@ export enum HOURS {
   '11PM' = '11p'
 }
 
-export enum SUBJECTS {
-  PREALGREBA = 'prealgebra',
-  ALGREBA = 'algebra',
-  GEOMETRY = 'geometry',
-  TRIGONOMETRY = 'trigonometry',
-  PRECALCULUS = 'precalculus',
-  CALCULUS = 'calculus',
-  INTEGRATED_MATH_ONE = 'integratedMathOne',
-  INTEGRATED_MATH_TWO = 'integratedMathTwo',
-  INTEGRATED_MATH_THREE = 'integratedMathThree',
-  INTEGRATED_MATH_FOUR = 'integratedMathFour',
-  APPLICATIONS = 'applications',
-  ESSAYS = 'essays',
-  PLANNING = 'planning',
-  BIOLOGY = 'biology',
-  CHEMISTRY = 'chemistry',
-  PHYSICS_ONE = 'physicsOne'
-}
-
 export interface CertificationInfo {
   passed: boolean;
   tries: number;
@@ -154,11 +82,3 @@ export interface Certifications {
   [SUBJECTS.CHEMISTRY]: CertificationInfo;
   [SUBJECTS.PHYSICS_ONE]: CertificationInfo;
 }
-
-export type AvailabilityDay = {
-  [hour in HOURS]: boolean;
-};
-
-export type Availability = {
-  [day in DAYS]: AvailabilityDay;
-};
