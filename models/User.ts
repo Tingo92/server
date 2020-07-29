@@ -23,6 +23,7 @@ export interface User {
   banReason: USER_BAN_REASON;
   isTestUser: boolean;
   isFakeUser: boolean;
+  isDeactivated: boolean;
   pastSessions: Session[];
   partnerUserId: string;
   lastActivityAt: Date;
@@ -30,8 +31,6 @@ export interface User {
   referredBy: User;
   ipAddresses: IpAddress[];
   type: string;
-  availabilityLastModifiedAt: Date;
-  elapsedAvailability: number;
 }
 
 export type UserDocument = User & Document;
