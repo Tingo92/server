@@ -1,10 +1,9 @@
 import bcrypt from 'bcrypt';
 import UserModel from '../../models/User';
-import VolunteerModel from '../../models/Volunteer';
-import StudentModel from '../../models/Student';
+import VolunteerModel, { Volunteer } from '../../models/Volunteer';
+import StudentModel, { Student } from '../../models/Student';
 import UserActionModel from '../../models/UserAction';
 import config from '../../config';
-import { Volunteer, Student } from './types';
 import { buildVolunteer, buildStudent } from './generate';
 
 const hashPassword = async function(password): Promise<Error | string> {
