@@ -11,7 +11,7 @@ import { Session } from './Session';
 
 export interface UserAction {
   _id: Types.ObjectId;
-  user: User;
+  user: Types.ObjectId | User;
   session: Session;
   createdAt: Date;
   actionType: USER_ACTION_TYPE;
@@ -24,6 +24,7 @@ export interface UserAction {
   operatingSystem: string;
   operatingSystemVersion: string;
   ipAddress: string;
+  referenceEmail: string;
 }
 
 export type UserActionDocument = UserAction & Document;
@@ -57,7 +58,8 @@ const userActionSchema = new Schema({
   browserVersion: String,
   operatingSystem: String,
   operatingSystemVersion: String,
-  ipAddress: String
+  ipAddress: String,
+  referenceEmail: String
 });
 
 const UserActionModel = model<UserActionDocument>(
