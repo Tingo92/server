@@ -1,4 +1,6 @@
-import { Document, Schema } from 'mongoose';
+import { Document, Schema, Types } from 'mongoose';
+import { values } from 'lodash';
+import { PHOTO_ID_STATUS, REFERENCE_STATUS } from '../constants';
 import UserModel, { User } from './User';
 
 export enum SUBJECTS {
@@ -65,8 +67,25 @@ export type Availability = {
   [day in DAYS]: AvailabilityDay;
 };
 
+export interface Reference extends Document {
+  _id: Types.ObjectId;
+  firstName: string;
+  lastName: string;
+  email: string;
+  status: string;
+  sentAt: Date;
+  affiliation: string;
+  relationshipLength: string;
+  patient: number;
+  positiveRoleModel: number;
+  agreeableAndApproachable: number;
+  communicatesEffectively: number;
+  trustworthyWithChildren: number;
+  rejectionReason: string;
+  additionalInfo: string;
+}
+
 export interface Volunteer extends User {
-  registrationCode: string;
   volunteerPartnerOrg: string;
   isFailsafeVolunteer: boolean;
   phone: string;
@@ -83,6 +102,23 @@ export interface Volunteer extends User {
       lastAttemptedAt: Date;
     };
   };
+  isApproved: boolean;
+  isOnboarded: boolean;
+  photoIdS3Key: string;
+  photoIdStatus: string;
+  references: Reference[];
+  occupation: string[];
+  company: string;
+  experience: {
+    collegeCounseling: string;
+    mentoring: string;
+    tutoring: string;
+  };
+  languages: string[];
+  country: string;
+  state: string;
+  city: string;
+  sentReadyToCoachEmail: boolean;
 }
 
 export type VolunteerDocument = Volunteer & Document;
@@ -209,13 +245,7 @@ const referenceSchema = new Schema({
   status: {
     type: String,
     required: true,
-    enum: [
-      REFERENCE_STATUS.UNSENT,
-      REFERENCE_STATUS.SENT,
-      REFERENCE_STATUS.SUBMITTED,
-      REFERENCE_STATUS.APPROVED,
-      REFERENCE_STATUS.REJECTED
-    ],
+    enum: values(REFERENCE_STATUS),
     default: REFERENCE_STATUS.UNSENT
   },
   sentAt: Date,
@@ -248,12 +278,7 @@ const volunteerSchema = new Schema(
     photoIdS3Key: String,
     photoIdStatus: {
       type: String,
-      enum: [
-        PHOTO_ID_STATUS.EMPTY,
-        PHOTO_ID_STATUS.SUBMITTED,
-        PHOTO_ID_STATUS.REJECTED,
-        PHOTO_ID_STATUS.APPROVED
-      ],
+      enum: values(PHOTO_ID_STATUS),
       default: PHOTO_ID_STATUS.EMPTY
     },
     references: [referenceSchema],
@@ -508,10 +533,10 @@ volunteerSchema.virtual('volunteerLastNotification', {
 });
 
 // Use the user schema as the base schema for Volunteer
-const Volunteer = UserModel.discriminator<VolunteerDocument>(
+const VolunteerModel = UserModel.discriminator<VolunteerDocument>(
   'Volunteer',
   volunteerSchema
 );
 
-module.exports = Volunteer;
-export default Volunteer;
+module.exports = VolunteerModel;
+export default VolunteerModel;
