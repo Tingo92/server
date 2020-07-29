@@ -4,17 +4,16 @@ import { Types } from 'mongoose';
 import base64url from 'base64url';
 import { merge } from 'lodash';
 import { PHOTO_ID_STATUS, REFERENCE_STATUS } from '../../constants';
+import { User } from '../../models/User';
+import { Student } from '../../models/Student';
+import { Volunteer, Reference, Availability } from '../../models/Volunteer';
 import {
-  User,
-  Volunteer,
-  Student,
+  RegistrationForm,
   StudentRegistrationForm,
   VolunteerRegistrationForm,
-  Reference,
-  Availability,
-  DAYS,
-  HOURS,
-  Certifications
+  Certifications,
+  DAYS, // @note: DAYS and HOURS is undefined when importing enum from models/Volunteer
+  HOURS
 } from './types';
 
 export const getEmail = faker.internet.email;
@@ -25,7 +24,7 @@ export const getId = faker.random.uuid;
 const generateReferralCode = (userId): string =>
   base64url(Buffer.from(userId, 'hex'));
 
-export const buildStudent = (overrides = {}): Student => {
+export const buildStudent = (overrides = {}): Partial<Student> => {
   const firstName = getFirstName();
   const lastName = getLastName();
   const _id = Types.ObjectId();
@@ -48,7 +47,7 @@ export const buildStudent = (overrides = {}): Student => {
   return student;
 };
 
-export const buildVolunteer = (overrides = {}): Volunteer => {
+export const buildVolunteer = (overrides = {}): Partial<Volunteer> => {
   const firstName = getFirstName();
   const lastName = getLastName();
   const _id = Types.ObjectId();
@@ -72,13 +71,29 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
   return volunteer;
 };
 
+const buildRegistrationForm = (): RegistrationForm => {
+  const _id = Types.ObjectId();
+  const form = {
+    partnerUserId: 'test',
+    firstName: getFirstName(),
+    lastName: getLastName(),
+    email: getEmail().toLowerCase(),
+    password: 'Password123',
+    referredByCode: generateReferralCode(_id.toString()),
+    zipCode: '11201',
+    terms: true
+  };
+
+  return form;
+};
+
 export const buildStudentRegistrationForm = (
   overrides = {}
 ): StudentRegistrationForm => {
-  const student = buildStudent();
   const form = {
-    terms: true,
-    ...student,
+    ...buildRegistrationForm(),
+    highSchoolId: null,
+    studentPartnerOrg: null,
     ...overrides
   };
 
@@ -88,10 +103,10 @@ export const buildStudentRegistrationForm = (
 export const buildVolunteerRegistrationForm = (
   overrides = {}
 ): VolunteerRegistrationForm => {
-  const volunteer = buildVolunteer();
   const form = {
-    terms: true,
-    ...volunteer,
+    ...buildRegistrationForm(),
+    volunteerPartnerOrg: null,
+    phone: '+12345678910',
     ...overrides
   };
 
