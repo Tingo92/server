@@ -134,6 +134,11 @@ const baseUserSchema = new Schema(
       default: false
     },
 
+    isDeactivated: {
+      type: Boolean,
+      default: false
+    },
+
     pastSessions: [{ type: Types.ObjectId, ref: 'Session' }],
 
     partnerUserId: {
@@ -174,7 +179,7 @@ baseUserSchema.methods.hashPassword = async function(
     const hash = await bcrypt.hash(password, salt);
     return hash;
   } catch (error) {
-    throw new error(error);
+    throw new Error(error);
   }
 };
 

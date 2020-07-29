@@ -12,6 +12,7 @@ const recordIpAddress = require('../../middleware/record-ip-address')
 const passport = require('../auth/passport')
 const mapMultiWordSubtopic = require('../../utils/map-multi-word-subtopic')
 const { USER_BAN_REASON } = require('../../constants')
+const NotificationService = require('../../services/NotificationService')
 
 module.exports = function(router, io) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -60,19 +61,20 @@ module.exports = function(router, io) {
     const ipAddress = req.ip
 
     try {
-      const session = await sessionCtrl.end({
-        sessionId: sessionId,
-        user: user
+      await SessionService.endSession({
+        sessionId,
+        endedBy: user
       })
+      socketService.emitSessionChange(sessionId)
       UserActionCtrl.endedSession(
         user._id,
-        session._id,
+        sessionId,
         userAgent,
         ipAddress
       ).catch(error => {
         Sentry.captureException(error)
       })
-      res.json({ sessionId: session._id })
+      res.json({ sessionId })
     } catch (err) {
       next(err)
     }
@@ -177,20 +179,10 @@ module.exports = function(router, io) {
   })
 
   router.get('/sessions', passport.isAdmin, async function(req, res, next) {
-    const PER_PAGE = 15
-    const page = parseInt(req.query.page) || 1
-    const skip = (page - 1) * PER_PAGE
-
     try {
-      const sessions = await Session.find({})
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(PER_PAGE)
-        .lean()
-        .exec()
-
-      const isLastPage = sessions.length < PER_PAGE
-
+      const { sessions, isLastPage } = await sessionCtrl.getFilteredSessions(
+        req.query
+      )
       res.json({ sessions, isLastPage })
     } catch (err) {
       console.log(err)
@@ -219,4 +211,16 @@ module.exports = function(router, io) {
       next(err)
     }
   })
+
+  router.get(
+    '/session/:sessionId/notifications',
+    passport.isAdmin,
+    async function(req, res, next) {
+      const { sessionId } = req.params
+      const notifications = await NotificationService.getSessionNotifications(
+        sessionId
+      )
+      res.json({ notifications })
+    }
+  )
 }

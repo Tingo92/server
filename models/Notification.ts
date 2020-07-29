@@ -45,6 +45,7 @@ const notificationSchema = new Schema(
       enum: values(NotificationType),
       default: NotificationType.REGULAR
     },
+    priorityGroup: String,
     method: {
       type: String,
       enum: values(NotificationMethod)

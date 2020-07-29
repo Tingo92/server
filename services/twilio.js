@@ -183,35 +183,62 @@ const notifyVolunteer = async session => {
   const notifiedLastThreeDays = await getVolunteersNotifiedSince(
     relativeDate(3 * 24 * 60 * 60 * 1000)
   )
+  const notifiedLastSevenDays = await getVolunteersNotifiedSince(
+    relativeDate(7 * 24 * 60 * 60 * 1000)
+  )
 
+  /**
+   * 1. mizuho or atlassian volunteer not texted in last 3 days
+   * 2. any partner volunteer not texted in last 3 days
+   * 3. any regular volunteer not texted in the last 7 days
+   * 4. any volunteer not texted in the last fifteen mins
+   */
   const volunteerPriority = [
     {
-      volunteerPartnerOrg: { $exists: true },
-      _id: { $nin: activeSessionVolunteers.concat(notifiedLastThreeDays) }
+      groupName:
+        'Mizuho and Atlassian volunteers - Not notified in last 3 days',
+      filter: {
+        volunteerPartnerOrg: {
+          $exists: true,
+          $in: ['mizuho', 'atlassian']
+        },
+        _id: { $nin: activeSessionVolunteers.concat(notifiedLastThreeDays) }
+      }
     },
     {
-      volunteerPartnerOrg: { $exists: false },
-      _id: { $nin: activeSessionVolunteers.concat(notifiedLastThreeDays) }
+      groupName: 'Partner volunteers - Not notified in last 3 days',
+      filter: {
+        volunteerPartnerOrg: { $exists: true },
+        _id: { $nin: activeSessionVolunteers.concat(notifiedLastThreeDays) }
+      }
     },
     {
-      volunteerPartnerOrg: { $exists: true },
-      _id: { $nin: activeSessionVolunteers.concat(notifiedLastFifteenMins) }
+      groupName: 'Regular volunteers - Not notified in last 7 days',
+      filter: {
+        volunteerPartnerOrg: { $exists: false },
+        _id: { $nin: activeSessionVolunteers.concat(notifiedLastSevenDays) }
+      }
     },
     {
-      volunteerPartnerOrg: { $exists: false },
-      _id: { $nin: activeSessionVolunteers.concat(notifiedLastFifteenMins) }
+      groupName: 'All volunteers - Not notified in last 15 mins',
+      filter: {
+        _id: { $nin: activeSessionVolunteers.concat(notifiedLastFifteenMins) }
+      }
     }
   ]
 
-  let volunteer
+  let volunteer, priorityGroup
 
   for (const priorityFilter of volunteerPriority) {
     volunteer = await getNextVolunteer({
       subtopic,
-      priorityFilter
+      priorityFilter: priorityFilter.filter
     })
 
-    if (volunteer) break
+    if (volunteer) {
+      priorityGroup = priorityFilter.groupName
+      break
+    }
   }
 
   if (!volunteer) return null
@@ -227,7 +254,8 @@ const notifyVolunteer = async session => {
   const notification = new Notification({
     volunteer,
     type: 'REGULAR',
-    method: 'SMS'
+    method: 'SMS',
+    priorityGroup
   })
 
   await recordNotification(sendPromise, notification)
