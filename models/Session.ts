@@ -21,6 +21,9 @@ export interface Session {
   endedAt: Date;
   endedBy: Types.ObjectId | User;
   notifications: (Types.ObjectId | Notification)[];
+  isReported: boolean;
+  reportReason: string;
+  reportMessage: string;
 }
 
 export type SessionDocument = Session & Document;
@@ -94,7 +97,14 @@ const sessionSchema = new Schema({
       type: Types.ObjectId,
       ref: 'Notification'
     }
-  ]
+  ],
+
+  isReported: {
+    type: Boolean,
+    default: false
+  },
+  reportReason: String,
+  reportMessage: String
 });
 
 sessionSchema.methods.saveMessage = function(
