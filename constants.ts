@@ -119,3 +119,8 @@ export enum REFERENCE_STATUS {
   REJECTED = 'REJECTED',
   APPROVED = 'APPROVED'
 };
+
+export const SESSION_REPORT_REASON = {
+  STUDENT_RUDE: 'Student was rude',
+  STUDENT_MISUSE: 'Student was misusing platform'
+}
