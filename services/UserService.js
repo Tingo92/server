@@ -263,10 +263,8 @@ module.exports = {
 
     // Remove the contact associated with the previous email from SendGrid
     if (isUpdatedEmail) {
-      const { id: contactId } = await MailService.searchContact(
-        userBeforeUpdate.email
-      )
-      MailService.deleteContact(contactId)
+      const contact = await MailService.searchContact(userBeforeUpdate.email)
+      if (contact) MailService.deleteContact(contact.id)
     }
 
     const update = {
@@ -275,30 +273,25 @@ module.exports = {
       email,
       isVerified,
       isBanned,
-      isDeactivated
+      isDeactivated,
+      $unset: {}
     }
 
-    // Add a partner org to the respective user if a partner org is being added
-    // or set their partner org to null if they previously had a partner org
-    // and the partner org is being removed
     if (isVolunteer) {
       if (partnerOrg) update.volunteerPartnerOrg = partnerOrg
-      if (userBeforeUpdate.volunteerPartnerOrg && !partnerOrg)
-        update.volunteerPartnerOrg = null
+      else update.$unset.volunteerPartnerOrg = ''
     }
 
     if (!isVolunteer) {
-      if (partnerOrg) {
-        update.studentPartnerOrg = partnerOrg
-        if (partnerSite) update.partnerSite = partnerSite
-        if (userBeforeUpdate.partnerSite && partnerSite === '')
-          update.partnerSite = null
-      }
-      if (userBeforeUpdate.studentPartnerOrg && !partnerOrg) {
-        update.studentPartnerOrg = null
-        update.partnerSite = null
-      }
+      if (partnerOrg) update.studentPartnerOrg = partnerOrg
+      else update.$unset.studentPartnerOrg = ''
+
+      if (partnerSite) update.partnerSite = partnerSite
+      else update.$unset.partnerSite = ''
     }
+
+    // Remove $unset property if it has no properties to remove
+    if (Object.keys(update.$unset).length === 0) delete update.$unset
 
     const updatedUser = Object.assign(userBeforeUpdate, update)
     MailService.createContact(updatedUser)
