@@ -2,6 +2,7 @@ const crypto = require('crypto')
 const { omit } = require('lodash')
 const User = require('../models/User')
 const Volunteer = require('../models/Volunteer')
+const Student = require('../models/Student')
 const MailService = require('./MailService')
 const UserActionCtrl = require('../controllers/UserActionCtrl')
 const { PHOTO_ID_STATUS, REFERENCE_STATUS, STATUS } = require('../constants')
@@ -243,5 +244,69 @@ module.exports = {
 
     UserActionCtrl.completedBackgroundInfo(volunteerId, ip)
     return Volunteer.update({ _id: volunteerId }, update)
+  },
+
+  adminUpdateUser: async function({
+    userId,
+    firstName,
+    lastName,
+    email,
+    partnerOrg,
+    partnerSite,
+    isVerified,
+    isBanned,
+    isDeactivated
+  }) {
+    const userBeforeUpdate = await this.getUser({ _id: userId })
+    const { isVolunteer } = userBeforeUpdate
+    const isUpdatedEmail = userBeforeUpdate.email !== email
+
+    // Remove the contact associated with the previous email from SendGrid
+    if (isUpdatedEmail) {
+      const { id: contactId } = await MailService.searchContact(
+        userBeforeUpdate.email
+      )
+      MailService.deleteContact(contactId)
+    }
+
+    const update = {
+      firstname: firstName,
+      lastname: lastName,
+      email,
+      isVerified,
+      isBanned,
+      isDeactivated
+    }
+
+    // Add a partner org to the respective user if a partner org is being added
+    // or set their partner org to null if they previously had a partner org
+    // and the partner org is being removed
+    if (isVolunteer) {
+      if (partnerOrg) update.volunteerPartnerOrg = partnerOrg
+      if (userBeforeUpdate.volunteerPartnerOrg && !partnerOrg)
+        update.volunteerPartnerOrg = null
+    }
+
+    if (!isVolunteer) {
+      if (partnerOrg) {
+        update.studentPartnerOrg = partnerOrg
+        if (partnerSite) update.partnerSite = partnerSite
+        if (userBeforeUpdate.partnerSite && partnerSite === '')
+          update.partnerSite = null
+      }
+      if (userBeforeUpdate.studentPartnerOrg && !partnerOrg) {
+        update.studentPartnerOrg = null
+        update.partnerSite = null
+      }
+    }
+
+    const updatedUser = Object.assign(userBeforeUpdate, update)
+    MailService.createContact(updatedUser)
+
+    if (isVolunteer) {
+      return Volunteer.updateOne({ _id: userId }, update)
+    } else {
+      return Student.updateOne({ _id: userId }, update)
+    }
   }
 }
