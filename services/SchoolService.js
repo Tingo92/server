@@ -1,9 +1,16 @@
 const School = require('../models/School')
 const ObjectId = require('mongoose').Types.ObjectId
+const crypto = require('crypto')
 
 // helper to escape regex special characters
 function escapeRegex(str) {
   return str.replace(/[.*|\\+?{}()[^$]/g, c => '\\' + c)
+}
+
+function createUpchieveId() {
+  const hex = crypto.randomBytes(4).toString('hex')
+  const parsedHex = parseInt(hex, 16)
+  return String(parsedHex).slice(0, 8)
 }
 
 module.exports = {
@@ -59,8 +66,20 @@ module.exports = {
                 else: '$nameStored'
               }
             },
-            state: '$ST',
-            city: '$MCITY',
+            state: {
+              $cond: {
+                if: { $not: ['$stateStored'] },
+                then: '$ST',
+                else: '$stateStored'
+              }
+            },
+            city: {
+              $cond: {
+                if: { $not: ['$cityNameStored'] },
+                then: '$LCITY',
+                else: '$cityNameStored'
+              }
+            },
             zipCode: '$MZIP',
             isApproved: '$isApproved',
             approvalNotifyEmails: 1
@@ -74,7 +93,118 @@ module.exports = {
     }
   },
 
+  getSchools: async function({ name, state, city, page }) {
+    const pageNum = parseInt(page) || 1
+    const PER_PAGE = 15
+    const skip = (pageNum - 1) * PER_PAGE
+    const query = []
+
+    if (name) {
+      const nameQuery = {
+        $or: [
+          { nameStored: { $regex: name, $options: 'i' } },
+          { SCH_NAME: { $regex: name, $options: 'i' } }
+        ]
+      }
+      query.push(nameQuery)
+    }
+    if (state) {
+      const stateQuery = {
+        $or: [
+          { ST: { $regex: state, $options: 'i' } },
+          { stateStored: { $regex: state, $options: 'i' } }
+        ]
+      }
+      query.push(stateQuery)
+    }
+    if (city) {
+      const cityQuery = {
+        $or: [
+          { city: { $regex: city, $options: 'i' } },
+          { MCITY: { $regex: city, $options: 'i' } },
+          { LCITY: { $regex: city, $options: 'i' } }
+        ]
+      }
+      query.push(cityQuery)
+    }
+
+    let finalQuery = { $and: query }
+    // Search for all schools if the query is empty
+    if (query.length === 0) finalQuery = {}
+
+    try {
+      const schools = await School.aggregate([
+        {
+          $match: finalQuery
+        },
+        {
+          $project: {
+            name: {
+              $cond: {
+                if: { $not: ['$nameStored'] },
+                then: '$SCH_NAME',
+                else: '$nameStored'
+              }
+            },
+            state: {
+              $cond: {
+                if: { $not: ['$stateStored'] },
+                then: '$ST',
+                else: '$stateStored'
+              }
+            },
+            city: {
+              $cond: {
+                if: { $not: ['$cityNameStored'] },
+                then: '$LCITY',
+                else: '$cityNameStored'
+              }
+            },
+            zipCode: '$MZIP',
+            isApproved: '$isApproved'
+          }
+        }
+      ])
+        .skip(skip)
+        .limit(PER_PAGE)
+        .exec()
+
+      const isLastPage = schools.length < PER_PAGE
+      return { schools, isLastPage }
+    } catch (error) {
+      throw new Error(error.message)
+    }
+  },
+
   updateApproval: function(schoolId, isApproved) {
     return School.updateOne({ _id: schoolId }, { isApproved })
+  },
+
+  createSchool: async function({ name, city, state, zipCode, isApproved }) {
+    let upchieveId = createUpchieveId()
+    let existingSchool = await School.findOne({ upchieveId })
+      .lean()
+      .exec()
+
+    // Avoid collision with schools containing the same upchieveId
+    while (existingSchool) {
+      upchieveId = createUpchieveId()
+      existingSchool = await School.findOne({ upchieveId })
+        .lean()
+        .exec()
+    }
+
+    const schoolData = {
+      isApproved,
+      nameStored: name,
+      cityNameStored: city,
+      stateStored: state,
+      MZIP: zipCode,
+      LZIP: zipCode,
+      upchieveId
+    }
+    const school = new School(schoolData)
+
+    return school.save()
   }
 }
