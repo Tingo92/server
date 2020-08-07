@@ -2,6 +2,7 @@ import moment from 'moment-timezone';
 import mongoose, { Types } from 'mongoose';
 import _ from 'lodash';
 import User from '../models/User';
+import config from '../config';
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -68,15 +69,19 @@ export const sessionReport = async ({
   sessionRangeFrom,
   sessionRangeTo,
   highSchoolId,
-  studentPartnerOrg
+  studentPartnerOrg,
+  studentPartnerSite
 }): Promise<SessionReport[]> => {
   const query: {
     approvedHighschool?: Types.ObjectId;
     studentPartnerOrg?: string;
+    partnerSite?: string;
   } = {};
 
   if (highSchoolId) query.approvedHighschool = ObjectId(highSchoolId);
   if (studentPartnerOrg) query.studentPartnerOrg = studentPartnerOrg;
+  if (studentPartnerSite && studentPartnerSite !== 'All sites')
+    query.partnerSite = studentPartnerSite;
 
   const oneMinuteInMs = 1000 * 60;
   const roundDecimalPlace = 1;
@@ -224,12 +229,14 @@ export const usageReport = async ({
   sessionRangeFrom,
   sessionRangeTo,
   highSchoolId,
-  studentPartnerOrg
+  studentPartnerOrg,
+  studentPartnerSite
 }): Promise<UsageReport[]> => {
   const query: {
     createdAt?: {};
     approvedHighschool?: Types.ObjectId;
     studentPartnerOrg?: string;
+    partnerSite?: string;
   } = {};
   const oneDayInMS = 1000 * 60 * 60 * 24;
 
@@ -247,6 +254,8 @@ export const usageReport = async ({
 
   if (highSchoolId) query.approvedHighschool = ObjectId(highSchoolId);
   if (studentPartnerOrg) query.studentPartnerOrg = studentPartnerOrg;
+  if (studentPartnerSite && studentPartnerSite !== 'All sites')
+    query.partnerSite = studentPartnerSite;
 
   // select a range from date and to date or a range from date and today (inclusive)
   sessionRangeFrom = getOffsetTime(sessionRangeFrom);
@@ -265,7 +274,8 @@ export const usageReport = async ({
         firstName: '$firstname',
         lastName: '$lastname',
         createdAt: 1,
-        totalSessions: { $size: '$pastSessions' }
+        totalSessions: { $size: '$pastSessions' },
+        partnerSite: 1
       }
     },
     {
@@ -388,7 +398,8 @@ export const usageReport = async ({
           $sum: {
             $cond: [{ $ifNull: ['$isWithinDateRange', false] }, 1, 0]
           }
-        }
+        },
+        partnerSite: { $first: '$partnerSite' }
       }
     },
     {
@@ -406,6 +417,7 @@ export const usageReport = async ({
           $round: [{ $divide: ['$range', 60000] }, 2]
         },
         feedback: 1,
+        partnerSite: 1,
         _id: 0
       }
     },
@@ -416,10 +428,12 @@ export const usageReport = async ({
     }
   ]);
 
+  const partnerSites = config.studentPartnerManifests[studentPartnerOrg].sites;
+
   const studentUsage = students.map(student => {
     const feedback = Array.from(student.feedback);
 
-    return {
+    const dataFormat = {
       'First name': student.firstName,
       'Last name': student.lastName,
       Email: student.email,
@@ -430,6 +444,13 @@ export const usageReport = async ({
       'Sessions over date range': student.sessionsOverDateRange,
       'Minutes over date range': student.minsOverDateRange
     };
+
+    if (partnerSites)
+      dataFormat['Partner site'] = student.partnerSite
+        ? student.partnerSite
+        : '-';
+
+    return dataFormat;
   });
 
   return studentUsage;
