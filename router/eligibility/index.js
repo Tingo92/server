@@ -139,6 +139,20 @@ module.exports = function(app) {
       next(err)
     }
   })
+  router.put('/school/:schoolId', passport.isAdmin, async function(
+    req,
+    res,
+    next
+  ) {
+    const { schoolId } = req.params
+
+    try {
+      await SchoolService.adminUpdateSchool({ schoolId, ...req.body })
+      res.sendStatus(200)
+    } catch (err) {
+      next(err)
+    }
+  })
 
   router.get('/schools', passport.isAdmin, async function(req, res, next) {
     try {

@@ -206,5 +206,25 @@ module.exports = {
     const school = new School(schoolData)
 
     return school.save()
+  },
+
+  adminUpdateSchool: async function({
+    schoolId,
+    name,
+    city,
+    state,
+    zipCode,
+    isApproved
+  }) {
+    const schoolData = {
+      isApproved,
+      nameStored: name,
+      cityNameStored: city,
+      stateStored: state,
+      MZIP: zipCode,
+      LZIP: zipCode
+    }
+
+    return School.updateOne({ _id: schoolId }, schoolData)
   }
 }
