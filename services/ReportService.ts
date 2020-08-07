@@ -80,8 +80,7 @@ export const sessionReport = async ({
 
   if (highSchoolId) query.approvedHighschool = ObjectId(highSchoolId);
   if (studentPartnerOrg) query.studentPartnerOrg = studentPartnerOrg;
-  if (studentPartnerSite && studentPartnerSite !== 'All sites')
-    query.partnerSite = studentPartnerSite;
+  if (studentPartnerSite) query.partnerSite = studentPartnerSite;
 
   const oneMinuteInMs = 1000 * 60;
   const roundDecimalPlace = 1;
@@ -254,8 +253,7 @@ export const usageReport = async ({
 
   if (highSchoolId) query.approvedHighschool = ObjectId(highSchoolId);
   if (studentPartnerOrg) query.studentPartnerOrg = studentPartnerOrg;
-  if (studentPartnerSite && studentPartnerSite !== 'All sites')
-    query.partnerSite = studentPartnerSite;
+  if (studentPartnerSite) query.partnerSite = studentPartnerSite;
 
   // select a range from date and to date or a range from date and today (inclusive)
   sessionRangeFrom = getOffsetTime(sessionRangeFrom);
