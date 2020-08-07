@@ -206,7 +206,8 @@ module.exports = function(socketService) {
               },
               createdAtEstTime: {
                 $subtract: ['$createdAt', estTimeOffset]
-              }
+              },
+              stringSessionId: { $toString: '$_id' }
             }
           },
           {
@@ -249,6 +250,32 @@ module.exports = function(socketService) {
             $unwind: '$student'
           },
           {
+            $lookup: {
+              from: 'feedbacks',
+              localField: 'stringSessionId',
+              foreignField: 'sessionId',
+              as: 'feedbacks'
+            }
+          },
+          // Filter feedbacks array for only student feedback
+          {
+            $addFields: {
+              studentFeedback: {
+                $filter: {
+                  input: '$feedbacks',
+                  as: 'feedback',
+                  cond: { $eq: ['$$feedback.userType', 'student'] }
+                }
+              }
+            }
+          },
+          {
+            $unwind: {
+              path: '$studentFeedback',
+              preserveNullAndEmptyArrays: true
+            }
+          },
+          {
             $project: {
               createdAt: 1,
               endedAt: 1,
@@ -256,7 +283,15 @@ module.exports = function(socketService) {
               messages: 1,
               notifications: 1,
               type: 1,
-              subTopic: 1
+              subTopic: 1,
+              studentFirstName: '$student.firstname',
+              studentSessionRating: {
+                $cond: {
+                  if: '$studentFeedback.responseData.rate-session.rating',
+                  then: '$studentFeedback.responseData.rate-session.rating',
+                  else: '-'
+                }
+              }
             }
           }
         ])
