@@ -70,22 +70,31 @@ const config: Static<typeof Config> = {
       name: 'Example - No School',
       signupCode: 'EX1',
       highSchoolSignup: false,
-      highSchoolSignupRequired: false
+      schoolSignupRequired: false
     },
     example2: {
-      name: 'Example - School Optional',
+      name: 'Example - High School Optional',
       signupCode: 'EX2',
       highSchoolSignup: true,
-      highSchoolSignupRequired: false
+      schoolSignupRequired: false
     },
     example3: {
-      name: 'Example - School Required',
+      name: 'Example - High School Required',
       signupCode: 'EX3',
       highSchoolSignup: true,
-      highSchoolSignupRequired: true
+      schoolSignupRequired: true
     },
     example4: {
-      signupCode: 'EX4'
+      name: 'Example - Sites, No School',
+      signupCode: 'EX4',
+      sites: ['Site A', 'Site B', 'Site C']
+    },
+    example5: {
+      name: 'Example - College and High School Optional',
+      signupCode: 'EX5',
+      highSchoolSignup: true,
+      collegeSignup: true,
+      schoolSignupRequired: false
     }
   },
 
@@ -123,7 +132,8 @@ const config: Static<typeof Config> = {
     accessKeyId: 'ACCESSKEY123',
     secretAccessKey: 'SECRETACCESSKEY789',
     region: 'us-east-2',
-    photoIdBucket: 'photo-id-bucket'
+    photoIdBucket: 'photo-id-bucket',
+    sessionPhotoBucket: 'session-photo-bucket'
   }
 };
 

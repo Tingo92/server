@@ -113,7 +113,9 @@ module.exports = function(app) {
       terms,
       referredByCode,
       firstName,
-      lastName
+      lastName,
+      college,
+      partnerSite
     } = req.body
 
     if (!terms) {
@@ -186,7 +188,9 @@ module.exports = function(app) {
       zipCode,
       studentPartnerOrg,
       partnerUserId,
+      partnerSite,
       approvedHighschool: school,
+      college,
       isVolunteer: false,
       verified: true, // Students are automatically verified
       referredBy,
@@ -443,8 +447,37 @@ module.exports = function(app) {
     .route('/partner/student-partners')
     .all(authPassport.isAdmin)
     .get(function(req, res, next) {
+      const partnerOrgs = []
+      for (const [key, value] of Object.entries(
+        config.studentPartnerManifests
+      )) {
+        partnerOrgs.push({
+          key,
+          displayName: value.name ? value.name : key,
+          sites: value.sites ? value.sites : null
+        })
+      }
       return res.json({
-        partnerOrgs: Object.keys(config.studentPartnerManifests)
+        partnerOrgs
+      })
+    })
+
+  // List all volunteer partners (admins only)
+  router
+    .route('/partner/volunteer-partners')
+    .all(authPassport.isAdmin)
+    .get(function(req, res, next) {
+      const partnerOrgs = []
+      for (const [key, value] of Object.entries(
+        config.volunteerPartnerManifests
+      )) {
+        partnerOrgs.push({
+          key,
+          displayName: value.name ? value.name : key
+        })
+      }
+      return res.json({
+        partnerOrgs
       })
     })
 

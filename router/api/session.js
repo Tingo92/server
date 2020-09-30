@@ -6,12 +6,15 @@ const SessionCtrl = require('../../controllers/SessionCtrl')
 const UserActionCtrl = require('../../controllers/UserActionCtrl')
 const SocketService = require('../../services/SocketService')
 const SessionService = require('../../services/SessionService')
+const AwsService = require('../../services/AwsService')
+const QuillDocService = require('../../services/QuillDocService')
 const recordIpAddress = require('../../middleware/record-ip-address')
 const passport = require('../auth/passport')
 const mapMultiWordSubtopic = require('../../utils/map-multi-word-subtopic')
 const { USER_ACTION } = require('../../constants')
 const NotificationService = require('../../services/NotificationService')
 const UserAction = require('../../models/UserAction')
+const config = require('../../config')
 
 module.exports = function(router, io) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -154,6 +157,23 @@ module.exports = function(router, io) {
     }
   })
 
+  router.get('/session/:sessionId/photo-url', async function(req, res, next) {
+    try {
+      const { sessionId } = req.params
+      const sessionPhotoS3Key = await SessionService.getSessionPhotoUploadUrl(
+        sessionId
+      )
+      const uploadUrl = await AwsService.getSessionPhotoUploadUrl(
+        sessionPhotoS3Key
+      )
+      const bucketName = config.awsS3.sessionPhotoBucket
+      const imageUrl = `https://${bucketName}.s3.amazonaws.com/${sessionPhotoS3Key}`
+      res.json({ uploadUrl, imageUrl })
+    } catch (error) {
+      next(error)
+    }
+  })
+
   router.post('/session/:sessionId/report', async function(req, res) {
     const { sessionId } = req.params
     const { reportReason, reportMessage } = req.body
@@ -195,8 +215,14 @@ module.exports = function(router, io) {
     try {
       const session = await Session.findOne({ _id: sessionId })
         .populate('student volunteer')
+        .select('+quillDoc')
         .lean()
         .exec()
+
+      if (session.type === 'college' && !session.endedAt) {
+        const quillDoc = await QuillDocService.getDoc(session._id.toString())
+        session.quillDoc = JSON.stringify(quillDoc)
+      }
 
       const sessionUserAgent = await UserAction.findOne({
         session: sessionId,
@@ -210,6 +236,10 @@ module.exports = function(router, io) {
 
       session.userAgent = sessionUserAgent
       session.feedbacks = await Feedback.find({ sessionId })
+      session.photos = await AwsService.getObjects({
+        bucket: 'sessionPhotoBucket',
+        s3Keys: session.photos
+      })
 
       res.json({ session })
     } catch (err) {

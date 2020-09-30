@@ -3,19 +3,29 @@ import { Test } from 'supertest';
 import { Types } from 'mongoose';
 import base64url from 'base64url';
 import { merge } from 'lodash';
-import { PHOTO_ID_STATUS, REFERENCE_STATUS } from '../../constants';
-import { User } from '../../models/User';
-import { Student } from '../../models/Student';
-import { Volunteer, Reference, Availability } from '../../models/Volunteer';
 import {
-  RegistrationForm,
+  PHOTO_ID_STATUS,
+  REFERENCE_STATUS,
+  TRAINING,
+  MATH_CERTS,
+  SCIENCE_CERTS,
+  COLLEGE_CERTS,
+  SAT_CERTS
+} from '../../constants';
+import {
+  User,
+  Volunteer,
+  Student,
   StudentRegistrationForm,
   VolunteerRegistrationForm,
+  Reference,
+  Availability,
+  DAYS,
+  HOURS,
   Certifications,
-  DAYS, // @note: DAYS and HOURS is undefined when importing enum from models/Volunteer
-  HOURS
+  TrainingCourses,
+  Session
 } from './types';
-
 export const getEmail = faker.internet.email;
 export const getFirstName = faker.name.firstName;
 export const getLastName = faker.name.lastName;
@@ -24,7 +34,85 @@ export const getId = faker.random.uuid;
 const generateReferralCode = (userId): string =>
   base64url(Buffer.from(userId, 'hex'));
 
-export const buildStudent = (overrides = {}): Partial<Student> => {
+// @todo: Figure out how to use with MATH_CERTS, SCIENCE_CERTS
+export const buildCertifications = (overrides = {}): Certifications => {
+  const certifications = {
+    [MATH_CERTS.PREALGREBA]: { passed: false, tries: 0 },
+    [MATH_CERTS.ALGEBRA]: { passed: false, tries: 0 },
+    [MATH_CERTS.GEOMETRY]: { passed: false, tries: 0 },
+    [MATH_CERTS.TRIGONOMETRY]: { passed: false, tries: 0 },
+    [MATH_CERTS.PRECALCULUS]: { passed: false, tries: 0 },
+    [MATH_CERTS.CALCULUS_AB]: { passed: false, tries: 0 },
+    [MATH_CERTS.CALCULUS_BC]: { passed: false, tries: 0 },
+    [MATH_CERTS.STATISTICS]: { passed: false, tries: 0 },
+    [SCIENCE_CERTS.BIOLOGY]: { passed: false, tries: 0 },
+    [SCIENCE_CERTS.CHEMISTRY]: { passed: false, tries: 0 },
+    [SCIENCE_CERTS.PHYSICS_ONE]: { passed: false, tries: 0 },
+    [SCIENCE_CERTS.PHYSICS_TWO]: { passed: false, tries: 0 },
+    [SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE]: { passed: false, tries: 0 },
+    [COLLEGE_CERTS.ESSAYS]: { passed: false, tries: 0 },
+    [COLLEGE_CERTS.FINANCIAL_AID]: { passed: false, tries: 0 },
+    [COLLEGE_CERTS.SPORTS_RECRUITMENT_PLANNING]: { passed: false, tries: 0 },
+    [SAT_CERTS.SAT_MATH]: { passed: false, tries: 0 },
+    [SAT_CERTS.SAT_READING]: { passed: false, tries: 0 },
+    [TRAINING.UPCHIEVE_101]: { passed: false, tries: 0 },
+    [TRAINING.TUTORING_SKILLS]: { passed: false, tries: 0 },
+    [TRAINING.COLLEGE_COUNSELING]: { passed: false, tries: 0 },
+    [TRAINING.COLLEGE_SKILLS]: { passed: false, tries: 0 },
+    [TRAINING.SAT_STRATEGIES]: { passed: false, tries: 0 },
+    ...overrides
+  };
+
+  return certifications;
+};
+
+export const buildTrainingCourses = (overrides = {}): TrainingCourses => {
+  const trainingCourses = {
+    [TRAINING.UPCHIEVE_101]: {
+      isComplete: false,
+      progress: 0,
+      completedMaterials: []
+    },
+    [TRAINING.TUTORING_SKILLS]: {
+      isComplete: false,
+      progress: 0,
+      completedMaterials: []
+    },
+    [TRAINING.COLLEGE_COUNSELING]: {
+      isComplete: false,
+      progress: 0,
+      completedMaterials: []
+    },
+    [TRAINING.COLLEGE_SKILLS]: {
+      isComplete: false,
+      progress: 0,
+      completedMaterials: []
+    },
+    [TRAINING.SAT_STRATEGIES]: {
+      isComplete: false,
+      progress: 0,
+      completedMaterials: []
+    },
+    ...overrides
+  };
+  return trainingCourses;
+};
+
+export const buildAvailability = (overrides = {}): Availability => {
+  const availability = {} as Availability;
+  for (const day in DAYS) {
+    availability[DAYS[day]] = {};
+    for (const hour in HOURS) {
+      availability[DAYS[day]][HOURS[hour]] = false;
+    }
+  }
+
+  const mergedAvailability = merge(availability, overrides);
+
+  return mergedAvailability;
+};
+
+export const buildStudent = (overrides = {}): Student => {
   const firstName = getFirstName();
   const lastName = getLastName();
   const _id = Types.ObjectId();
@@ -47,7 +135,7 @@ export const buildStudent = (overrides = {}): Partial<Student> => {
   return student;
 };
 
-export const buildVolunteer = (overrides = {}): Partial<Volunteer> => {
+export const buildVolunteer = (overrides = {}): Volunteer => {
   const firstName = getFirstName();
   const lastName = getLastName();
   const _id = Types.ObjectId();
@@ -65,35 +153,25 @@ export const buildVolunteer = (overrides = {}): Partial<Volunteer> => {
     phone: '+12345678910',
     referralCode: generateReferralCode(_id.toString()),
     isApproved: false,
+    isOnboarded: false,
+    certifications: buildCertifications(),
+    availability: buildAvailability(),
+    subjects: [],
+    trainingCourses: buildTrainingCourses(),
+    sentReadyToCoachEmail: false,
     ...overrides
   };
 
   return volunteer;
 };
 
-const buildRegistrationForm = (): RegistrationForm => {
-  const _id = Types.ObjectId();
-  const form = {
-    partnerUserId: 'test',
-    firstName: getFirstName(),
-    lastName: getLastName(),
-    email: getEmail().toLowerCase(),
-    password: 'Password123',
-    referredByCode: generateReferralCode(_id.toString()),
-    zipCode: '11201',
-    terms: true
-  };
-
-  return form;
-};
-
 export const buildStudentRegistrationForm = (
   overrides = {}
 ): StudentRegistrationForm => {
+  const student = buildStudent();
   const form = {
-    ...buildRegistrationForm(),
-    highSchoolId: null,
-    studentPartnerOrg: null,
+    terms: true,
+    ...student,
     ...overrides
   };
 
@@ -103,10 +181,10 @@ export const buildStudentRegistrationForm = (
 export const buildVolunteerRegistrationForm = (
   overrides = {}
 ): VolunteerRegistrationForm => {
+  const volunteer = buildVolunteer();
   const form = {
-    ...buildRegistrationForm(),
-    volunteerPartnerOrg: null,
-    phone: '+12345678910',
+    terms: true,
+    ...volunteer,
     ...overrides
   };
 
@@ -186,42 +264,29 @@ export const buildBackgroundInfo = (overrides = {}): Partial<Volunteer> => {
   return data;
 };
 
-export const buildAvailability = (overrides = {}): Availability => {
-  const availability = {} as Availability;
-  for (const day in DAYS) {
-    availability[DAYS[day]] = {};
-    for (const hour in HOURS) {
-      availability[DAYS[day]][HOURS[hour]] = false;
-    }
-  }
-
-  const mergedAvailability = merge(availability, overrides);
-
-  return mergedAvailability;
-};
-
-export const buildCertifications = (overrides = {}): Certifications => {
-  const certifications = {
-    prealgebra: { passed: false, tries: 0 },
-    algebra: { passed: false, tries: 0 },
-    geometry: { passed: false, tries: 0 },
-    trigonometry: { passed: false, tries: 0 },
-    precalculus: { passed: false, tries: 0 },
-    calculus: { passed: false, tries: 0 },
-    integratedMathOne: { passed: false, tries: 0 },
-    integratedMathTwo: { passed: false, tries: 0 },
-    integratedMathThree: { passed: false, tries: 0 },
-    integratedMathFour: { passed: false, tries: 0 },
-    applications: { passed: false, tries: 0 },
-    essays: { passed: false, tries: 0 },
-    planning: { passed: false, tries: 0 },
-    biology: { passed: false, tries: 0 },
-    chemistry: { passed: false, tries: 0 },
-    physicsOne: { passed: false, tries: 0 },
+export const buildSession = (overrides = {}): Partial<Session> => {
+  const _id = Types.ObjectId();
+  const session = {
+    _id,
+    student: null,
+    volunteer: null,
+    type: 'math',
+    subTopic: 'algebra',
+    messages: [],
+    whiteboardDoc: '',
+    quillDoc: '',
+    createdAt: new Date(),
+    volunteerJoinedAt: null,
+    failedJoins: [],
+    notifications: [],
+    photos: [],
+    isReported: false,
+    reportReason: null,
+    reportMessage: null,
     ...overrides
   };
 
-  return certifications;
+  return session;
 };
 
 export const authLogin = (agent, { email, password }: Partial<User>): Test =>

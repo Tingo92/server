@@ -70,7 +70,9 @@ export const Config = Record({
       name: String,
       signupCode: String,
       highSchoolSignup: Boolean,
-      highSchoolSignupRequired: Boolean
+      collegeSignup: Boolean,
+      schoolSignupRequired: Boolean,
+      sites: Array(String)
     })
   ),
 
@@ -101,6 +103,7 @@ export const Config = Record({
     accessKeyId: String,
     secretAccessKey: String,
     region: String,
-    photoIdBucket: String
+    photoIdBucket: String,
+    sessionPhotoBucket: String
   })
 });

@@ -2,9 +2,12 @@ const crypto = require('crypto')
 const { omit } = require('lodash')
 const User = require('../models/User')
 const Volunteer = require('../models/Volunteer')
+const Student = require('../models/Student')
 const MailService = require('./MailService')
+const IpAddressService = require('./IpAddressService')
 const UserActionCtrl = require('../controllers/UserActionCtrl')
 const { PHOTO_ID_STATUS, REFERENCE_STATUS, STATUS } = require('../constants')
+const config = require('../config')
 
 const getVolunteer = async volunteerId => {
   return Volunteer.findOne({ _id: volunteerId })
@@ -243,5 +246,130 @@ module.exports = {
 
     UserActionCtrl.completedBackgroundInfo(volunteerId, ip)
     return Volunteer.update({ _id: volunteerId }, update)
+  },
+
+  adminUpdateUser: async function({
+    userId,
+    firstName,
+    lastName,
+    email,
+    partnerOrg,
+    partnerSite,
+    isVerified,
+    isBanned,
+    isDeactivated,
+    isApproved
+  }) {
+    const userBeforeUpdate = await this.getUser({ _id: userId })
+    const { isVolunteer } = userBeforeUpdate
+    const isUpdatedEmail = userBeforeUpdate.email !== email
+
+    // Remove the contact associated with the previous email from SendGrid
+    if (isUpdatedEmail) {
+      const contact = await MailService.searchContact(userBeforeUpdate.email)
+      if (contact) MailService.deleteContact(contact.id)
+    }
+
+    // if unbanning student, also unban their IP addresses
+    if (!isVolunteer && userBeforeUpdate.isBanned && !isBanned)
+      await IpAddressService.unbanUserIps(userBeforeUpdate)
+
+    const update = {
+      firstname: firstName,
+      lastname: lastName,
+      email,
+      verified: isVerified,
+      isBanned,
+      isDeactivated,
+      isApproved,
+      $unset: {}
+    }
+
+    if (isVolunteer) {
+      if (partnerOrg) update.volunteerPartnerOrg = partnerOrg
+      else update.$unset.volunteerPartnerOrg = ''
+    }
+
+    if (!isVolunteer) {
+      if (partnerOrg) update.studentPartnerOrg = partnerOrg
+      else update.$unset.studentPartnerOrg = ''
+
+      if (partnerSite) update.partnerSite = partnerSite
+      else update.$unset.partnerSite = ''
+    }
+
+    // Remove $unset property if it has no properties to remove
+    if (Object.keys(update.$unset).length === 0) delete update.$unset
+
+    const updatedUser = Object.assign(userBeforeUpdate, update)
+    MailService.createContact(updatedUser)
+
+    if (isVolunteer) {
+      return Volunteer.updateOne({ _id: userId }, update)
+    } else {
+      return Student.updateOne({ _id: userId }, update)
+    }
+  },
+
+  getUsers: async function({
+    firstName,
+    lastName,
+    email,
+    partnerOrg,
+    highSchool,
+    page
+  }) {
+    const query = {}
+    const pageNum = parseInt(page) || 1
+    const PER_PAGE = 15
+    const skip = (pageNum - 1) * PER_PAGE
+
+    if (firstName) query.firstname = { $regex: firstName, $options: 'i' }
+    if (lastName) query.lastname = { $regex: lastName, $options: 'i' }
+    if (email) query.email = { $regex: email, $options: 'i' }
+    if (partnerOrg) {
+      if (config.studentPartnerManifests[partnerOrg])
+        query.studentPartnerOrg = { $regex: partnerOrg, $options: 'i' }
+
+      if (config.volunteerPartnerManifests[partnerOrg])
+        query.volunteerPartnerOrg = { $regex: partnerOrg, $options: 'i' }
+    }
+
+    let highSchoolQuery = [
+      {
+        $lookup: {
+          from: 'schools',
+          localField: 'approvedHighschool',
+          foreignField: '_id',
+          as: 'highSchool'
+        }
+      },
+      {
+        $unwind: '$highSchool'
+      },
+      {
+        $match: {
+          $or: [
+            { 'highSchool.nameStored': { $regex: highSchool, $options: 'i' } },
+            { 'highSchool.SCH_NAME': { $regex: highSchool, $options: 'i' } }
+          ]
+        }
+      }
+    ]
+
+    const aggregateQuery = [{ $match: query }]
+    if (highSchool) aggregateQuery.push(...highSchoolQuery)
+
+    try {
+      const users = await User.aggregate(aggregateQuery)
+        .skip(skip)
+        .limit(PER_PAGE)
+        .exec()
+
+      const isLastPage = users.length < PER_PAGE
+      return { users, isLastPage }
+    } catch (error) {
+      throw new Error(error.message)
+    }
   }
 }

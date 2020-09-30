@@ -1,5 +1,6 @@
 const UserCtrl = require('../../controllers/UserCtrl')
 const UserService = require('../../services/UserService')
+const MailService = require('../../services/MailService')
 const AwsService = require('../../services/AwsService')
 const User = require('../../models/User')
 const Volunteer = require('../../models/Volunteer')
@@ -36,10 +37,27 @@ module.exports = function(router) {
   // @note: Currently, only volunteers are able to update their profile
   router.put('/user', async (req, res, next) => {
     const { _id } = req.user
-    const { phone } = req.body
+    const { phone, isDeactivated } = req.body
+
+    if (isDeactivated !== req.user.isDeactivated) {
+      const updatedUser = Object.assign(req.user, { isDeactivated })
+      MailService.createContact(updatedUser)
+    }
 
     try {
-      await Volunteer.updateOne({ _id }, { phone })
+      await Volunteer.updateOne({ _id }, { phone, isDeactivated })
+      res.sendStatus(200)
+    } catch (err) {
+      next(err)
+    }
+  })
+
+  // Admin route to update a user
+  router.put('/user/:userId', passport.isAdmin, async (req, res, next) => {
+    const { userId } = req.params
+
+    try {
+      await UserService.adminUpdateUser({ userId, ...req.body })
       res.sendStatus(200)
     } catch (err) {
       next(err)
@@ -158,6 +176,15 @@ module.exports = function(router) {
       res.json({ user })
     } catch (err) {
       console.log(err)
+      next(err)
+    }
+  })
+
+  router.get('/users', passport.isAdmin, async function(req, res, next) {
+    try {
+      const { users, isLastPage } = await UserService.getUsers(req.query)
+      res.json({ users, isLastPage })
+    } catch (err) {
       next(err)
     }
   })

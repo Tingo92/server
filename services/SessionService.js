@@ -1,10 +1,12 @@
 const Session = require('../models/Session')
 const User = require('../models/User')
 const WhiteboardService = require('../services/WhiteboardService')
+const crypto = require('crypto')
 const QuillDocService = require('../services/QuillDocService')
 const UserService = require('./UserService')
 const MailService = require('./MailService')
 const { USER_BAN_REASON, SESSION_REPORT_REASON } = require('../constants')
+const UserActionCtrl = require('../controllers/UserActionCtrl')
 
 const addPastSession = async ({ userId, sessionId }) => {
   await User.update({ _id: userId }, { $addToSet: { pastSessions: sessionId } })
@@ -44,6 +46,11 @@ module.exports = {
         userId: session.student,
         banReason: USER_BAN_REASON.SESSION_REPORTED
       })
+      UserActionCtrl.accountBanned(
+        session.student,
+        session._id,
+        USER_BAN_REASON.SESSION_REPORTED
+      )
     }
 
     MailService.sendReportedSessionAlert({
@@ -65,24 +72,28 @@ module.exports = {
       userId: session.student,
       sessionId: session._id
     })
+
     if (session.volunteer)
       await addPastSession({
         userId: session.volunteer,
         sessionId: session._id
       })
 
+    const quillDoc = await QuillDocService.getDoc(session._id.toString())
+    const whiteboardDoc = await WhiteboardService.getDoc(session._id.toString())
+
     await Session.updateOne(
       { _id: session._id },
       {
         endedAt: new Date(),
         endedBy,
-        whiteboardDoc: WhiteboardService.getDoc(session._id),
-        quillDoc: JSON.stringify(QuillDocService.getDoc(session._id))
+        whiteboardDoc: whiteboardDoc || undefined,
+        quillDoc: quillDoc ? JSON.stringify(quillDoc) : undefined
       }
     )
 
-    WhiteboardService.clearDocFromCache(session._id)
-    QuillDocService.deleteDoc(session._id)
+    WhiteboardService.deleteDoc(session._id.toString())
+    QuillDocService.deleteDoc(session._id.toString())
   },
 
   isSessionFulfilled: session => {
@@ -106,5 +117,16 @@ module.exports = {
     })
       .lean()
       .exec()
+  },
+
+  getSessionPhotoUploadUrl: async sessionId => {
+    const sessionPhotoS3Key = `${sessionId}${crypto
+      .randomBytes(8)
+      .toString('hex')}`
+    await Session.updateOne(
+      { _id: sessionId },
+      { $push: { photos: sessionPhotoS3Key } }
+    )
+    return sessionPhotoS3Key
   }
 }

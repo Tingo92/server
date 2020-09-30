@@ -1,26 +1,17 @@
 import { Document, Schema, Types } from 'mongoose';
 import { values } from 'lodash';
-import { PHOTO_ID_STATUS, REFERENCE_STATUS } from '../constants';
+import {
+  PHOTO_ID_STATUS,
+  REFERENCE_STATUS,
+  SUBJECTS,
+  TRAINING,
+  MATH_CERTS,
+  COLLEGE_CERTS,
+  SCIENCE_CERTS,
+  SAT_CERTS,
+  COLLEGE_SUBJECTS
+} from '../constants';
 import UserModel, { User } from './User';
-
-export enum SUBJECTS {
-  PREALGREBA = 'prealgebra',
-  ALGREBA = 'algebra',
-  GEOMETRY = 'geometry',
-  TRIGONOMETRY = 'trigonometry',
-  PRECALCULUS = 'precalculus',
-  CALCULUS = 'calculus',
-  INTEGRATED_MATH_ONE = 'integratedMathOne',
-  INTEGRATED_MATH_TWO = 'integratedMathTwo',
-  INTEGRATED_MATH_THREE = 'integratedMathThree',
-  INTEGRATED_MATH_FOUR = 'integratedMathFour',
-  APPLICATIONS = 'applications',
-  ESSAYS = 'essays',
-  PLANNING = 'planning',
-  BIOLOGY = 'biology',
-  CHEMISTRY = 'chemistry',
-  PHYSICS_ONE = 'physicsOne'
-}
 
 export enum DAYS {
   SUNDAY = 'Sunday',
@@ -260,6 +251,21 @@ const referenceSchema = new Schema({
   additionalInfo: String
 });
 
+const trainingCourseSchema = new Schema({
+  isComplete: {
+    type: Boolean,
+    default: false
+  },
+  progress: {
+    type: Number,
+    default: 0
+  },
+  completedMaterials: {
+    type: [String],
+    default: []
+  }
+});
+
 const volunteerSchemaOptions = {
   toJSON: {
     virtuals: true
@@ -297,7 +303,6 @@ const volunteerSchema = new Schema(
       trim: true
       // @todo: server-side validation of international phone format
     },
-    college: String,
     occupation: [String],
     experience: {
       collegeCounseling: String,
@@ -321,8 +326,30 @@ const volunteerSchema = new Schema(
       type: Boolean,
       default: false
     },
+    trainingCourses: {
+      [TRAINING.UPCHIEVE_101]: {
+        type: trainingCourseSchema,
+        default: trainingCourseSchema
+      },
+      [TRAINING.TUTORING_SKILLS]: {
+        type: trainingCourseSchema,
+        default: trainingCourseSchema
+      },
+      [TRAINING.COLLEGE_COUNSELING]: {
+        type: trainingCourseSchema,
+        default: trainingCourseSchema
+      },
+      [TRAINING.COLLEGE_SKILLS]: {
+        type: trainingCourseSchema,
+        default: trainingCourseSchema
+      },
+      [TRAINING.SAT_STRATEGIES]: {
+        type: trainingCourseSchema,
+        default: trainingCourseSchema
+      }
+    },
     certifications: {
-      [SUBJECTS.PREALGREBA]: {
+      [MATH_CERTS.PREALGREBA]: {
         passed: {
           type: Boolean,
           default: false
@@ -333,7 +360,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      [SUBJECTS.ALGREBA]: {
+      [MATH_CERTS.ALGEBRA]: {
         passed: {
           type: Boolean,
           default: false
@@ -344,7 +371,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      [SUBJECTS.GEOMETRY]: {
+      [MATH_CERTS.GEOMETRY]: {
         passed: {
           type: Boolean,
           default: false
@@ -355,7 +382,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      [SUBJECTS.TRIGONOMETRY]: {
+      [MATH_CERTS.TRIGONOMETRY]: {
         passed: {
           type: Boolean,
           default: false
@@ -366,7 +393,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      [SUBJECTS.PRECALCULUS]: {
+      [MATH_CERTS.PRECALCULUS]: {
         passed: {
           type: Boolean,
           default: false
@@ -377,7 +404,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      [SUBJECTS.CALCULUS]: {
+      [MATH_CERTS.CALCULUS_AB]: {
         passed: {
           type: Boolean,
           default: false
@@ -388,7 +415,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      [SUBJECTS.INTEGRATED_MATH_ONE]: {
+      [MATH_CERTS.CALCULUS_BC]: {
         passed: {
           type: Boolean,
           default: false
@@ -399,7 +426,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      [SUBJECTS.INTEGRATED_MATH_TWO]: {
+      [MATH_CERTS.STATISTICS]: {
         passed: {
           type: Boolean,
           default: false
@@ -410,7 +437,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      [SUBJECTS.INTEGRATED_MATH_THREE]: {
+      [COLLEGE_CERTS.ESSAYS]: {
         passed: {
           type: Boolean,
           default: false
@@ -421,7 +448,8 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      [SUBJECTS.INTEGRATED_MATH_FOUR]: {
+      // @todo: remove once college counseling required training is created
+      [COLLEGE_SUBJECTS.PLANNING]: {
         passed: {
           type: Boolean,
           default: false
@@ -432,6 +460,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
+      // @todo: remove once college counseling required training is created
       [SUBJECTS.APPLICATIONS]: {
         passed: {
           type: Boolean,
@@ -443,7 +472,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      [SUBJECTS.ESSAYS]: {
+      [COLLEGE_CERTS.FINANCIAL_AID]: {
         passed: {
           type: Boolean,
           default: false
@@ -454,7 +483,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      [SUBJECTS.PLANNING]: {
+      [COLLEGE_CERTS.SPORTS_RECRUITMENT_PLANNING]: {
         passed: {
           type: Boolean,
           default: false
@@ -465,7 +494,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      [SUBJECTS.BIOLOGY]: {
+      [SCIENCE_CERTS.BIOLOGY]: {
         passed: {
           type: Boolean,
           default: false
@@ -476,7 +505,7 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      [SUBJECTS.CHEMISTRY]: {
+      [SCIENCE_CERTS.CHEMISTRY]: {
         passed: {
           type: Boolean,
           default: false
@@ -487,7 +516,106 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       },
-      [SUBJECTS.PHYSICS_ONE]: {
+      [SCIENCE_CERTS.PHYSICS_ONE]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [SCIENCE_CERTS.PHYSICS_TWO]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [SCIENCE_CERTS.ENVIRONMENTAL_SCIENCE]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [TRAINING.UPCHIEVE_101]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [TRAINING.TUTORING_SKILLS]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [TRAINING.COLLEGE_COUNSELING]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [TRAINING.COLLEGE_SKILLS]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [TRAINING.SAT_STRATEGIES]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [SAT_CERTS.SAT_MATH]: {
+        passed: {
+          type: Boolean,
+          default: false
+        },
+        tries: {
+          type: Number,
+          default: 0
+        },
+        lastAttemptedAt: { type: Date }
+      },
+      [SAT_CERTS.SAT_READING]: {
         passed: {
           type: Boolean,
           default: false
@@ -498,6 +626,10 @@ const volunteerSchema = new Schema(
         },
         lastAttemptedAt: { type: Date }
       }
+    },
+    subjects: {
+      type: [String],
+      enum: values(SUBJECTS)
     }
   },
   volunteerSchemaOptions
