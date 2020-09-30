@@ -298,7 +298,7 @@ describe('getQuizScore', () => {
 
     await TrainingCtrl.getQuizScore(quizScoreInput);
     const userActions = await UserActionModel.find({
-      action: USER_ACTION.QUIZ.UNLOCKED_SUBJECT
+      action: USER_ACTION.QUIZ_UNLOCKED_SUBJECT
     })
       .select('quizSubcategory -_id')
       .lean()
@@ -346,7 +346,11 @@ describe('getQuizScore', () => {
     const certifications = buildCertifications({
       [MATH_CERTS.ALGEBRA]: { passed: true, tries: 1 }
     });
-    const subjects = [SUBJECTS.PREALGREBA, SUBJECTS.ALGEBRA_ONE, SUBJECTS.ALGEBRA_TWO];
+    const subjects = [
+      SUBJECTS.PREALGREBA,
+      SUBJECTS.ALGEBRA_ONE,
+      SUBJECTS.ALGEBRA_TWO
+    ];
     const volunteer = await insertVolunteer(
       buildVolunteer({
         availabilityLastModifiedAt: new Date(),
@@ -797,10 +801,7 @@ describe('getUnlockedSubjects', () => {
         const certifications = buildCertificationsWithUpchieve101({
           [passedCerts[i]]: { passed: true, tries: 1 }
         });
-        const result = TrainingCtrl.getUnlockedSubjects(
-          cert,
-          certifications
-        );
+        const result = TrainingCtrl.getUnlockedSubjects(cert, certifications);
         await expect(result).toEqual(expected[i]);
       }
     });
