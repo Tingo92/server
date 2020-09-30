@@ -25,6 +25,7 @@ export interface UserAction {
   operatingSystemVersion: string;
   ipAddress: string;
   referenceEmail: string;
+  banReason: string;
 }
 
 export type UserActionDocument = UserAction & Document;
@@ -59,7 +60,8 @@ const userActionSchema = new Schema({
   operatingSystem: String,
   operatingSystemVersion: String,
   ipAddress: String,
-  referenceEmail: String
+  referenceEmail: String,
+  banReason: String
 });
 
 const UserActionModel = model<UserActionDocument>(
