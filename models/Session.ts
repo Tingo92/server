@@ -22,6 +22,7 @@ export interface Session {
   endedAt: Date;
   endedBy: Types.ObjectId | User;
   notifications: (Types.ObjectId | Notification)[];
+  photos: string[];
   isReported: boolean;
   reportReason: string;
   reportMessage: string;
