@@ -11,10 +11,15 @@ import {
   Certifications,
   TrainingCourses,
   Reference,
-  Availability,
-  DAYS,
-  HOURS
+  Availability
 } from '../../models/Volunteer';
+import {
+  // @todo: figure out how to import from Volunteer.ts without DAYS and HOURS resolving to undefined
+  DAYS,
+  HOURS,
+  StudentRegistrationForm,
+  VolunteerRegistrationForm
+} from '../utils/types';
 import {
   PHOTO_ID_STATUS,
   REFERENCE_STATUS,
@@ -24,7 +29,6 @@ import {
   COLLEGE_CERTS,
   SAT_CERTS
 } from '../../constants';
-import { StudentRegistrationForm, VolunteerRegistrationForm } from './types';
 export const getEmail = faker.internet.email;
 export const getFirstName = faker.name.firstName;
 export const getLastName = faker.name.lastName;
