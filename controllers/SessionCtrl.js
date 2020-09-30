@@ -351,7 +351,7 @@ module.exports = function(socketService) {
                     $expr: {
                       $and: [
                         { $eq: ['$user', '$$userId'] },
-                        { $eq: ['$action', USER_ACTION.ACCOUNT.BANNED] }
+                        { $eq: ['$action', USER_ACTION.ACCOUNT_BANNED] }
                       ]
                     }
                   }
