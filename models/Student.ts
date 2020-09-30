@@ -6,6 +6,7 @@ export interface Student extends User {
   approvedHighschool: School;
   zipCode: string;
   studentPartnerOrg: string;
+  partnerSite: string;
 }
 
 export type StudentDocument = Student & Document;

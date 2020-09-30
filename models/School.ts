@@ -6,6 +6,7 @@ export interface School {
   upchieveId: string;
   nameStored: string;
   districtNameStored: string;
+  cityNameStored: string;
   stateStored: string;
   isApproved: boolean;
   createdAt: Date;
