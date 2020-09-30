@@ -17,6 +17,7 @@ export interface User {
   passwordResetToken: string;
   firstname: string;
   lastname: string;
+  college: string;
   isVolunteer: boolean;
   isAdmin: boolean;
   isBanned: boolean;
