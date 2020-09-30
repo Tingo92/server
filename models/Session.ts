@@ -15,6 +15,7 @@ export interface Session {
   subTopic: string;
   messages: Message[];
   whiteboardDoc: string;
+  quillDoc: string;
   createdAt: Date;
   volunteerJoinedAt: Date;
   failedJoins: (Types.ObjectId | User)[];
@@ -67,6 +68,12 @@ const sessionSchema = new Schema({
     select: false
   },
 
+  quillDoc: {
+    type: String,
+    default: '',
+    select: false
+  },
+
   createdAt: {
     type: Date,
     default: Date.now
@@ -98,6 +105,7 @@ const sessionSchema = new Schema({
       ref: 'Notification'
     }
   ],
+  photos: [String],
 
   isReported: {
     type: Boolean,
