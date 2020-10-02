@@ -19,6 +19,7 @@ const generateReferralCode = userId => base64url(Buffer.from(userId, 'hex'))
 module.exports = {
   getVolunteerStats: async user => {
     const pastSessions = await Session.find({ volunteer: user._id })
+      .sort({ endedAt: 1 })
       .select('volunteerJoinedAt endedAt messages')
       .lean()
       .exec()
