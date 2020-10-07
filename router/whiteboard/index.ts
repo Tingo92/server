@@ -268,7 +268,7 @@ const whiteboardRouter = function(app): void {
     next();
   });
 
-  router.ws('/admin/:sessionId', function(wsClient, req, next) {
+  router.ws('/admin/:sessionId', function(wsClient, req) {
     const sessionId = req.params.sessionId;
 
     wsClient.on('message', async rawMessage => {
@@ -290,6 +290,20 @@ const whiteboardRouter = function(app): void {
         );
       }
     });
+  });
+
+  router.route('/reset').post(async function(req, res, next) {
+    const {
+      body: { sessionId }
+    } = req;
+
+    try {
+      await WhiteboardService.deleteDoc(sessionId);
+      res.sendStatus(200);
+    } catch (err) {
+      Sentry.captureException(err);
+      next(err);
+    }
   });
 
   app.use('/whiteboard', router);

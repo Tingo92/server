@@ -15,7 +15,6 @@ const { USER_ACTION } = require('../../constants')
 const NotificationService = require('../../services/NotificationService')
 const UserAction = require('../../models/UserAction')
 const config = require('../../config')
-const WhiteboardService = require('../../services/WhiteboardService')
 
 module.exports = function(router, io) {
   // io is now passed to this module so that API events can trigger socket events as needed
@@ -75,21 +74,6 @@ module.exports = function(router, io) {
         userAgent,
         ipAddress
       ).catch(error => {
-        Sentry.captureException(error)
-      })
-      res.json({ sessionId })
-    } catch (err) {
-      next(err)
-    }
-  })
-
-  router.route('/session/reset').post(async function(req, res, next) {
-    const {
-      body: { sessionId }
-    } = req
-
-    try {
-      await WhiteboardService.deleteDoc(sessionId).catch(error => {
         Sentry.captureException(error)
       })
       res.json({ sessionId })
