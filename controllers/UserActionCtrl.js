@@ -82,7 +82,7 @@ const createAccountAction = async (
 const createAdminAction = async (userId, action, options = {}) => {
   const userActionDoc = new UserAction({
     user: userId,
-    actionType: USER_ACTION.TYPE.ADMIN,
+    actionType: USER_ACTION_TYPE.ADMIN,
     action,
     ...options
   })
@@ -243,7 +243,7 @@ const accountBanned = (userId, sessionId, banReason) =>
   })
 
 const accountDeactivated = (userId, ipAddress) =>
-  createAccountAction(userId, ipAddress, USER_ACTION.ACCOUNT.DEACTIVATED)
+  createAccountAction(userId, ipAddress, USER_ACTION.ACCOUNT_DEACTIVATED)
 
 const submittedReferenceForm = (userId, ipAddress, options) =>
   createAccountAction(
@@ -265,7 +265,7 @@ const rejectedReference = (userId, options) =>
   )
 
 const adminDeactivatedAccount = userId =>
-  createAdminAction(userId, USER_ACTION.ACCOUNT.DEACTIVATED)
+  createAdminAction(userId, USER_ACTION.ACCOUNT_DEACTIVATED)
 
 module.exports = {
   startedQuiz,
