@@ -361,6 +361,7 @@ const volunteerSchema = new Schema(
       default: availabilitySchema
     },
     timezone: String,
+    hoursTutored: { type: Types.Decimal128, default: 0 },
     availabilityLastModifiedAt: { type: Date },
     elapsedAvailability: { type: Number, default: 0 },
     sentReadyToCoachEmail: {

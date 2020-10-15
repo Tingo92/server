@@ -6,6 +6,7 @@ import { merge } from 'lodash';
 import { User } from '../../models/User';
 import { Student } from '../../models/Student';
 import { Session } from '../../models/Session';
+import { Message } from '../../models/Message'
 import {
   Volunteer,
   Certifications,
@@ -162,6 +163,7 @@ export const buildVolunteer = (overrides = {}): Partial<Volunteer> => {
     subjects: [],
     trainingCourses: buildTrainingCourses(),
     sentReadyToCoachEmail: false,
+    hoursTutored: 0,
     ...overrides
   };
 
@@ -290,6 +292,19 @@ export const buildSession = (overrides = {}): Partial<Session> => {
   };
 
   return session;
+};
+
+export const buildMessage = (overrides = {}): Partial<Message> => {
+  const _id = Types.ObjectId();
+  const message = {
+    _id,
+    user: null,
+    contents: faker.lorem.sentence(),
+    createdAt: new Date(),
+    ...overrides
+  };
+
+  return message;
 };
 
 export const authLogin = (agent, { email, password }: Partial<User>): Test =>

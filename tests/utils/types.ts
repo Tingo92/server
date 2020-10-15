@@ -1,5 +1,44 @@
 import { Student } from '../../models/Student';
 import { Volunteer } from '../../models/Volunteer';
+import { Types } from 'mongoose';
+import {
+  TRAINING,
+  MATH_CERTS,
+  SCIENCE_CERTS,
+  COLLEGE_CERTS,
+  SAT_CERTS
+} from '../../constants';
+
+export interface User {
+  _id: Types.ObjectId;
+  email: string;
+  // optional use for building registration form
+  firstName?: string;
+  lastName?: string;
+  firstname: string;
+  lastname: string;
+  password: string;
+  referredByCode: Types.ObjectId | string;
+  referralCode: string;
+}
+
+// @todo: clean up - use the Reference interface from Volunteer.ts when available
+export interface Reference {
+  _id: Types.ObjectId;
+  status: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  affiliation: string;
+  relationshipLength: string;
+  patient: number;
+  positiveRoleModel: number;
+  agreeableAndApproachable: number;
+  communicatesEffectively: number;
+  trustworthyWithChildren: number;
+  rejectionReason: string;
+  additionalInfo: string;
+}
 
 export interface StudentRegistrationForm extends Student {
   terms: boolean;

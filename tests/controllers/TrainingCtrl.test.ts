@@ -15,8 +15,9 @@ import {
 } from '../../constants';
 import Question from '../../models/Question';
 import algebraQuestions from '../../seeds/questions/algebra.json';
-import { Certifications } from '../utils/types';
+import { Certifications } from '../../models/Volunteer';
 import UserActionModel from '../../models/UserAction';
+jest.mock('../../services/MailService');
 
 const buildCertificationsWithUpchieve101 = (options = {}): Certifications => {
   return buildCertifications({
