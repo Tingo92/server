@@ -213,6 +213,7 @@ sessionSchema.statics.findLatest = function(
   attrs: Partial<Session>,
   cb: (session: SessionDocument) => void
 ): Promise<SessionDocument> {
+  // @todo: refactor this query
   return this.find(attrs)
     .sort({ createdAt: -1 })
     .limit(1)
@@ -227,12 +228,8 @@ sessionSchema.statics.current = function(
   userId: Types.ObjectId
 ): Promise<SessionDocument> {
   return this.findLatest({
-    $and: [
-      { endedAt: { $exists: false } },
-      {
-        $or: [{ student: userId }, { volunteer: userId }]
-      }
-    ]
+    endedAt: { $exists: false },
+    $or: [{ student: userId }, { volunteer: userId }]
   });
 };
 
@@ -240,9 +237,11 @@ sessionSchema.statics.current = function(
 sessionSchema.statics.getUnfulfilledSessions = async function(): Promise<
   SessionDocument[]
 > {
+  // @note: this query is sorted in memory and uses the volunteer: 1, endedAt: 1 index
   const queryAttrs = {
-    volunteerJoinedAt: { $exists: false },
-    endedAt: { $exists: false }
+    volunteer: { $exists: false },
+    endedAt: { $exists: false },
+    createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) }
   };
 
   const sessions = await this.find(queryAttrs)
