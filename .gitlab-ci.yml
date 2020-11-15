@@ -3,7 +3,9 @@ include:
 
 test:
   services:
-   - circleci/mongo:4.2.3-ram
+   - name: mongo:4.2.2
+     alias: mongodb
+   - redis:latest
   stage: test
   image: gliderlabs/herokuish:latest
   script:
