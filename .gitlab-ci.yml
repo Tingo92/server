@@ -9,7 +9,6 @@ test:
   stage: test
   image: gliderlabs/herokuish:latest
   script:
-    - cp config.example.ts config.ts
     - cp -R . /tmp/app
     - /bin/herokuish buildpack test
   rules:
