@@ -159,8 +159,6 @@ describe('/session/:sessionId/report', () => {
       volunteer: socrates._id
     });
 
-    console.log('Socrates:', socrates);
-
     const response = await reportSession(session._id, data).expect(200);
     const {
       body: { msg }
