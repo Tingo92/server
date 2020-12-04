@@ -14,6 +14,7 @@ import {
 import { SESSION_REPORT_REASON, USER_ACTION } from '../../constants';
 import UserActionModel from '../../models/UserAction';
 jest.mock('../../services/SocketService');
+jest.mock('../../utils/get-session-room');
 
 const agent = request.agent(app);
 // @todo: Figure out how to avoid using loginStudent for each test
