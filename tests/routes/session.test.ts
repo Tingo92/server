@@ -1,12 +1,18 @@
 import mongoose from 'mongoose';
 import request, { Test } from 'supertest';
 import app from '../../app';
-import { Student } from '../types';
+import { Student, Volunteer } from '../types';
 import { authLogin } from '../generate';
-import { resetDb, insertStudent, insertSession } from '../db-utils';
-import { USER_ACTION } from '../../constants';
+import {
+  resetDb,
+  insertStudent,
+  insertSession,
+  insertSessionWithVolunteer,
+  insertVolunteer,
+  getSession
+} from '../db-utils';
+import { SESSION_REPORT_REASON, USER_ACTION } from '../../constants';
 import UserActionModel from '../../models/UserAction';
-jest.mock('../../services/MailService');
 jest.mock('../../services/SocketService');
 
 const agent = request.agent(app);
@@ -17,6 +23,13 @@ const loginStudent = async (): Promise<Student> => {
   await authLogin(agent, student);
 
   return student;
+};
+
+const loginVolunteer = async (): Promise<Volunteer> => {
+  const volunteer = await insertVolunteer();
+  await authLogin(agent, volunteer);
+
+  return volunteer;
 };
 
 const startNewSession = (data): Test =>
@@ -31,6 +44,18 @@ const endSession = (data): Test =>
     .set('Accept', 'application/json')
     .send(data);
 
+const reportSession = (sessionId, data): Test =>
+  agent
+    .post(`/api/session/${sessionId}/report`)
+    .set('Accept', 'application/json')
+    .send(data);
+
+const timedOutSession = (sessionId, data): Test =>
+  agent
+    .post(`/api/session/${sessionId}/timed-out`)
+    .set('Accept', 'application/json')
+    .send(data);
+
 // db connection
 beforeAll(async () => {
   await mongoose.connect(process.env.MONGO_URL, {
@@ -42,11 +67,11 @@ afterAll(async () => {
   await mongoose.connection.close();
 });
 
-describe('/session/new', () => {
-  beforeEach(async () => {
-    await resetDb();
-  });
+beforeEach(async () => {
+  await resetDb();
+});
 
+describe('/session/new', () => {
   const newSessionData = { sessionSubTopic: 'algebraone', sessionType: 'math' };
 
   test('Should start a new session', async () => {
@@ -79,20 +104,12 @@ describe('/session/new', () => {
 
     expect(userAction.action).toBe(USER_ACTION.SESSION.REQUESTED);
   });
-
-  test.todo('Should not create session if server error');
 });
 
-describe.only('/session/end', () => {
-  // const socketService = new SocketService(null);
-  beforeEach(async () => {
-    await resetDb();
-  });
-
-  // @todo: Check if SocketService has been called
+describe('/session/end', () => {
   test('Should end a new session', async () => {
     const aristotle = await loginStudent();
-    const { session } = await insertSession({ student: aristotle });
+    const { session } = await insertSession({ student: aristotle._id });
     const response = await endSession({ sessionId: session._id }).expect(200);
     const {
       body: { sessionId }
@@ -128,5 +145,101 @@ describe.only('/session/end', () => {
     });
 
     expect(userAction.action).toBe(USER_ACTION.SESSION.ENDED);
+  });
+});
+
+describe('/session/:sessionId/report', () => {
+  test('Should report a session', async () => {
+    const socrates = await loginVolunteer();
+    const data = {
+      reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
+      reportMessage: ''
+    };
+    const { session } = await insertSessionWithVolunteer({
+      volunteer: socrates._id
+    });
+
+    console.log('Socrates:', socrates);
+
+    const response = await reportSession(session._id, data).expect(200);
+    const {
+      body: { msg }
+    } = response;
+    const reportedSession = await getSession(
+      { _id: session._id },
+      { isReported: 1 }
+    );
+
+    expect(reportedSession.isReported).toBeTruthy();
+    expect(msg).toEqual('Success');
+  });
+
+  test('A student should not be able to report a session', async () => {
+    await loginStudent();
+    const data = {
+      reportReason: '',
+      reportMessage: ''
+    };
+    const { session } = await insertSessionWithVolunteer();
+    const response = await reportSession(session._id, data).expect(401);
+    const {
+      body: { err }
+    } = response;
+
+    const expectedError = 'Unable to report this session';
+
+    expect(err).toEqual(expectedError);
+  });
+
+  test('Should not be able to report a session if it has no volunteer', async () => {
+    await loginStudent();
+    const data = {
+      reportReason: '',
+      reportMessage: ''
+    };
+    const { session } = await insertSession();
+    const response = await reportSession(session._id, data).expect(401);
+    const {
+      body: { err }
+    } = response;
+
+    const expectedError = 'Unable to report this session';
+
+    expect(err).toEqual(expectedError);
+  });
+});
+
+describe('/session/:sessionId/time-out', () => {
+  test('Should report a session', async () => {
+    const descartes = await loginVolunteer();
+    const data = {
+      timeout: 15
+    };
+    const { session } = await insertSession({
+      student: descartes._id
+    });
+
+    await timedOutSession(session._id, data).expect(200);
+    const userAction = await UserActionModel.findOne({
+      user: descartes._id,
+      session: session
+    });
+    expect(userAction.action).toBe(USER_ACTION.SESSION.TIMED_OUT_15_MINS);
+  });
+
+  test('A student should not be able to report a session', async () => {
+    const descartes = await loginVolunteer();
+    const data = {
+      timeout: 45
+    };
+    const { session } = await insertSession({
+      student: descartes._id
+    });
+    await timedOutSession(session._id, data).expect(200);
+    const userAction = await UserActionModel.findOne({
+      user: descartes._id,
+      session: session
+    });
+    expect(userAction.action).toBe(USER_ACTION.SESSION.TIMED_OUT_45_MINS);
   });
 });
