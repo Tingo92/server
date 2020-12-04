@@ -237,9 +237,12 @@ module.exports = function(router, io) {
     const { sessionId } = req.params
     const { reportReason, reportMessage } = req.body
     const { user } = req
-    const session = await SessionService.getSession(sessionId)
+    const session = await SessionService.getSession(sessionId, {
+      student: 1,
+      volunteer: 1
+    })
 
-    if (!session || !session.volunteer || !session.volunteer === user._id)
+    if (!session || !session.volunteer || !user._id.equals(session.volunteer))
       return res.status(401).json({ err: 'Unable to report this session' })
 
     await SessionService.reportSession({
