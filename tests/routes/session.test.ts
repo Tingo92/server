@@ -187,7 +187,6 @@ describe('/session/:sessionId/report', () => {
     } = response;
 
     const expectedError = 'Unable to report this session';
-
     expect(err).toEqual(expectedError);
   });
 
@@ -204,7 +203,6 @@ describe('/session/:sessionId/report', () => {
     } = response;
 
     const expectedError = 'Unable to report this session';
-
     expect(err).toEqual(expectedError);
   });
 });
