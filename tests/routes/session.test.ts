@@ -151,7 +151,7 @@ describe('/session/end', () => {
 });
 
 describe('/session/:sessionId/report', () => {
-  test('Should report a session', async () => {
+  test('A volunteer should be able to report a session', async () => {
     const socrates = await loginVolunteer();
     const data = {
       reportReason: SESSION_REPORT_REASON.STUDENT_RUDE,
@@ -210,8 +210,8 @@ describe('/session/:sessionId/report', () => {
 });
 
 describe('/session/:sessionId/time-out', () => {
-  test('Should report a session', async () => {
-    const descartes = await loginVolunteer();
+  test(`Should see user action for ${USER_ACTION.SESSION.TIMED_OUT_15_MINS} after a session timeout of 15 mins`, async () => {
+    const descartes = await loginStudent();
     const data = {
       timeout: 15
     };
@@ -227,8 +227,8 @@ describe('/session/:sessionId/time-out', () => {
     expect(userAction.action).toBe(USER_ACTION.SESSION.TIMED_OUT_15_MINS);
   });
 
-  test('A student should not be able to report a session', async () => {
-    const descartes = await loginVolunteer();
+  test(`Should see a user action for ${USER_ACTION.SESSION.TIMED_OUT_45_MINS} after a session timeout of 45 mins`, async () => {
+    const descartes = await loginStudent();
     const data = {
       timeout: 45
     };
