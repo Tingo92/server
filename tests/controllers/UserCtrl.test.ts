@@ -6,7 +6,7 @@ import {
   allHoursSelected
 } from '../mocks/volunteer-availability';
 
-describe('calculateElapsedAvailability', () => {
+describe.skip('calculateElapsedAvailability', () => {
   test('Should not calculate elapsed availability for volunteers who are not onboarded', () => {
     // EST Time Zone for dates
     const lastModifiedDate = '2020-02-06T00:52:59.538-05:00';
