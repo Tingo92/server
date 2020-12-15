@@ -1,7 +1,14 @@
 const _ = require('lodash')
 const Volunteer = require('../models/Volunteer')
-const UserCtrl = require('../controllers/UserCtrl')
 const UserActionCtrl = require('../controllers/UserActionCtrl')
+const {
+  getAvailability,
+  getRecentAvailabilityHistory,
+  calculateElapsedAvailability
+} = require('../services/AvailabilityService')
+const AvailabilityHistoryModel = require('../models/Availability/History')
+const AvailabilitySnapshotModel = require('../models/Availability/Snapshot')
+const getTodaysDay = require('../../utils/get-todays-day')
 
 module.exports = {
   updateSchedule: async function(options) {
@@ -34,27 +41,61 @@ module.exports = {
       throw new Error('Availability object missing required keys')
     }
 
+    const currentDate = new Date().toISOString()
+    let elapsedAvailability = 0
+
+    if (user.isOnboarded && user.isApproved) {
+      const oldAvailability = await getAvailability(
+        { volunteerId: user._id },
+        { onCallAvailability: 1, createdAt: 1 }
+      )
+      const recentAvailabilityHistory = await getRecentAvailabilityHistory(
+        user._id
+      )
+
+      elapsedAvailability = calculateElapsedAvailability({
+        availability: oldAvailability.onCallAvailability,
+        lastCalculatedAt: recentAvailabilityHistory
+          ? recentAvailabilityHistory.createdAt
+          : oldAvailability.createdAt,
+        currentDate
+      })
+    }
+
     const userUpdates = {
+      elapsedAvailability: user.elapsedAvailability + elapsedAvailability,
+      // @note: keep "availability", "timezone", "availabilityLastModifiedAt" until new availability schema is migrated
+      availabilityLastModifiedAt: currentDate,
       availability: newAvailability,
       timezone: newTimezone
     }
-
-    const currentTime = new Date().toISOString()
-    const newElapsedAvailability = UserCtrl.calculateElapsedAvailability(
-      user,
-      currentTime
-    )
-    userUpdates.availabilityLastModifiedAt = currentTime
-    userUpdates.elapsedAvailability =
-      user.elapsedAvailability + newElapsedAvailability
-
     // an onboarded volunteer must have updated their availability, completed required training, and unlocked a subject
     if (!user.isOnboarded && user.subjects.length > 0) {
       userUpdates.isOnboarded = true
       UserActionCtrl.accountOnboarded(user._id, ip)
     }
 
-    await Volunteer.updateOne({ _id: user._id }, userUpdates)
+    const availabilityUpdates = {
+      onCallAvailability: newAvailability,
+      timezone: newTimezone,
+      modifiedAt: currentDate
+    }
+    // @todo: Make these three db calls a transaction? and/or make them parallel requests
+    await AvailabilitySnapshotModel.updateOne(
+      {
+        volunteerId: user._id
+      },
+      { availabilityUpdates }
+    )
+
+    await AvailabilityHistoryModel.create({
+      availability: newAvailability[getTodaysDay()],
+      volunteerId: user._id,
+      createdAt: currentDate,
+      timezone: newTimezone,
+      elapsedAvailability
+    })
+    await Volunteer.updateOne({ _id: user._id }, { userUpdates })
   },
 
   clearSchedule: async function(user, tz) {
