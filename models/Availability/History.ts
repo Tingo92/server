@@ -1,5 +1,5 @@
-import { AvailabilityDay, availabilityDaySchema } from './types'
 import { Document, model, Schema, Types } from 'mongoose';
+import { AvailabilityDay, availabilityDaySchema } from './types';
 
 export interface AvailabilityHistory {
   _id: Types.ObjectId;
@@ -9,38 +9,40 @@ export interface AvailabilityHistory {
   availability: AvailabilityDay;
   modifiedAt: Date;
   createdAt: Date;
+  elapsedAvailability: number;
 }
 
 export type AvailabilityHistoryDocument = AvailabilityHistory & Document;
 
 const availabilityHistorySchema = new Schema({
-  _id: {
-    type: Types.ObjectId,
-  },
   availability: {
     type: availabilityDaySchema,
-    default: availabilityDaySchema,
+    default: availabilityDaySchema
   },
   volunteerId: {
-    type: Types.ObjectId,
+    type: Types.ObjectId
   },
   date: {
-    type: Date,
+    type: Date
   },
   timezone: {
-    type: String,
+    type: String
   },
   modifiedAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now
   },
   createdAt: {
     type: Date,
-    default: Date.now(),
-  }
+    default: Date.now
+  },
+  elapsedAvailability: { type: Number, default: 0 }
 });
 
-const AvailabilityHistoryModel = model<AvailabilityHistoryDocument>('AvailabilityHistory', availabilityHistorySchema);
+const AvailabilityHistoryModel = model<AvailabilityHistoryDocument>(
+  'AvailabilityHistory',
+  availabilityHistorySchema
+);
 
-module.exports = AvailabilityHistoryModel
-export default AvailabilityHistoryModel
+module.exports = AvailabilityHistoryModel;
+export default AvailabilityHistoryModel;
