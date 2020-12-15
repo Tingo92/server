@@ -8,7 +8,7 @@ const {
 } = require('../services/AvailabilityService')
 const AvailabilityHistoryModel = require('../models/Availability/History')
 const AvailabilitySnapshotModel = require('../models/Availability/Snapshot')
-const getTodaysDay = require('../../utils/get-todays-day')
+const getTodaysDay = require('../utils/get-todays-day')
 
 module.exports = {
   updateSchedule: async function(options) {
