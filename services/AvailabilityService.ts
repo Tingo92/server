@@ -25,8 +25,12 @@ export const getAvailability = (
     .exec();
 };
 
-export const getAvailabilities = (query): Promise<AvailabilitySnapshot[]> => {
+export const getAvailabilities = (
+  query,
+  projection = {}
+): Promise<AvailabilitySnapshot[]> => {
   return AvailabilitySnapshotModel.find(query)
+    .select(projection)
     .lean()
     .exec();
 };
