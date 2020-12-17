@@ -6,6 +6,9 @@ const base64url = require('base64url')
 const MailService = require('../services/MailService')
 const VerificationCtrl = require('../controllers/VerificationCtrl')
 const UserActionCtrl = require('../controllers/UserActionCtrl')
+const {
+  createAvailabilitySnapshot
+} = require('../services/AvailabilityService')
 
 const generateReferralCode = userId => base64url(Buffer.from(userId, 'hex'))
 
@@ -76,7 +79,10 @@ module.exports = {
 
     try {
       volunteer.password = await volunteer.hashPassword(password)
-      await volunteer.save()
+      await Promise.all([
+        volunteer.save(),
+        createAvailabilitySnapshot(volunteer._id)
+      ])
     } catch (error) {
       throw new Error(error)
     }
