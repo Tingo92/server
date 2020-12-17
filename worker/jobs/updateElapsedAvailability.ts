@@ -8,7 +8,7 @@ import { AvailabilitySnapshot } from '../../models/Availability/Snapshot';
 import {
   createAvailabilityHistory,
   getAvailability,
-  getLatestHistoryFromDaysAgo
+  getAllHistoryOn
 } from '../../services/AvailabilityService';
 import getDayOfWeekFromDaysAgo from '../../utils/get-day-of-week-from-days-ago';
 
@@ -35,17 +35,14 @@ export default async (): Promise<void> => {
       });
       if (!availability) return;
 
-      const endOfYesterday = moment
-        .utc()
-        .subtract(1, 'days')
-        .endOf('day')
-        .format();
+      const yesterday = moment.utc().subtract(1, 'days');
+      const endOfYesterday = yesterday.endOf('day').format();
 
       // Get the lastest elapsed availability calculation date from the most recent availability history
       // @note: New first day volunteer accounts will have no availability history if they have not updated their availbility
-      const snapshotsFromYesterday = await getLatestHistoryFromDaysAgo({
+      const snapshotsFromYesterday = await getAllHistoryOn({
         volunteerId: volunteer._id,
-        daysAgo: 1
+        date: yesterday
       });
       const latestSnapshotFromYesterday = snapshotsFromYesterday.pop();
       const elapsedAvailability = calculateElapsedAvailability({
