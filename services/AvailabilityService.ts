@@ -59,18 +59,16 @@ export const getRecentAvailabilityHistory = async (
 };
 
 // @todo: Create a compound index on createdAt(or date) and volunteerId
-export const getLatestHistoryFromDaysAgo = async ({
+export const getAllHistoryOn = async ({
   volunteerId,
-  daysAgo = 0
+  date
 }): Promise<AvailabilityHistory[]> => {
-  const startOfDay = moment
+  const startOfDay = moment(date)
     .utc()
-    .subtract(daysAgo, 'days')
     .startOf('day')
     .format();
-  const endOfDay = moment
+  const endOfDay = moment(date)
     .utc()
-    .subtract(daysAgo, 'days')
     .endOf('day')
     .format();
 
@@ -127,8 +125,8 @@ export const calculateElapsedAvailability = ({
   toDate
 }: {
   availability: Availability;
-  fromDate: Date;
-  toDate: Date;
+  fromDate: Date | string;
+  toDate: Date | string;
 }): number => {
   const fromDateEst = moment(fromDate)
     .tz('America/New_York')
