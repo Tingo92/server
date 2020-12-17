@@ -4,11 +4,11 @@ const UserActionCtrl = require('../controllers/UserActionCtrl')
 const {
   getAvailability,
   getRecentAvailabilityHistory,
-  calculateElapsedAvailability
+  calculateElapsedAvailability,
+  createAvailabilityHistory,
+  updateAvailabilitySnapshot
 } = require('../services/AvailabilityService')
-const AvailabilityHistoryModel = require('../models/Availability/History')
-const AvailabilitySnapshotModel = require('../models/Availability/Snapshot')
-const getTodaysDay = require('../utils/get-todays-day')
+const getDayOfWeekFromDaysAgo = require('../utils/get-day-of-week-from-days-ago')
 
 module.exports = {
   updateSchedule: async function(options) {
@@ -47,7 +47,7 @@ module.exports = {
     if (user.isOnboarded && user.isApproved) {
       const oldAvailability = await getAvailability(
         { volunteerId: user._id },
-        { onCallAvailability: 1, createdAt: 1 }
+        { onCallAvailability: 1, modifiedAt: 1 }
       )
       const recentAvailabilityHistory = await getRecentAvailabilityHistory(
         user._id
@@ -55,10 +55,10 @@ module.exports = {
 
       elapsedAvailability = calculateElapsedAvailability({
         availability: oldAvailability.onCallAvailability,
-        lastCalculatedAt: recentAvailabilityHistory
+        fromDate: recentAvailabilityHistory
           ? recentAvailabilityHistory.createdAt
-          : oldAvailability.createdAt,
-        currentDate
+          : oldAvailability.modifiedAt,
+        toDate: currentDate
       })
     }
 
@@ -81,21 +81,15 @@ module.exports = {
       modifiedAt: currentDate
     }
     // @todo: Make these three db calls a transaction? and/or make them parallel requests
-    await AvailabilitySnapshotModel.updateOne(
-      {
-        volunteerId: user._id
-      },
-      { availabilityUpdates }
-    )
-
-    await AvailabilityHistoryModel.create({
-      availability: newAvailability[getTodaysDay()],
+    await updateAvailabilitySnapshot(user._id, availabilityUpdates)
+    await createAvailabilityHistory({
+      availability: newAvailability[getDayOfWeekFromDaysAgo()],
       volunteerId: user._id,
-      createdAt: currentDate,
+      date: currentDate,
       timezone: newTimezone,
       elapsedAvailability
     })
-    await Volunteer.updateOne({ _id: user._id }, { userUpdates })
+    await Volunteer.updateOne({ _id: user._id }, userUpdates)
   },
 
   clearSchedule: async function(user, tz) {
