@@ -1,17 +1,16 @@
 import { map, size } from 'lodash';
+import moment from 'moment-timezone';
 import VolunteerModel from '../../models/Volunteer';
 import { Volunteer } from '../../models/types';
 import { log } from '../logger';
 import { calculateElapsedAvailability } from '../../controllers/UserCtrl';
 import { AvailabilitySnapshot } from '../../models/Availability/Snapshot';
-import AvailabilityHistoryModel, {
-  AvailabilityHistory
-} from '../../models/Availability/History';
 import {
+  createAvailabilityHistory,
   getAvailability,
-  getRecentAvailabilityHistory
+  getLatestHistoryFromDaysAgo
 } from '../../services/AvailabilityService';
-import getTodaysDay from '../../utils/get-todays-day';
+import getDayOfWeekFromDaysAgo from '../../utils/get-day-of-week-from-days-ago';
 
 /**
  *
@@ -27,37 +26,34 @@ export default async (): Promise<void> => {
 
   await Promise.all(
     map(volunteers, async (volunteer: Volunteer) => {
+      // A volunteer must be onboarded and approved before calculating their elapsed availability
+      if (!volunteer.isApproved || !volunteer.isOnboarded) return;
+
       // @todo: decide if availability snapshot should be created when a volunteer is created or when they add time to schedule
       const availability: AvailabilitySnapshot = await getAvailability({
         volunteerId: volunteer._id
       });
       if (!availability) return;
 
-      const currentDate = new Date();
-      const newAvailabilityHistory: Partial<AvailabilityHistory> = {
-        availability: availability.onCallAvailability[getTodaysDay()],
-        volunteerId: volunteer._id,
-        createdAt: currentDate,
-        timezone: availability.timezone
-      };
-
-      // A volunteer must be onboarded and approved before calculating their elapsed availability
-      if (!volunteer.isApproved || !volunteer.isOnboarded) {
-        newAvailabilityHistory.elapsedAvailability = 0;
-        return AvailabilityHistoryModel.create(newAvailabilityHistory);
-      }
+      const endOfYesterday = moment
+        .utc()
+        .subtract(1, 'days')
+        .endOf('day')
+        .format();
 
       // Get the lastest elapsed availability calculation date from the most recent availability history
       // @note: New first day volunteer accounts will have no availability history if they have not updated their availbility
-      const recentAvailabilityHistory = await getRecentAvailabilityHistory(
-        volunteer._id
-      );
+      const snapshotsFromYesterday = await getLatestHistoryFromDaysAgo({
+        volunteerId: volunteer._id,
+        daysAgo: 1
+      });
+      const latestSnapshotFromYesterday = snapshotsFromYesterday.pop();
       const elapsedAvailability = calculateElapsedAvailability({
         availability: availability.onCallAvailability,
-        currentDate,
-        lastCalculatedAt: recentAvailabilityHistory
-          ? recentAvailabilityHistory.createdAt
-          : availability.createdAt // @todo: should modifiedAt default when created?
+        fromDate: latestSnapshotFromYesterday
+          ? latestSnapshotFromYesterday.createdAt
+          : availability.modifiedAt,
+        toDate: endOfYesterday
       });
 
       await VolunteerModel.updateOne(
@@ -67,8 +63,17 @@ export default async (): Promise<void> => {
         { $inc: { elapsedAvailability } }
       );
 
-      newAvailabilityHistory.elapsedAvailability = elapsedAvailability;
-      return AvailabilityHistoryModel.create(newAvailabilityHistory);
+      const currentDate = new Date();
+      const newAvailabilityHistory = {
+        availability:
+          availability.onCallAvailability[getDayOfWeekFromDaysAgo(1)],
+        volunteerId: volunteer._id,
+        createdAt: currentDate,
+        timezone: availability.timezone,
+        date: endOfYesterday,
+        elapsedAvailability
+      };
+      return createAvailabilityHistory(newAvailabilityHistory);
     })
   );
   log(`updated ${size(volunteers)} volunteers`);
