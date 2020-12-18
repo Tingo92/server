@@ -147,17 +147,19 @@ describe('calculateTimeTutored', () => {
     const createdAt = new Date('2020-10-05T12:00:00.000Z');
     const endedAt = new Date('2020-10-05T12:05:00.000Z');
     const volunteerJoinedAt = new Date('2020-10-05T12:01:00.000Z');
-    const volunteer = buildVolunteer();
     const lastMessageSentAt = new Date('2020-10-05T12:03:00.000Z');
+    const volunteer = buildVolunteer();
     const session = buildSession({
       createdAt,
       endedAt,
       volunteerJoinedAt,
       volunteer: volunteer._id,
-      messages: buildMessage({
-        user: volunteer._id,
-        createdAt: lastMessageSentAt
-      })
+      messages: [
+        buildMessage({
+          user: volunteer._id,
+          createdAt: lastMessageSentAt
+        })
+      ]
     });
 
     const result = SessionService.calculateTimeTutored(session);
@@ -171,8 +173,8 @@ describe('calculateTimeTutored', () => {
     const createdAt = new Date('2020-10-05T11:55:00.000Z');
     const endedAt = new Date('2020-10-06T14:06:00.000Z');
     const volunteerJoinedAt = new Date('2020-10-05T12:00:00.000Z');
-    const volunteer = buildVolunteer();
     const lastMessageSentAt = new Date('2020-10-05T14:05:00.000Z');
+    const volunteer = buildVolunteer();
     const session = buildSession({
       createdAt,
       endedAt,
@@ -181,7 +183,7 @@ describe('calculateTimeTutored', () => {
       messages: [
         buildMessage({
           user: volunteer._id,
-          createdAt: new Date('2020-10-05T14:05:00.000Z')
+          createdAt: lastMessageSentAt
         })
       ]
     });
@@ -198,8 +200,8 @@ describe('calculateTimeTutored', () => {
     const createdAt = new Date('2020-10-05T11:55:00.000Z');
     const endedAt = new Date('2020-10-06T16:00:00.000Z');
     const volunteerJoinedAt = new Date('2020-10-05T12:00:00.000Z');
-    const volunteer = buildVolunteer();
     const lastMessageSentAt = new Date('2020-10-05T15:59:00.000Z');
+    const volunteer = buildVolunteer();
     const session = buildSession({
       createdAt,
       endedAt,
