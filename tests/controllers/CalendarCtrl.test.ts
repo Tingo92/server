@@ -148,12 +148,6 @@ describe('Save availability and time zone', () => {
   });
 
   test('Should create an availability history snapshot of the current day', async () => {
-    // Setting a spy on Date so that elapsedAvailability is calculated
-    // new Date('2020-12-17T16:00:00.000Z').getTime()
-    const dateNowSpy = jest
-      .spyOn(Date, 'now')
-      .mockImplementation(() => 1608220800000);
-
     const hawking = await insertVolunteer(
       buildVolunteer({
         isOnboarded: true,
@@ -185,17 +179,12 @@ describe('Save availability and time zone', () => {
     const availabilityHistory = await AvailabilityService.getRecentAvailabilityHistory(
       hawking._id
     );
-    const expectedElapsedAvailability = 3;
 
     expect(availabilitySnapshot.onCallAvailability).toMatchObject(availability);
     expect(availabilitySnapshot.onCallAvailability[day]).toMatchObject(
       availabilityHistory.availability
     );
-    expect(availabilityHistory.elapsedAvailability).toEqual(
-      expectedElapsedAvailability
-    );
-
-    dateNowSpy.mockRestore();
+    // @todo: figure out how to assert for elapsedAvailability
   });
 });
 
