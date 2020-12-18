@@ -339,6 +339,9 @@ module.exports = {
     )
   },
 
+  // @todo
+  sendWeeklySummaryEmail: data => {},
+
   createContact: async user => {
     const customFields = {
       [SG_CUSTOM_FIELDS.isBanned]: String(user.isBanned),
