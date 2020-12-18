@@ -328,6 +328,7 @@ export const buildSession = (overrides = {}): Partial<Session> => {
     isReported: false,
     reportReason: null,
     reportMessage: null,
+    timeTutored: 0,
     ...overrides
   };
 
