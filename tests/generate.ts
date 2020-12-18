@@ -202,6 +202,7 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
     trainingCourses: buildTrainingCourses(),
     sentReadyToCoachEmail: false,
     hoursTutored: Types.Decimal128.fromString('0'),
+    timeTutored: 0,
     pastSessions: [],
     createdAt: new Date(),
     ...overrides

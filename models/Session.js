@@ -94,7 +94,8 @@ const sessionSchema = new mongoose.Schema({
     enum: values(SESSION_FLAGS)
   },
   reviewedStudent: Boolean,
-  reviewedVolunteer: Boolean
+  reviewedVolunteer: Boolean,
+  timeTutored: { type: Number, default: 0 }
 })
 
 sessionSchema.methods.addNotifications = function(notificationsToAdd, cb) {
