@@ -17,6 +17,7 @@ import { Notification } from '../models/Notification';
 import { AvailabilitySnapshot } from '../models/Availability/Snapshot';
 import { AvailabilityHistory } from '../models/Availability/History';
 import getDayOfWeekFromDaysAgo from '../utils/get-day-of-week-from-days-ago';
+import { UserAction } from '../services/UserActionService';
 import {
   User,
   Volunteer,
@@ -169,6 +170,7 @@ export const buildStudent = (overrides = {}): Student => {
     referredByCode: '',
     referralCode: generateReferralCode(_id.toString()),
     pastSessions: [],
+    createdAt: new Date(),
     ...overrides
   };
 
@@ -201,6 +203,7 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
     sentReadyToCoachEmail: false,
     hoursTutored: Types.Decimal128.fromString('0'),
     pastSessions: [],
+    createdAt: new Date(),
     ...overrides
   };
 
@@ -360,6 +363,32 @@ export const buildNotification = (overrides = {}): Partial<Notification> => {
   };
 
   return notification;
+};
+
+export const buildUserAction = (
+  overrides: Partial<UserAction> = {}
+): Partial<UserAction> => {
+  const userAction = {
+    _id: Types.ObjectId(),
+    user: null,
+    session: null,
+    createdAt: new Date(),
+    actionType: null,
+    action: null,
+    quizCategory: null,
+    quizSubcategory: null,
+    device: null,
+    browser: null,
+    browserVersion: null,
+    operatingSystem: null,
+    operatingSystemVersion: null,
+    ipAddress: null,
+    referenceEmail: null,
+    banReason: null,
+    ...overrides
+  };
+
+  return userAction;
 };
 
 export const authLogin = (agent, { email, password }: Partial<User>): Test =>
