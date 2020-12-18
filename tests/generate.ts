@@ -14,6 +14,9 @@ import {
 } from '../constants';
 import { Message } from '../models/Message';
 import { Notification } from '../models/Notification';
+import { AvailabilitySnapshot } from '../models/Availability/Snapshot';
+import { AvailabilityHistory } from '../models/Availability/History';
+import getDayOfWeekFromDaysAgo from '../utils/get-day-of-week-from-days-ago';
 import {
   User,
   Volunteer,
@@ -113,6 +116,39 @@ export const buildAvailability = (overrides = {}): Availability => {
   const mergedAvailability = merge(availability, overrides);
 
   return mergedAvailability;
+};
+
+export const buildAvailabilitySnapshot = (
+  overrides = {}
+): AvailabilitySnapshot => {
+  const currentDate = new Date();
+  return {
+    _id: Types.ObjectId(),
+    onCallAvailability: buildAvailability(),
+    modifiedAt: currentDate,
+    createdAt: currentDate,
+    timezone: 'America/New_York',
+    volunteerId: Types.ObjectId(),
+    ...overrides
+  };
+};
+
+export const buildAvailabilityHistory = (
+  overrides = {}
+): AvailabilityHistory => {
+  const currentDate = new Date();
+  const dayOfWeek = getDayOfWeekFromDaysAgo();
+  return {
+    _id: Types.ObjectId(),
+    availability: buildAvailability()[dayOfWeek],
+    date: currentDate,
+    modifiedAt: currentDate,
+    createdAt: currentDate,
+    timezone: 'America/New_York',
+    volunteerId: Types.ObjectId(),
+    elapsedAvailability: 0,
+    ...overrides
+  };
 };
 
 export const buildStudent = (overrides = {}): Student => {
