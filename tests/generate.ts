@@ -200,6 +200,7 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
     trainingCourses: buildTrainingCourses(),
     sentReadyToCoachEmail: false,
     hoursTutored: Types.Decimal128.fromString('0'),
+    timeTutored: 0,
     pastSessions: [],
     ...overrides
   };
@@ -325,6 +326,7 @@ export const buildSession = (overrides = {}): Partial<Session> => {
     isReported: false,
     reportReason: null,
     reportMessage: null,
+    timeTutored: 0,
     ...overrides
   };
 
