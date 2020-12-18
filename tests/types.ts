@@ -76,6 +76,7 @@ export interface Volunteer extends User {
   trainingCourses: TrainingCourses;
   sentReadyToCoachEmail: boolean;
   hoursTutored: Types.Decimal128;
+  timeTutored: number;
 }
 
 export interface StudentRegistrationForm extends Student {
@@ -230,4 +231,5 @@ export interface Session {
   flags: string[];
   reviewedStudent: boolean;
   reviewedVolunteer: boolean;
+  timeTutored: number;
 }
