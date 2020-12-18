@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import SessionService from '../../services/SessionService';
+import SessionModel from '../../models/Session';
 import {
   buildMessage,
   buildStudent,
@@ -860,23 +861,23 @@ describe('getTimeTutoredForDateRange', () => {
     const { _id: volunteerId } = buildVolunteer();
     const timeTutoredOneMin = 60000;
     const timeTutoredTwoMins = 120000;
-    await Promise.all([
-      insertSession({
+    await SessionModel.insertMany([
+      buildSession({
         createdAt: new Date('12/10/2020'),
         volunteer: volunteerId,
         timeTutored: timeTutoredOneMin
       }),
-      insertSession({
+      buildSession({
         createdAt: new Date('12/14/2020'),
         volunteer: volunteerId,
         timeTutored: timeTutoredTwoMins
       }),
-      insertSession({
+      buildSession({
         createdAt: new Date('12/21/2020'),
         volunteer: volunteerId,
         timeTutored: timeTutoredOneMin
       }),
-      insertSession({
+      buildSession({
         createdAt: new Date('12/25/2020'),
         volunteer: volunteerId,
         timeTutored: timeTutoredTwoMins
