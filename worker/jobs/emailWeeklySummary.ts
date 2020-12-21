@@ -30,9 +30,11 @@ export default async (): Promise<void> => {
 
   //  Sunday to Saturday
   const startOfLastWeek = moment()
+    .utc()
     .subtract(1, 'weeks')
     .startOf('week');
   const endofLastWeek = moment()
+    .utc()
     .subtract(1, 'weeks')
     .endOf('week');
 
