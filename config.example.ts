@@ -32,6 +32,8 @@ const config: Static<typeof Config> = {
     rejectedReferenceTemplate: 'd-9afea0862a264bbb93ed6a2c074fd6b4',
     waitingOnReferencesTemplate: 'd-65bf8204d28746f58ad28a4aa92407c7',
     niceToMeetYouTemplate: 'd-8afee528e5184d8797c50c109d6b631b',
+    weeklyHourSummaryEmail: 'd-19a5fbe8656249d2822c8bde1c2ab086',
+    weeklyHourSummaryIntroEmail: 'd-4d8394e4da3847eabdfd23f257f7a8d3',
     unsubscribeGroup: {
       newsletter: 12567,
       account: 12570
