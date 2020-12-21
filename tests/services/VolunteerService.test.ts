@@ -63,7 +63,7 @@ describe('getWeeklySummaryStats', () => {
     const { _id: volunteerId } = buildVolunteer();
     const timeTutoredOneMin = 60000;
     const timeTutoredTwoMins = 120000;
-    const action = USER_ACTION.QUIZ.UNLOCKED_SUBJECT;
+    const action = USER_ACTION.QUIZ.PASSED;
     const actionType = USER_ACTION.TYPE.QUIZ;
     const today = new Date('12/21/2020');
     // last week: 12/13/2020 to 12/19/2020
@@ -172,8 +172,11 @@ describe('getWeeklySummaryStats', () => {
       endOfLastWeek
     );
     const expectedStats = {
-      totalUnlockedSubjects: 1,
-      totalElapsedAvailability: 8
+      totalPassedQuizzes: 1,
+      totalElapsedAvailability: 8,
+      totalCoachingHours: 0.03,
+      // Total volunteer hours calculation: [sum of coaching, elapsed avail/10, and quizzes]
+      totalVolunteerHours: 0.03 + 1 + 8 * 0.1
     };
 
     expect(results).toMatchObject(expectedStats);

@@ -1,7 +1,7 @@
 import VolunteerModel from '../models/Volunteer';
 import { getTimeTutoredForDateRange } from './SessionService';
 import { getElapsedAvailabilityForDateRange } from './AvailabilityService';
-import { getUnlockedSubjectsForDateRange } from './UserActionService';
+import { getPassedQuizzesForDateRange } from './UserActionService';
 
 export const getVolunteers = async (
   query,
@@ -19,27 +19,31 @@ export const getWeeklySummaryStats = async (
   fromDate,
   toDate
 ): Promise<{
-  totalTimeTutored: number;
-  totalUnlockedSubjects: number;
+  totalCoachingHours: number;
+  totalPassedQuizzes: number;
   totalElapsedAvailability: number;
+  totalVolunteerHours: number;
 }> => {
   // @todo: promise.all fails fast, do we want this? - handle error
   const [
-    unlockedSubjects,
+    passedQuizzes,
     elapsedAvailability,
     timeTutoredMS
   ] = await Promise.all([
-    getUnlockedSubjectsForDateRange(volunteerId, fromDate, toDate),
+    getPassedQuizzesForDateRange(volunteerId, fromDate, toDate),
     getElapsedAvailabilityForDateRange(volunteerId, fromDate, toDate),
     getTimeTutoredForDateRange(volunteerId, fromDate, toDate)
   ]);
 
-  // @todo: decide display format
-  const timeTutoredInHours = timeTutoredMS / (60 * 60 * 1000);
-
+  const timeTutoredInHours = Number(timeTutoredMS / 3600000).toFixed(2);
+  const totalCoachingHours = Number(timeTutoredInHours);
+  // Total volunteer hours calculation: [sum of coaching, elapsed avail/10, and quizzes]
+  const totalVolunteerHours =
+    totalCoachingHours + passedQuizzes.length + elapsedAvailability * 0.1;
   return {
-    totalTimeTutored: timeTutoredInHours,
-    totalUnlockedSubjects: unlockedSubjects.length,
-    totalElapsedAvailability: elapsedAvailability
+    totalCoachingHours,
+    totalPassedQuizzes: passedQuizzes.length,
+    totalElapsedAvailability: elapsedAvailability,
+    totalVolunteerHours: totalVolunteerHours
   };
 };
