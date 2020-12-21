@@ -40,7 +40,7 @@ const jobTemplates: JobTemplate[] = [
     options: { repeat: { cron: '0 10 * * *', tz: 'America/New_York' } } // each day at 10am
   },
   {
-    name: Jobs.EmailWeeklySummary,
+    name: Jobs.EmailVolunteerHourSummary,
     options: { repeat: { cron: '0 6 * * MON', tz: 'America/New_York' } } // each Monday at 6am EST
   }
 ];

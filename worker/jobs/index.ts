@@ -11,7 +11,7 @@ import emailReadyToCoach from './emailReadyToCoach';
 import emailReferenceFollowup from './emailReferenceFollowup';
 import emailWaitingOnReferences from './emailWaitingOnReferences';
 import emailNiceToMeetYou from './emailNiceToMeetYou';
-import emailWeeklySummary from './emailWeeklySummary';
+import emailVolunteerHourSummary from './emailVolunteerHourSummary';
 
 export enum Jobs {
   NotifyTutors = 'NotifyTutors',
@@ -23,7 +23,7 @@ export enum Jobs {
   EmailReferenceFollowup = 'EmailReferenceFollowup',
   EmailWaitingOnReferences = 'emailWaitingOnReferences',
   EmailNiceToMeetYou = 'emailNiceToMeetYou',
-  EmailWeeklySummary = 'emailWeeklySummary'
+  EmailVolunteerHourSummary = 'emailVolunteerHourSummary'
 }
 
 // register new job processors here
@@ -70,8 +70,8 @@ const jobProcessors: JobProcessor[] = [
     processor: emailNiceToMeetYou
   },
   {
-    name: Jobs.EmailWeeklySummary,
-    processor: emailWeeklySummary
+    name: Jobs.EmailVolunteerHourSummary,
+    processor: emailVolunteerHourSummary
   }
 ];
 

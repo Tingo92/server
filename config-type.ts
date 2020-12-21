@@ -37,8 +37,8 @@ export const Config = Record({
     rejectedReferenceTemplate: String,
     waitingOnReferencesTemplate: String,
     niceToMeetYouTemplate: String,
-    weeklyHourSummaryEmail: String,
-    weeklyHourSummaryIntroEmail: String,
+    hourSummaryEmailTemplate: String,
+    hourSummaryIntroEmailTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
       account: Number
