@@ -10,12 +10,6 @@ import {
   getElapsedAvailability
 } from '../../services/AvailabilityService';
 
-/**
- *
- * Creates an availability history snapshot of a volunteer's elapsed availability for the day.
- * Also incremements the total elapsed availability that a volunteer has
- *
- */
 export default async (): Promise<void> => {
   const volunteers = await VolunteerModel.find()
     .select({ isOnboarded: 1, isApproved: 1 })
