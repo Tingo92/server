@@ -1,4 +1,3 @@
-import moment from 'moment-timezone';
 import { Query, Types } from 'mongoose';
 import AvailabilitySnapshotModel, {
   AvailabilitySnapshot,
@@ -8,12 +7,7 @@ import AvailabilityHistoryModel, {
   AvailabilityHistory,
   AvailabilityHistoryDocument
 } from '../models/Availability/History';
-import { Availability, AvailabilityDay } from '../models/Availability/types';
-import countAvailabilityHours from '../utils/count-availability-hours';
-import removeTimeFromDate from '../utils/remove-time-from-date';
-import getFrequencyOfDays from '../utils/get-frequency-of-days';
-import calculateTotalHours from '../utils/calculate-total-hours';
-import countOutOfRangeHours from '../utils/count-out-of-range-hours';
+import { AvailabilityDay } from '../models/Availability/types';
 
 export const getAvailability = (
   query,
@@ -58,27 +52,14 @@ export const getRecentAvailabilityHistory = async (
   return document;
 };
 
-// @todo: Create a compound index on createdAt(or date) and volunteerId
-export const getAllHistoryOn = async ({
-  volunteerId,
-  date
-}): Promise<AvailabilityHistory[]> => {
-  const startOfDay = moment(date)
-    .utc()
-    .startOf('day')
-    .format();
-  const endOfDay = moment(date)
-    .utc()
-    .endOf('day')
-    .format();
+export const getElapsedAvailability = (day: AvailabilityDay): number => {
+  let elapsedAvailability = 0;
+  const availabileTimes = Object.values(day);
+  for (const time of availabileTimes) {
+    if (time) elapsedAvailability++;
+  }
 
-  return AvailabilityHistoryModel.find({
-    volunteerId,
-    date: { $gte: new Date(startOfDay), $lte: new Date(endOfDay) }
-  })
-    .sort({ date: 1 })
-    .lean()
-    .exec();
+  return elapsedAvailability;
 };
 
 export const getElapsedAvailabilityForDateRange = async (
@@ -86,7 +67,7 @@ export const getElapsedAvailabilityForDateRange = async (
   fromDate,
   toDate
 ): Promise<number> => {
-  const [result] = await AvailabilityHistoryModel.aggregate([
+  const historyDocs = await AvailabilityHistoryModel.aggregate([
     {
       $match: {
         volunteerId,
@@ -98,68 +79,17 @@ export const getElapsedAvailabilityForDateRange = async (
     },
     {
       $project: {
-        elapsedAvailability: 1,
-        volunteerId: 1
+        availability: 1
       }
-    },
-    {
-      $group: {
-        _id: '$volunteerId',
-        totalElapsedAvailability: {
-          $sum: '$elapsedAvailability'
-        }
-      }
-    },
-    {
-      $project: { _id: 0, totalElapsedAvailability: 1 }
     }
   ]);
 
-  return result.totalElapsedAvailability;
-};
+  let totalElapsedAvailability = 0;
+  for (const doc of historyDocs) {
+    totalElapsedAvailability += getElapsedAvailability(doc.availability);
+  }
 
-// Calculates the elapsed availability between two dates
-export const calculateElapsedAvailability = ({
-  availability,
-  fromDate,
-  toDate
-}: {
-  availability: Availability;
-  fromDate: Date | string;
-  toDate: Date | string;
-}): number => {
-  const fromDateEst = moment(fromDate)
-    .tz('America/New_York')
-    .format();
-  const toDateEst = moment(toDate)
-    .tz('America/New_York')
-    .format();
-
-  // Convert availability to an object formatted with the day of the week
-  // as the property and the amount of hours they have available for that day as the value
-  // e.g { Monday: 10, Tuesday: 3 }
-  const totalAvailabilityHoursMapped = countAvailabilityHours(availability);
-
-  // Count the occurrence of days of the week between a start and end date
-  const frequencyOfDaysList = getFrequencyOfDays(
-    removeTimeFromDate(fromDateEst),
-    removeTimeFromDate(toDateEst)
-  );
-
-  let totalHours = calculateTotalHours(
-    totalAvailabilityHoursMapped,
-    frequencyOfDaysList
-  );
-
-  // Deduct the amount hours that fall outside of the start and end date time
-  const outOfRangeHours = countOutOfRangeHours(
-    fromDateEst,
-    toDateEst,
-    availability
-  );
-  totalHours -= outOfRangeHours;
-
-  return totalHours;
+  return totalElapsedAvailability;
 };
 
 export const createAvailabilitySnapshot = (
@@ -183,6 +113,5 @@ export const createAvailabilityHistory = (data: {
   volunteerId: Types.ObjectId;
   timezone: string;
   date: Date;
-  elapsedAvailability: number;
 }): Promise<AvailabilityHistoryDocument> =>
   AvailabilityHistoryModel.create(data);
