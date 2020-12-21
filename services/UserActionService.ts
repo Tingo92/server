@@ -22,7 +22,7 @@ export interface UserAction {
   banReason: string;
 }
 
-export const getUnlockedSubjectsForDateRange = (
+export const getPassedQuizzesForDateRange = (
   volunteerId,
   fromDate,
   toDate
@@ -33,7 +33,7 @@ export const getUnlockedSubjectsForDateRange = (
       $gte: new Date(fromDate),
       $lte: new Date(toDate)
     },
-    action: USER_ACTION.QUIZ.UNLOCKED_SUBJECT
+    action: USER_ACTION.QUIZ.PASSED
   })
     .lean()
     .exec();

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { USER_ACTION } from '../../constants';
-import { getUnlockedSubjectsForDateRange } from '../../services/UserActionService';
+import { getPassedQuizzesForDateRange } from '../../services/UserActionService';
 import { insertUserAction, resetDb } from '../db-utils';
 import { buildVolunteer } from '../generate';
 
@@ -19,7 +19,7 @@ beforeEach(async () => {
   jest.clearAllMocks();
 });
 
-describe('getUnlockedSubjectsForDateRange', () => {
+describe('getPassedQuizzesForDateRange', () => {
   test('Should get unlocked subject actions created within a date range', async () => {
     const { _id: volunteerId } = buildVolunteer();
     const action = USER_ACTION.QUIZ.UNLOCKED_SUBJECT;
@@ -54,7 +54,7 @@ describe('getUnlockedSubjectsForDateRange', () => {
     const fromDate = new Date('12/13/2020');
     const toDate = new Date('12/22/2020');
 
-    const userActions = await getUnlockedSubjectsForDateRange(
+    const userActions = await getPassedQuizzesForDateRange(
       volunteerId,
       fromDate,
       toDate
