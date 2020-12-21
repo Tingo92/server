@@ -27,9 +27,11 @@ export default async (): Promise<void> => {
       if (!availability) return;
 
       const endOfYesterday = moment()
+        .utc()
         .subtract(1, 'days')
         .endOf('day');
       const yesterday = moment()
+        .utc()
         .subtract(1, 'days')
         .format('dddd');
       const availabilityDay = availability.onCallAvailability[yesterday];
