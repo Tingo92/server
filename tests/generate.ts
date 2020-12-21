@@ -146,7 +146,6 @@ export const buildAvailabilityHistory = (
     createdAt: currentDate,
     timezone: 'America/New_York',
     volunteerId: Types.ObjectId(),
-    elapsedAvailability: 0,
     ...overrides
   };
 };

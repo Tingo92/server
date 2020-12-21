@@ -183,6 +183,5 @@ export const createAvailabilityHistory = (data: {
   volunteerId: Types.ObjectId;
   timezone: string;
   date: Date;
-  elapsedAvailability: number;
 }): Promise<AvailabilityHistoryDocument> =>
   AvailabilityHistoryModel.create(data);

@@ -9,7 +9,6 @@ export interface AvailabilityHistory {
   availability: AvailabilityDay;
   modifiedAt: Date;
   createdAt: Date;
-  elapsedAvailability: number;
 }
 
 export type AvailabilityHistoryDocument = AvailabilityHistory & Document;
@@ -35,8 +34,7 @@ const availabilityHistorySchema = new Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  },
-  elapsedAvailability: { type: Number, default: 0 }
+  }
 });
 
 const AvailabilityHistoryModel = model<AvailabilityHistoryDocument>(
