@@ -15,7 +15,6 @@ import UserActionModel from '../../models/UserAction';
 import { Volunteer } from '../types';
 import { USER_ACTION, SUBJECTS } from '../../constants';
 import * as AvailabilityService from '../../services/AvailabilityService';
-import getDayOfWeekFromDaysAgo from '../../utils/get-day-of-week-from-days-ago';
 
 // db connection
 beforeAll(async () => {
@@ -145,46 +144,6 @@ describe('Save availability and time zone', () => {
     expect(availabilitySnapshot.onCallAvailability).toMatchObject(availability);
     expect(isOnboarded).toBeTruthy();
     expect(userAction).toMatchObject(expectedUserAction);
-  });
-
-  test('Should create an availability history snapshot of the current day', async () => {
-    const hawking = await insertVolunteer(
-      buildVolunteer({
-        isOnboarded: true,
-        isApproved: true
-      })
-    );
-    const day = getDayOfWeekFromDaysAgo();
-    const availability = buildAvailability({
-      [day]: { '3p': true, '11p': true }
-    });
-    await insertAvailabilitySnapshot({
-      volunteerId: hawking._id,
-      modifiedAt: new Date('12/17/20'),
-      onCallAvailability: buildAvailability({
-        [day]: { '1p': true, '2p': true, '5p': true, '10p': true }
-      })
-    });
-
-    const input = {
-      user: hawking,
-      tz: 'American/New York',
-      availability
-    };
-    await CalendarCtrl.updateSchedule(input);
-
-    const availabilitySnapshot = await AvailabilityService.getAvailability({
-      volunteerId: hawking._id
-    });
-    const availabilityHistory = await AvailabilityService.getRecentAvailabilityHistory(
-      hawking._id
-    );
-
-    expect(availabilitySnapshot.onCallAvailability).toMatchObject(availability);
-    expect(availabilitySnapshot.onCallAvailability[day]).toMatchObject(
-      availabilityHistory.availability
-    );
-    // @todo: figure out how to assert for elapsedAvailability
   });
 });
 

@@ -4,9 +4,8 @@ import {
   getAvailabilities,
   getAvailabilityHistory,
   getRecentAvailabilityHistory,
-  getAllHistoryOn,
   getElapsedAvailabilityForDateRange,
-  calculateElapsedAvailability
+  getElapsedAvailability
 } from '../../services/AvailabilityService';
 import {
   insertAvailabilitySnapshot,
@@ -16,14 +15,10 @@ import {
 import {
   buildVolunteer,
   buildAvailabilitySnapshot,
-  buildAvailabilityHistory
+  buildAvailabilityHistory,
+  buildAvailabilityDay
 } from '../generate';
 import AvailabilityHistoryModel from '../../models/Availability/History';
-import {
-  flexibleHoursSelected,
-  noHoursSelected,
-  allHoursSelected
-} from '../mocks/volunteer-availability';
 import AvailabilitySnapshotModel from '../../models/Availability/Snapshot';
 
 beforeAll(async () => {
@@ -120,52 +115,6 @@ describe('getRecentAvailabilityHistory', () => {
   });
 });
 
-describe('getAllHistoryOn', () => {
-  test('Should get all availability history for a volunteer on a given date', async () => {
-    const euclid = buildVolunteer();
-    const volunteerId = euclid._id;
-    const givenDate = new Date('12/25/2020');
-    await AvailabilityHistoryModel.insertMany([
-      buildAvailabilityHistory({
-        date: new Date('12/01/2020'),
-        volunteerId
-      }),
-      buildAvailabilityHistory({
-        date: givenDate,
-        volunteerId
-      }),
-      buildAvailabilityHistory({
-        date: givenDate,
-        volunteerId
-      }),
-      buildAvailabilityHistory({
-        date: givenDate,
-        volunteerId
-      }),
-      buildAvailabilityHistory({
-        date: new Date('12/26/2020'),
-        volunteerId
-      })
-    ]);
-
-    const results = await getAllHistoryOn({ volunteerId, date: givenDate });
-    const expectLength = 3;
-    const expectedDate = {
-      month: 12,
-      date: 25,
-      year: 2020
-    };
-
-    expect(results).toHaveLength(expectLength);
-    for (const doc of results) {
-      // @note: getMonth is zero-based
-      expect(doc.date.getMonth()).toEqual(expectedDate.month - 1);
-      expect(doc.date.getDate()).toEqual(expectedDate.date);
-      expect(doc.date.getFullYear()).toEqual(expectedDate.year);
-    }
-  });
-});
-
 describe('getElapsedAvailabilityForDateRange', () => {
   test('Should get the total elapsed availability for a volunteer over given a date range', async () => {
     const turing = buildVolunteer();
@@ -174,27 +123,32 @@ describe('getElapsedAvailabilityForDateRange', () => {
       buildAvailabilityHistory({
         date: new Date('12/01/2020'),
         volunteerId,
-        elapsedAvailability: 4
+        availability: buildAvailabilityDay({ '12p': true, '1p': true })
       }),
       buildAvailabilityHistory({
         date: new Date('12/02/2020'),
         volunteerId,
-        elapsedAvailability: 8
+        availability: buildAvailabilityDay()
       }),
       buildAvailabilityHistory({
         date: new Date('12/03/2020'),
         volunteerId,
-        elapsedAvailability: 3
+        availability: buildAvailabilityDay({
+          '10a': true,
+          '11a': true,
+          '12p': true,
+          '4p': true
+        })
       }),
       buildAvailabilityHistory({
         date: new Date('12/04/2020'),
         volunteerId,
-        elapsedAvailability: 1
+        availability: buildAvailabilityDay({ '4p': true, '5p': true })
       }),
       buildAvailabilityHistory({
         date: new Date('12/14/2020'),
         volunteerId,
-        elapsedAvailability: 5
+        availability: buildAvailabilityDay({ '4p': true, '5p': true })
       })
     ]);
 
@@ -206,75 +160,63 @@ describe('getElapsedAvailabilityForDateRange', () => {
       toDate
     );
 
-    const expectedElapsedAvailability = 9;
+    const expectedElapsedAvailability = 8;
     expect(result).toEqual(expectedElapsedAvailability);
   });
 });
 
-describe('calculateElapsedAvailability', () => {
-  test('Elapsed availability over 3 days with no hours available', () => {
-    // EST Time Zone for dates
-    const lastModifiedDate = '2020-02-06T12:52:59.538-05:00';
-    const newModifiedDate = '2020-02-09T13:40:00.000-05:00';
-
-    const result = calculateElapsedAvailability({
-      availability: noHoursSelected,
-      fromDate: lastModifiedDate,
-      toDate: newModifiedDate
-    });
+describe('getElapsedAvailability', () => {
+  test('Should get elapsed availability of 0 when no hours are selected for the day', () => {
+    const availabilityDay = buildAvailabilityDay();
+    const result = getElapsedAvailability(availabilityDay);
     const expectedElapsedAvailability = 0;
     expect(result).toBe(expectedElapsedAvailability);
   });
 
-  test('Elapsed availability over 3 days with all hours available and 7 hours out of range', () => {
-    // EST Time Zone for dates
-    const lastModifiedDate = '2020-02-06T00:52:59.538-05:00';
-    const newModifiedDate = '2020-02-09T19:40:00.000-05:00';
-
-    const result = calculateElapsedAvailability({
-      availability: allHoursSelected,
-      fromDate: lastModifiedDate,
-      toDate: newModifiedDate
-    });
-    const expectedElapsedAvailability = 90;
+  test('Should get elapsed availability of 24 when all hours were selected for the day', () => {
+    const overrides = {
+      '12a': true,
+      '1a': true,
+      '2a': true,
+      '3a': true,
+      '4a': true,
+      '5a': true,
+      '6a': true,
+      '7a': true,
+      '8a': true,
+      '9a': true,
+      '10a': true,
+      '11a': true,
+      '12p': true,
+      '1p': true,
+      '2p': true,
+      '3p': true,
+      '4p': true,
+      '5p': true,
+      '6p': true,
+      '7p': true,
+      '8p': true,
+      '9p': true,
+      '10p': true,
+      '11p': true
+    };
+    const availabilityDay = buildAvailabilityDay(overrides);
+    const result = getElapsedAvailability(availabilityDay);
+    const expectedElapsedAvailability = 24;
     expect(result).toBe(expectedElapsedAvailability);
   });
 
-  test('Elapsed availability over 3 days with flexible hours available', () => {
-    // EST Time Zone for dates
-    const lastModifiedDate = '2020-02-06T00:52:59.538-05:00';
-    const newModifiedDate = '2020-02-09T12:40:00.000-05:00';
-
-    const result = calculateElapsedAvailability({
-      availability: flexibleHoursSelected,
-      fromDate: lastModifiedDate,
-      toDate: newModifiedDate
-    });
-    const expectedElapsedAvailability = 16;
-    expect(result).toBe(expectedElapsedAvailability);
-  });
-
-  /** 
-   * flexibleHoursSelected mapped:
-   { Sunday: 3,
-    Monday: 6,
-    Tuesday: 6,
-    Wednesday: 5,
-    Thursday: 3,
-    Friday: 6,
-    Saturday: 5 }
-  **/
-  test('Elapsed availability over 23 days with flexible hours available', () => {
-    // EST Time Zone for dates
-    const lastModifiedDate = '2020-02-02T05:21:39.538-05:00';
-    const newModifiedDate = '2020-02-25T16:20:42.000-05:00';
-
-    const result = calculateElapsedAvailability({
-      availability: flexibleHoursSelected,
-      fromDate: lastModifiedDate,
-      toDate: newModifiedDate
-    });
-    const expectedElapsedAvailability = 114;
+  test('Should get elapsed availability of 5 when only 5 hour periods are selected', () => {
+    const overrides = {
+      '10a': true,
+      '11a': true,
+      '12p': true,
+      '4p': true,
+      '5p': true
+    };
+    const availabilityDay = buildAvailabilityDay(overrides);
+    const result = getElapsedAvailability(availabilityDay);
+    const expectedElapsedAvailability = 5;
     expect(result).toBe(expectedElapsedAvailability);
   });
 });
