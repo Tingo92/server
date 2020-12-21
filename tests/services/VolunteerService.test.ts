@@ -9,7 +9,8 @@ import {
   buildVolunteer,
   buildSession,
   buildAvailabilityHistory,
-  buildUserAction
+  buildUserAction,
+  buildAvailabilityDay
 } from '../generate';
 import SessionModel from '../../models/Session';
 import AvailabilityHistoryModel from '../../models/Availability/History';
@@ -67,9 +68,11 @@ describe('getWeeklySummaryStats', () => {
     const today = new Date('12/21/2020');
     // last week: 12/13/2020 to 12/19/2020
     const startOfLastWeek = moment(today)
+      .utc()
       .subtract(1, 'weeks')
       .startOf('week');
-    const endofLastWeek = moment(today)
+    const endOfLastWeek = moment(today)
+      .utc()
       .subtract(1, 'weeks')
       .endOf('week');
 
@@ -100,27 +103,39 @@ describe('getWeeklySummaryStats', () => {
       buildAvailabilityHistory({
         date: new Date('12/12/2020'),
         volunteerId,
-        elapsedAvailability: 4
+        availability: buildAvailabilityDay({ '4p': true, '5p': true })
       }),
       buildAvailabilityHistory({
         date: new Date('12/13/2020'),
         volunteerId,
-        elapsedAvailability: 8
+        availability: buildAvailabilityDay({
+          '10a': true,
+          '11a': true,
+          '12p': true,
+          '4p': true
+        })
       }),
       buildAvailabilityHistory({
         date: new Date('12/14/2020'),
         volunteerId,
-        elapsedAvailability: 3
+        availability: buildAvailabilityDay({
+          '10a': true
+        })
       }),
       buildAvailabilityHistory({
         date: new Date('12/15/2020'),
         volunteerId,
-        elapsedAvailability: 1
+        availability: buildAvailabilityDay({
+          '10p': true,
+          '11p': true
+        })
       }),
       buildAvailabilityHistory({
         date: new Date('12/16/2020'),
         volunteerId,
-        elapsedAvailability: 5
+        availability: buildAvailabilityDay({
+          '2p': true
+        })
       })
     ]);
 
@@ -154,11 +169,11 @@ describe('getWeeklySummaryStats', () => {
     const results = await getWeeklySummaryStats(
       volunteerId,
       startOfLastWeek,
-      endofLastWeek
+      endOfLastWeek
     );
     const expectedStats = {
       totalUnlockedSubjects: 1,
-      totalElapsedAvailability: 17
+      totalElapsedAvailability: 8
     };
 
     expect(results).toMatchObject(expectedStats);
