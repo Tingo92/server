@@ -46,19 +46,19 @@ describe('emailWeeklyHourSummary', () => {
     getHourSummaryStats
       .mockImplementationOnce(async () => ({
         totalCoachingHours: 2,
-        totalPassedQuizzes: 1,
+        totalQuizzesPassed: 1,
         totalElapsedAvailability: 0,
         totalVolunteerHours: 3
       }))
       .mockImplementationOnce(async () => ({
         totalCoachingHours: 0,
-        totalPassedQuizzes: 0,
+        totalQuizzesPassed: 0,
         totalElapsedAvailability: 0,
         totalVolunteerHours: 0
       }))
       .mockImplementationOnce(async () => ({
         totalCoachingHours: 5,
-        totalPassedQuizzes: 0,
+        totalQuizzesPassed: 0,
         totalElapsedAvailability: 3,
         totalVolunteerHours: 5.3
       }));
@@ -90,19 +90,19 @@ describe('emailWeeklyHourSummary', () => {
     getHourSummaryStats
       .mockImplementationOnce(async () => ({
         totalCoachingHours: 1,
-        totalPassedQuizzes: 1,
+        totalQuizzesPassed: 1,
         totalElapsedAvailability: 1,
         totalVolunteerHours: 2.1
       }))
       .mockImplementationOnce(async () => ({
         totalCoachingHours: 2,
-        totalPassedQuizzes: 1,
+        totalQuizzesPassed: 1,
         totalElapsedAvailability: 0,
         totalVolunteerHours: 3
       }))
       .mockImplementationOnce(async () => ({
         totalCoachingHours: 5,
-        totalPassedQuizzes: 0,
+        totalQuizzesPassed: 0,
         totalElapsedAvailability: 3,
         totalVolunteerHours: 5.3
       }));

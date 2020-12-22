@@ -22,7 +22,7 @@ export interface UserAction {
   banReason: string;
 }
 
-export const getPassedQuizzesForDateRange = (
+export const getQuizzesPassedForDateRange = (
   volunteerId,
   fromDate,
   toDate

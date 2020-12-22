@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { USER_ACTION } from '../../constants';
-import { getPassedQuizzesForDateRange } from '../../services/UserActionService';
+import { getQuizzesPassedForDateRange } from '../../services/UserActionService';
 import { insertUserAction, resetDb } from '../db-utils';
 import { buildVolunteer } from '../generate';
 
@@ -19,8 +19,8 @@ beforeEach(async () => {
   jest.clearAllMocks();
 });
 
-describe('getPassedQuizzesForDateRange', () => {
-  test('Should get passed quiz user actions created within a date range', async () => {
+describe('getQuizzesPassedForDateRange', () => {
+  test('Should get quiz passed user actions created between a date range', async () => {
     const { _id: volunteerId } = buildVolunteer();
     const action = USER_ACTION.QUIZ.PASSED;
     const actionType = USER_ACTION.TYPE.QUIZ;
@@ -54,7 +54,7 @@ describe('getPassedQuizzesForDateRange', () => {
     const fromDate = new Date('12/13/2020');
     const toDate = new Date('12/22/2020');
 
-    const userActions = await getPassedQuizzesForDateRange(
+    const userActions = await getQuizzesPassedForDateRange(
       volunteerId,
       fromDate,
       toDate

@@ -172,7 +172,7 @@ describe('getHourSummaryStats', () => {
       endOfLastWeek
     );
     const expectedStats = {
-      totalPassedQuizzes: 1,
+      totalQuizzesPassed: 1,
       totalElapsedAvailability: 8,
       totalCoachingHours: 0.03,
       // Total volunteer hours calculation: [sum of coaching, elapsed avail/10, and quizzes]
