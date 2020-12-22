@@ -20,9 +20,9 @@ beforeEach(async () => {
 });
 
 describe('getPassedQuizzesForDateRange', () => {
-  test('Should get unlocked subject actions created within a date range', async () => {
+  test('Should get passed quiz user actions created within a date range', async () => {
     const { _id: volunteerId } = buildVolunteer();
-    const action = USER_ACTION.QUIZ.UNLOCKED_SUBJECT;
+    const action = USER_ACTION.QUIZ.PASSED;
     const actionType = USER_ACTION.TYPE.QUIZ;
     await Promise.all([
       insertUserAction({
