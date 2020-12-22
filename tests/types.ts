@@ -78,6 +78,8 @@ export interface Volunteer extends User {
   sentReadyToCoachEmail: boolean;
   hoursTutored: Types.Decimal128;
   timeTutored: number;
+  elapsedAvailability: number;
+  sentHourSummaryIntroEmail: boolean;
 }
 
 export interface StudentRegistrationForm extends Student {

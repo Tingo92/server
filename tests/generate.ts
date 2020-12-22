@@ -210,6 +210,8 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
     timeTutored: 0,
     pastSessions: [],
     createdAt: new Date(),
+    elapsedAvailability: 0,
+    sentHourSummaryIntroEmail: false,
     ...overrides
   };
 
