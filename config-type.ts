@@ -41,7 +41,8 @@ export const Config = Record({
     weeklyHourSummaryIntroEmailTemplate: String,
     unsubscribeGroup: Record({
       newsletter: Number,
-      account: Number
+      account: Number,
+      volunteerSummary: Number
     }),
     contactList: Record({
       students: String,

@@ -36,7 +36,8 @@ const config: Static<typeof Config> = {
     weeklyHourSummaryIntroEmailTemplate: 'd-4d8394e4da3847eabdfd23f257f7a8d3',
     unsubscribeGroup: {
       newsletter: 12567,
-      account: 12570
+      account: 12570,
+      volunteerSummary: 14543
     },
     contactList: {
       students: '1111111a-111b-111c-111d-11111111111e',
