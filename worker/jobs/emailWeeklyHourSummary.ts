@@ -7,7 +7,7 @@ import {
 import MailService from '../../services/MailService';
 import VolunteerModel from '../../models/Volunteer';
 
-// Runs every weekly at 6am EST on Monday
+// Runs weekly at 6am EST on Monday
 export default async (): Promise<void> => {
   const volunteers = await getVolunteers(
     {
