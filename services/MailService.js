@@ -339,8 +339,38 @@ module.exports = {
     )
   },
 
-  // @todo
-  sendWeeklySummaryEmail: data => {},
+  sendHourSummaryEmail: ({
+    firstName,
+    email,
+    sentHourSummaryIntroEmail,
+    startDate,
+    endDate,
+    totalCoachingHours,
+    totalPassedQuizzes,
+    totalElapsedAvailability,
+    totalVolunteerHours
+  }) => {
+    return sendEmail(
+      email,
+      config.mail.senders.support,
+      'UPchieve',
+      sentHourSummaryIntroEmail
+        ? config.sendgrid.weeklyHourSummaryEmailTemplate
+        : config.sendgrid.weeklyHourSummaryIntroEmailTemplate,
+      {
+        firstName: capitalize(firstName),
+        startDate,
+        endDate,
+        totalCoachingHours,
+        totalPassedQuizzes,
+        totalElapsedAvailability,
+        totalVolunteerHours
+      },
+      // @todo: change unsubscribe group
+      config.sendgrid.unsubscribeGroup.account,
+      null
+    )
+  },
 
   createContact: async user => {
     const customFields = {
