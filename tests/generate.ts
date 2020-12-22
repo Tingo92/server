@@ -207,6 +207,7 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
     hoursTutored: Types.Decimal128.fromString('0'),
     timeTutored: 0,
     pastSessions: [],
+    elapsedAvailability: 0,
     ...overrides
   };
 
