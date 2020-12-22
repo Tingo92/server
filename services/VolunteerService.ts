@@ -14,7 +14,7 @@ export const getVolunteers = async (
     .lean()
     .exec();
 
-export const getWeeklySummaryStats = async (
+export const getHourSummaryStats = async (
   volunteerId,
   fromDate,
   toDate

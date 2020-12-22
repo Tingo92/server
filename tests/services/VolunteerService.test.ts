@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import moment from 'moment-timezone';
 import {
   getVolunteers,
-  getWeeklySummaryStats
+  getHourSummaryStats
 } from '../../services/VolunteerService';
 import { insertVolunteer, resetDb } from '../db-utils';
 import {
@@ -58,8 +58,8 @@ describe('getVolunteers', () => {
   });
 });
 
-describe('getWeeklySummaryStats', () => {
-  test('Should get weekly summary stats for a volunteer', async () => {
+describe('getHourSummaryStats', () => {
+  test('Should get hour summary stats for one week', async () => {
     const { _id: volunteerId } = buildVolunteer();
     const timeTutoredOneMin = 60000;
     const timeTutoredTwoMins = 120000;
@@ -166,7 +166,7 @@ describe('getWeeklySummaryStats', () => {
       })
     ]);
 
-    const results = await getWeeklySummaryStats(
+    const results = await getHourSummaryStats(
       volunteerId,
       startOfLastWeek,
       endOfLastWeek
