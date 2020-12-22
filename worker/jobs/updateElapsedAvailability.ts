@@ -1,4 +1,4 @@
-import { map, size } from 'lodash';
+import { map } from 'lodash';
 import moment from 'moment-timezone';
 import VolunteerModel from '../../models/Volunteer';
 import { Volunteer } from '../../models/types';
@@ -11,16 +11,18 @@ import {
 } from '../../services/AvailabilityService';
 
 export default async (): Promise<void> => {
-  const volunteers = await VolunteerModel.find()
-    .select({ isOnboarded: 1, isApproved: 1 })
+  const volunteers = await VolunteerModel.find({
+    isOnboarded: true,
+    isApproved: true
+  })
+    .select({ _id: 1 })
     .lean()
     .exec();
 
+  let totalUpdated = 0;
+
   await Promise.all(
     map(volunteers, async (volunteer: Volunteer) => {
-      // A volunteer must be onboarded and approved before calculating their elapsed availability
-      if (!volunteer.isApproved || !volunteer.isOnboarded) return;
-
       const availability: AvailabilitySnapshot = await getAvailability({
         volunteerId: volunteer._id
       });
@@ -44,6 +46,8 @@ export default async (): Promise<void> => {
         { $inc: { elapsedAvailability } }
       );
 
+      totalUpdated++;
+
       const newAvailabilityHistory = {
         availability: availabilityDay,
         volunteerId: volunteer._id,
@@ -53,5 +57,5 @@ export default async (): Promise<void> => {
       return createAvailabilityHistory(newAvailabilityHistory);
     })
   );
-  log(`updated ${size(volunteers)} volunteers`);
+  log(`updated ${totalUpdated} volunteers`);
 };
