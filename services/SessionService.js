@@ -353,8 +353,8 @@ const getTimeTutoredForDateRange = async (volunteerId, fromDate, toDate) => {
       }
     }
   ])
-
-  return aggregate.timeTutored
+  if (aggregate) return aggregate.timeTutored
+  else return 0
 }
 
 module.exports = {
