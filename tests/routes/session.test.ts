@@ -175,12 +175,14 @@ describe('/session/:sessionId/report', () => {
   });
 
   test('A student should not be able to report a session', async () => {
-    await loginStudent();
+    const aristotle = await loginStudent();
     const data = {
       reportReason: '',
       reportMessage: ''
     };
-    const { session } = await insertSessionWithVolunteer();
+    const { session } = await insertSessionWithVolunteer({
+      student: aristotle._id
+    });
     const response = await reportSession(session._id, data).expect(401);
     const {
       body: { err }
