@@ -1,3 +1,4 @@
+const moment = require('moment-timezone')
 const config = require('../config')
 const sgMail = require('@sendgrid/mail')
 const axios = require('axios')
@@ -43,6 +44,8 @@ const SG_CUSTOM_FIELDS = {
   passedUpchieve101: 'e17_T'
 }
 
+// @todo: refactor sendEmail to better handle overrides with custom unsubscribe groups
+//        and preferences and bypassing those unsubscribe groups
 const sendEmail = (
   toEmail,
   fromEmail,
@@ -83,6 +86,17 @@ const buildLink = path => {
   return `${protocol}://${host}/${path}`
 }
 
+const getFormattedHourSummaryTime = ([hours, minutes]) => {
+  let format = ''
+  if (hours > 1) format += `${hours} hours`
+  if (hours === 1) format += `${hours} hour`
+  if (hours && minutes) format += ' and '
+  if (minutes > 1) format += `${minutes} minutes`
+  if (minutes === 1) format += `${minutes} minute`
+
+  return format
+}
+
 module.exports = {
   sendVerification: ({ email, token }) => {
     const url = 'http://' + config.client.host + '/action/verify/' + token
@@ -96,7 +110,9 @@ module.exports = {
         userEmail: email,
         verifyLink: url
       },
-      config.sendgrid.unsubscribeGroup.account
+      config.sendgrid.unsubscribeGroup.account,
+      null,
+      { mail_settings: { bypass_list_management: { enable: true } } }
     )
   },
 
@@ -125,7 +141,8 @@ module.exports = {
         resetLink: url
       },
       config.sendgrid.unsubscribeGroup.account,
-      callback
+      callback,
+      { mail_settings: { bypass_list_management: { enable: true } } }
     )
   },
 
@@ -343,13 +360,41 @@ module.exports = {
     firstName,
     email,
     sentHourSummaryIntroEmail,
-    startDate,
-    endDate,
+    fromDate,
+    toDate,
     totalCoachingHours,
-    totalPassedQuizzes,
     totalElapsedAvailability,
+    totalQuizzesPassed,
     totalVolunteerHours
   }) => {
+    const formatCoachHours = moment()
+      .startOf('day')
+      .add(totalCoachingHours, 'hours')
+      .format('HH:mm')
+    const formatVolunteerHours = moment()
+      .startOf('day')
+      .add(totalVolunteerHours, 'hours')
+      .format('HH:mm')
+
+    const totalCoachingTime =
+      getFormattedHourSummaryTime(
+        formatCoachHours.split(':').map(time => Number(time))
+      ) || 0
+    const totalVolunteerTime = getFormattedHourSummaryTime(
+      formatVolunteerHours.split(':').map(time => Number(time))
+    )
+
+    const overrides = {
+      asm: {
+        group_id: config.sendgrid.unsubscribeGroup.volunteerSummary,
+        groups_to_display: [
+          config.sendgrid.unsubscribeGroup.newsletter,
+          // @todo: for all volunteer recipient emails, show volunteer summary email preference in their unsubscribe preferences
+          config.sendgrid.unsubscribeGroup.volunteerSummary
+        ]
+      }
+    }
+
     return sendEmail(
       email,
       config.mail.senders.support,
@@ -359,16 +404,17 @@ module.exports = {
         : config.sendgrid.weeklyHourSummaryIntroEmailTemplate,
       {
         firstName: capitalize(firstName),
-        startDate,
-        endDate,
-        totalCoachingHours,
-        totalPassedQuizzes,
+        fromDate,
+        toDate,
+        totalCoachingTime,
         totalElapsedAvailability,
-        totalVolunteerHours
+        totalQuizzesPassed,
+        totalVolunteerTime
       },
-      // @todo: change unsubscribe group
-      config.sendgrid.unsubscribeGroup.account,
-      null
+      // @note: see @todo for sendEmail
+      config.sendgrid.unsubscribeGroup.volunteerSummary,
+      null,
+      overrides
     )
   },
 
