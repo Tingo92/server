@@ -53,8 +53,8 @@ export default async (): Promise<void> => {
         firstName,
         email,
         sentHourSummaryIntroEmail,
-        startDate: lastMonday.format('dddd, MMM D'),
-        endDate: lastSunday.format('dddd, MMM D'),
+        fromDate: lastMonday.format('dddd, MMM D'),
+        toDate: lastSunday.format('dddd, MMM D'),
         ...summaryStats
       };
       await MailService.sendHourSummaryEmail(data);
