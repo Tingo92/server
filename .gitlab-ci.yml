@@ -37,6 +37,10 @@ variables:
 test:
   stage: test
   image: node:12.20.0-stretch
+  services:
+   - name: mongo:4.2.2
+     alias: mongodb
+   - redis:latest
   before_script:
     - npm ci --cache .npm --prefer-offline
   script:
