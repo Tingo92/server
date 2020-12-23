@@ -38,12 +38,13 @@ export const getHourSummaryStats = async (
   const timeTutoredInHours = Number(timeTutoredMS / 3600000).toFixed(2);
   const totalCoachingHours = Number(timeTutoredInHours);
   // Total volunteer hours calculation: [sum of coaching, elapsed avail/10, and quizzes]
-  const totalVolunteerHours =
-    totalCoachingHours + quizzesPassed.length + elapsedAvailability * 0.1;
+  const totalVolunteerHours = Number(
+    totalCoachingHours + quizzesPassed.length + elapsedAvailability * 0.1
+  ).toFixed(2);
   return {
     totalCoachingHours,
     totalQuizzesPassed: quizzesPassed.length,
     totalElapsedAvailability: elapsedAvailability,
-    totalVolunteerHours: totalVolunteerHours
+    totalVolunteerHours: Number(totalVolunteerHours)
   };
 };
