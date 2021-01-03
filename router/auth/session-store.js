@@ -5,7 +5,7 @@ const config = require('../../config')
 
 module.exports = function(app) {
   const sessionStore = new MongoStore({
-    url: process.env.MONGO_URL || config.database,
+    url: config.database,
     collection: 'auth-sessions'
   })
 
