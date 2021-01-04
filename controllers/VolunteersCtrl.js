@@ -63,13 +63,12 @@ module.exports = {
     }
 
     try {
-      // @todo: verify that the projection is okay to use in the getAvailabilities
-      // query with volunteerId: { $in: volunteerIds } since this is projected with { _id: 1, type: 1}
-      // instead of the volunteer id alone
-      const volunteerIds = await VolunteerModel.find(volunteerQuery)
+      // the projection returns { _id: 1, type: 1}
+      const volunteers = await VolunteerModel.find(volunteerQuery)
         .select({ _id: 1 })
         .lean()
         .exec()
+      const volunteerIds = volunteers.map(vol => vol._id)
       const availabilityDocs = await getAvailabilities({
         volunteerId: { $in: volunteerIds }
       })
