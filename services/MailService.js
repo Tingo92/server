@@ -1,4 +1,3 @@
-const moment = require('moment-timezone')
 const config = require('../config')
 const sgMail = require('@sendgrid/mail')
 const axios = require('axios')
@@ -86,13 +85,15 @@ const buildLink = path => {
   return `${protocol}://${host}/${path}`
 }
 
-const getFormattedHourSummaryTime = ([hours, minutes]) => {
+const getFormattedHourSummaryTime = time => {
+  const hour = Math.floor(Math.abs(time))
+  const minute = Math.floor((Math.abs(time) * 60) % 60)
   let format = ''
-  if (hours > 1) format += `${hours} hours`
-  if (hours === 1) format += `${hours} hour`
-  if (hours && minutes) format += ' and '
-  if (minutes > 1) format += `${minutes} minutes`
-  if (minutes === 1) format += `${minutes} minute`
+  if (hour > 1) format += `${hour} hours`
+  if (hour === 1) format += `${hour} hour`
+  if (hour && minute) format += ' and '
+  if (minute > 1) format += `${minute} minutes`
+  if (minute === 1) format += `${minute} minute`
 
   return format
 }
@@ -367,21 +368,11 @@ module.exports = {
     totalQuizzesPassed,
     totalVolunteerHours
   }) => {
-    const formatCoachHours = moment()
-      .startOf('day')
-      .add(totalCoachingHours, 'hours')
-      .format('HH:mm')
-    const formatVolunteerHours = moment()
-      .startOf('day')
-      .add(totalVolunteerHours, 'hours')
-      .format('HH:mm')
-
-    const totalCoachingTime =
-      getFormattedHourSummaryTime(
-        formatCoachHours.split(':').map(time => Number(time))
-      ) || 0
-    const totalVolunteerTime = getFormattedHourSummaryTime(
-      formatVolunteerHours.split(':').map(time => Number(time))
+    const formattedCoachingHours = getFormattedHourSummaryTime(
+      totalCoachingHours
+    )
+    const formattedVolunteerHours = getFormattedHourSummaryTime(
+      totalVolunteerHours
     )
 
     const overrides = {
@@ -406,10 +397,10 @@ module.exports = {
         firstName: capitalize(firstName),
         fromDate,
         toDate,
-        totalCoachingTime,
+        totalCoachingTime: formattedCoachingHours,
         totalElapsedAvailability,
         totalQuizzesPassed,
-        totalVolunteerTime
+        totalVolunteerTime: formattedVolunteerHours
       },
       // @note: see @todo for sendEmail
       config.sendgrid.unsubscribeGroup.volunteerSummary,
