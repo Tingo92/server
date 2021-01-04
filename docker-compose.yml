@@ -1,12 +1,12 @@
 version: "3.2"
-services: 
+services:
     server:
-        build: .
+        image: 'upchieve/subway:local'
         ports:
             - "3000-3001:3000-3001"
         expose:
             - "3000-3001"
-        depends_on: 
+        depends_on:
             - db
             - cache
     db:
