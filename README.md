@@ -60,13 +60,7 @@ Local Development
 ## docker-compose
 Docker provides an alternative for local development. A docker-compose file exists, tied to Mongo. Here's how to work in docker-compose.
 
-1. Build the container using the command
-```shell
-$ pack build upchieve/subway:local \
-  --builder heroku/buildpacks:20 \
-  --builder heroku/nodejs \
-  --builder heroku/procfile
-```
+1. Build the container using the command `$ pack build upchieve/subway:local --builder heroku/buildpacks:20`
 1. Navigate to this directory and run `mkdir mongo-volume` to create a directory for the MongoDB volume.
 1. Run `cp config.example.ts config.ts` to copy the default config as your own config.
 1. Run `docker-compose up` to launch the server.
