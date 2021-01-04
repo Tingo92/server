@@ -41,7 +41,7 @@ async function upgrade(): Promise<void> {
   mongoose.disconnect();
 }
 
-// Add availability from availability snapshots to volunteers
+// Remove timeTutored from sessions
 async function downgrade(): Promise<void> {
   try {
     await dbconnect();

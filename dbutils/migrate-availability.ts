@@ -54,7 +54,7 @@ async function downgrade(): Promise<void> {
 }
 
 // To downgrade the migration run:
-// DOWNGRADE=true npx ts-node dbutils/add-session-flags.ts
+// DOWNGRADE=true npx ts-node dbutils/migrate-availability.ts
 if (process.env.DOWNGRADE) {
   downgrade();
 } else {
