@@ -1,3 +1,7 @@
+import {
+  volunteerPartnerManifests,
+  studentPartnerManifests
+} from '../../partnerManifests'
 const express = require('express')
 const passport = require('passport')
 const Sentry = require('@sentry/node')
@@ -11,7 +15,6 @@ const { USER_BAN_REASON } = require('../../constants')
 const authPassport = require('./passport')
 const UserCtrl = require('../../controllers/UserCtrl')
 const MailService = require('../../services/MailService')
-import { volunteerPartnerManifests, studentPartnerManifests } from '../../partnerManifests'
 
 // Validation functions
 function checkPassword(password) {
@@ -313,7 +316,8 @@ module.exports = function(app) {
     }
 
     // Volunteer partner org check
-    const allVolunteerPartnerManifests = volunteerPartnerManifests.volunteerPartnerManifests
+    const allVolunteerPartnerManifests =
+      volunteerPartnerManifests.volunteerPartnerManifests
     const volunteerPartnerManifest =
       allVolunteerPartnerManifests[volunteerPartnerOrg]
 
@@ -456,9 +460,7 @@ module.exports = function(app) {
     .all(authPassport.isAdmin)
     .get(function(req, res, next) {
       const partnerOrgs = []
-      for (const [key, value] of Object.entries(
-        studentPartnerManifests
-      )) {
+      for (const [key, value] of Object.entries(studentPartnerManifests)) {
         partnerOrgs.push({
           key,
           displayName: value.name ? value.name : key,
@@ -476,9 +478,7 @@ module.exports = function(app) {
     .all(authPassport.isAdmin)
     .get(function(req, res, next) {
       const partnerOrgs = []
-      for (const [key, value] of Object.entries(
-        volunteerPartnerManifests
-      )) {
+      for (const [key, value] of Object.entries(volunteerPartnerManifests)) {
         partnerOrgs.push({
           key,
           displayName: value.name ? value.name : key

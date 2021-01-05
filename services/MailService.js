@@ -2,7 +2,10 @@ const config = require('../config')
 const sgMail = require('@sendgrid/mail')
 const axios = require('axios')
 const { capitalize } = require('lodash')
-const { volunteerPartnerManifests, studentPartnerManifests } = require('../../partnerManifests')
+const {
+  volunteerPartnerManifests,
+  studentPartnerManifests
+} = require('../../partnerManifests')
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 

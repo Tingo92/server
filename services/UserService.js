@@ -1,3 +1,7 @@
+import {
+  volunteerPartnerManifests,
+  studentPartnerManifests
+} from '../../partnerManifests'
 const crypto = require('crypto')
 const { omit } = require('lodash')
 const User = require('../models/User')
@@ -13,9 +17,7 @@ const {
   USER_BAN_REASON,
   USER_ACTION
 } = require('../constants')
-const config = require('../config')
 const ObjectId = require('mongodb').ObjectId
-import { volunteerPartnerManifests, studentPartnerManifests } from '../../partnerManifests'
 
 const getVolunteer = async volunteerId => {
   return Volunteer.findOne({ _id: volunteerId })
