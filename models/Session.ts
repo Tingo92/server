@@ -1,31 +1,59 @@
-const mongoose = require('mongoose')
+import moment from 'moment-timezone';
+import { values } from 'lodash';
+import { Document, model, Model, Schema, Types } from 'mongoose';
+import { SESSION_FLAGS } from '../constants';
+import MessageModel, { Message } from './Message';
+import { Notification, NotificationDocument } from './Notification';
+// @todo: use types from respective model files once they are converted
+import { User, Student, Volunteer } from './types';
 
-const Message = require('./Message')
-const moment = require('moment-timezone')
-const { SESSION_FLAGS } = require('../constants')
-const { values } = require('lodash')
+const validTypes = ['Math', 'College', 'Science'];
 
-const validTypes = ['Math', 'College', 'Science']
+export interface Session {
+  _id: Types.ObjectId;
+  student: Types.ObjectId | Student;
+  volunteer: Types.ObjectId | Volunteer;
+  type: string;
+  subTopic: string;
+  messages: Message[];
+  whiteboardDoc: string;
+  quillDoc: string;
+  createdAt: Date;
+  volunteerJoinedAt: Date;
+  failedJoins: (Types.ObjectId | User)[];
+  endedAt: Date;
+  endedBy: Types.ObjectId | User;
+  notifications: (Types.ObjectId | Notification)[];
+  photos: string[];
+  isReported: boolean;
+  reportReason: string;
+  reportMessage: string;
+  flags: string[];
+  reviewedStudent: boolean;
+  reviewedVolunteer: boolean;
+}
 
-const sessionSchema = new mongoose.Schema({
+export type SessionDocument = Session & Document;
+
+const sessionSchema = new Schema({
   student: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'User'
     // TODO: validate isVolunteer: false
   },
   volunteer: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'User'
     // TODO: validate isVolunteer: true
   },
   type: {
     type: String,
     validate: {
-      validator: function(v) {
-        const type = v.toLowerCase()
+      validator: function(v): boolean {
+        const type = v.toLowerCase();
         return validTypes.some(function(validType) {
-          return validType.toLowerCase() === type
-        })
+          return validType.toLowerCase() === type;
+        });
       },
       message: '{VALUE} is not a valid type'
     }
@@ -36,7 +64,7 @@ const sessionSchema = new mongoose.Schema({
     default: ''
   },
 
-  messages: [Message.schema],
+  messages: [MessageModel.schema],
 
   whiteboardDoc: {
     type: String,
@@ -61,7 +89,7 @@ const sessionSchema = new mongoose.Schema({
 
   failedJoins: [
     {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User'
     }
   ],
@@ -71,13 +99,13 @@ const sessionSchema = new mongoose.Schema({
   },
 
   endedBy: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'User'
   },
 
   notifications: [
     {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Notification'
     }
   ],
@@ -95,17 +123,21 @@ const sessionSchema = new mongoose.Schema({
   },
   reviewedStudent: Boolean,
   reviewedVolunteer: Boolean
-})
+});
 
-sessionSchema.methods.addNotifications = function(notificationsToAdd, cb) {
+sessionSchema.methods.addNotifications = function(
+  notificationsToAdd: NotificationDocument[]
+): Promise<SessionDocument> {
   return this.model('Session')
     .findByIdAndUpdate(this._id, {
       $push: { notifications: { $each: notificationsToAdd } }
     })
-    .exec(cb)
-}
+    .exec();
+};
 
-sessionSchema.statics.findLatest = function(attrs, cb) {
+sessionSchema.statics.findLatest = function(
+  attrs: Partial<Session>
+): Promise<SessionDocument> {
   // @todo: refactor this query
   return this.find(attrs)
     .sort({ createdAt: -1 })
@@ -113,25 +145,29 @@ sessionSchema.statics.findLatest = function(attrs, cb) {
     .findOne()
     .populate({ path: 'volunteer', select: 'firstname isVolunteer' })
     .populate({ path: 'student', select: 'firstname isVolunteer' })
-    .exec(cb)
-}
+    .exec();
+};
 
 // user's current session
-sessionSchema.statics.current = function(userId, cb) {
+sessionSchema.statics.current = function(
+  userId: Types.ObjectId
+): Promise<SessionDocument> {
   return this.findLatest({
     endedAt: { $exists: false },
     $or: [{ student: userId }, { volunteer: userId }]
-  })
-}
+  });
+};
 
 // sessions that have not yet been fulfilled by a volunteer
-sessionSchema.statics.getUnfulfilledSessions = async function() {
+sessionSchema.statics.getUnfulfilledSessions = async function(): Promise<
+  SessionDocument[]
+> {
   // @note: this query is sorted in memory and uses the volunteer: 1, endedAt: 1 index
   const queryAttrs = {
     volunteer: { $exists: false },
     endedAt: { $exists: false },
     createdAt: { $gt: new Date(Date.now() - 24 * 60 * 60 * 1000) }
-  }
+  };
 
   const sessions = await this.find(queryAttrs)
     .populate({
@@ -139,22 +175,35 @@ sessionSchema.statics.getUnfulfilledSessions = async function() {
       select: 'firstname isVolunteer isTestUser isBanned pastSessions'
     })
     .sort({ createdAt: -1 })
-    .exec()
+    .exec();
 
-  const oneMinuteAgo = moment().subtract(1, 'minutes')
+  const oneMinuteAgo = moment().subtract(1, 'minutes');
 
   return sessions.filter(session => {
     const isNewStudent =
-      session.student.pastSessions && session.student.pastSessions.length === 0
+      session.student.pastSessions && session.student.pastSessions.length === 0;
     const wasSessionCreatedAMinuteAgo = moment(oneMinuteAgo).isBefore(
       session.createdAt
-    )
+    );
     // Don't show new students' sessions for a minute (they often cancel immediately)
-    if (isNewStudent && wasSessionCreatedAMinuteAgo) return false
+    if (isNewStudent && wasSessionCreatedAMinuteAgo) return false;
     // Don't show banned students' sessions
-    if (session.student.isBanned) return false
-    return true
-  })
+    if (session.student.isBanned) return false;
+    return true;
+  });
+};
+
+export interface SessionModelType extends Model<SessionDocument> {
+  addNotifications(): Promise<NotificationDocument[]>;
+  findLatest(): Promise<SessionDocument>;
+  current(): Promise<SessionDocument>;
+  getUnfulfilledSessions(): Promise<SessionDocument[]>;
 }
 
-module.exports = mongoose.model('Session', sessionSchema)
+const SessionModel = model<SessionDocument, SessionModelType>(
+  'Session',
+  sessionSchema
+);
+
+module.exports = SessionModel;
+export default SessionModel;
