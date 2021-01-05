@@ -5,7 +5,7 @@ const { capitalize } = require('lodash')
 const {
   volunteerPartnerManifests,
   studentPartnerManifests
-} = require('../../partnerManifests')
+} = require('../partnerManifests')
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 

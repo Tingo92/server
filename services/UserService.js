@@ -1,7 +1,7 @@
 const {
   volunteerPartnerManifests,
   studentPartnerManifests
-} = require('../../partnerManifests')
+} = require('../partnerManifests')
 const crypto = require('crypto')
 const { omit } = require('lodash')
 const User = require('../models/User')
