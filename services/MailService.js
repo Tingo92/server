@@ -2,6 +2,7 @@ const config = require('../config')
 const sgMail = require('@sendgrid/mail')
 const axios = require('axios')
 const { capitalize } = require('lodash')
+import { volunteerPartnerManifests, studentPartnerManifests } from '../../partnerManifests'
 
 sgMail.setApiKey(config.sendgrid.apiKey)
 
@@ -363,13 +364,13 @@ module.exports = {
       customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrg] =
         user.volunteerPartnerOrg
       customFields[SG_CUSTOM_FIELDS.volunteerPartnerOrgDisplay] =
-        config.volunteerPartnerManifests[user.volunteerPartnerOrg].name
+        volunteerPartnerManifests[user.volunteerPartnerOrg].name
     }
 
     if (user.studentPartnerOrg) {
       customFields[SG_CUSTOM_FIELDS.studentPartnerOrg] = user.studentPartnerOrg
       customFields[SG_CUSTOM_FIELDS.studentPartnerOrgDisplay] =
-        config.studentPartnerManifests[user.studentPartnerOrg].name
+        studentPartnerManifests[user.studentPartnerOrg].name
     }
 
     const data = {

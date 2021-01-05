@@ -90,7 +90,8 @@
     "twilio": "^3.28.1",
     "typescript": "^3.8.3",
     "ua-parser-js": "^0.7.21",
-    "validator": "^6.2.0"
+    "validator": "^6.2.0",
+    "yaml": "^1.10.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.10.3",

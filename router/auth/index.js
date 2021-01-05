@@ -11,6 +11,7 @@ const { USER_BAN_REASON } = require('../../constants')
 const authPassport = require('./passport')
 const UserCtrl = require('../../controllers/UserCtrl')
 const MailService = require('../../services/MailService')
+import { volunteerPartnerManifests, studentPartnerManifests } from '../../partnerManifests'
 
 // Validation functions
 function checkPassword(password) {
@@ -143,7 +144,7 @@ module.exports = function(app) {
 
     // Student partner org check (if no high school or zip code provided)
     if (isStudentPartnerSignup) {
-      const allStudentPartnerManifests = config.studentPartnerManifests
+      const allStudentPartnerManifests = studentPartnerManifests
       const studentPartnerManifest =
         allStudentPartnerManifests[studentPartnerOrg]
 
@@ -312,7 +313,7 @@ module.exports = function(app) {
     }
 
     // Volunteer partner org check
-    const allVolunteerPartnerManifests = config.volunteerPartnerManifests
+    const allVolunteerPartnerManifests = volunteerPartnerManifests.volunteerPartnerManifests
     const volunteerPartnerManifest =
       allVolunteerPartnerManifests[volunteerPartnerOrg]
 
@@ -372,7 +373,7 @@ module.exports = function(app) {
       })
     }
 
-    const allVolunteerPartnerManifests = config.volunteerPartnerManifests
+    const allVolunteerPartnerManifests = volunteerPartnerManifests
 
     if (!allVolunteerPartnerManifests) {
       return res.status(422).json({
@@ -400,7 +401,7 @@ module.exports = function(app) {
       })
     }
 
-    const allStudentPartnerManifests = config.studentPartnerManifests
+    const allStudentPartnerManifests = studentPartnerManifests
 
     if (!allStudentPartnerManifests) {
       return res.status(422).json({
@@ -428,7 +429,7 @@ module.exports = function(app) {
       })
     }
 
-    const allStudentPartnerManifests = config.studentPartnerManifests
+    const allStudentPartnerManifests = studentPartnerManifests
 
     if (!allStudentPartnerManifests) {
       return res.status(422).json({
@@ -456,7 +457,7 @@ module.exports = function(app) {
     .get(function(req, res, next) {
       const partnerOrgs = []
       for (const [key, value] of Object.entries(
-        config.studentPartnerManifests
+        studentPartnerManifests
       )) {
         partnerOrgs.push({
           key,
@@ -476,7 +477,7 @@ module.exports = function(app) {
     .get(function(req, res, next) {
       const partnerOrgs = []
       for (const [key, value] of Object.entries(
-        config.volunteerPartnerManifests
+        volunteerPartnerManifests
       )) {
         partnerOrgs.push({
           key,

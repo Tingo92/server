@@ -15,6 +15,7 @@ const {
 } = require('../constants')
 const config = require('../config')
 const ObjectId = require('mongodb').ObjectId
+import { volunteerPartnerManifests, studentPartnerManifests } from '../../partnerManifests'
 
 const getVolunteer = async volunteerId => {
   return Volunteer.findOne({ _id: volunteerId })
@@ -388,10 +389,10 @@ module.exports = {
     if (lastName) query.lastname = { $regex: lastName, $options: 'i' }
     if (email) query.email = { $regex: email, $options: 'i' }
     if (partnerOrg) {
-      if (config.studentPartnerManifests[partnerOrg])
+      if (studentPartnerManifests[partnerOrg])
         query.studentPartnerOrg = { $regex: partnerOrg, $options: 'i' }
 
-      if (config.volunteerPartnerManifests[partnerOrg])
+      if (volunteerPartnerManifests[partnerOrg])
         query.volunteerPartnerOrg = { $regex: partnerOrg, $options: 'i' }
     }
 
