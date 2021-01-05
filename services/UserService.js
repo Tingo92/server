@@ -1,7 +1,7 @@
-import {
+const {
   volunteerPartnerManifests,
   studentPartnerManifests
-} from '../../partnerManifests'
+} = require('../../partnerManifests')
 const crypto = require('crypto')
 const { omit } = require('lodash')
 const User = require('../models/User')

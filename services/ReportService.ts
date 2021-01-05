@@ -2,8 +2,7 @@ import moment from 'moment-timezone';
 import mongoose, { Types } from 'mongoose';
 import _ from 'lodash';
 import User from '../models/User';
-import config from '../config';
-import { studentPartnerManifests } from '../../partnerManifests'
+import { studentPartnerManifests } from '../partnerManifests'
 
 const ObjectId = mongoose.Types.ObjectId;
 

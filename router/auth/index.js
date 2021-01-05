@@ -1,7 +1,7 @@
-import {
+const {
   volunteerPartnerManifests,
   studentPartnerManifests
-} from '../../partnerManifests'
+} = require('../../partnerManifests')
 const express = require('express')
 const passport = require('passport')
 const Sentry = require('@sentry/node')
