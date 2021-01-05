@@ -1,4 +1,3 @@
-// @ts-nocheck
 import Session from '../models/Session';
 import MessageModel, { MessageDocument } from '../models/Message';
 import getSessionRoom from '../utils/get-session-room';
