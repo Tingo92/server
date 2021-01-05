@@ -19,7 +19,7 @@ async function upgrade(): Promise<void> {
     const updates = [];
     for (const volunteer of volunteers) {
       const { hoursTutored, _id } = volunteer as Volunteer;
-      const timeTutored = Number(hoursTutored.toString()) * 3600000;
+      const timeTutored = Math.floor(Number(hoursTutored.toString()) * 3600000);
 
       updates.push(
         VolunteerModel.updateOne(
