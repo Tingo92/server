@@ -10,9 +10,9 @@ const mongoPass = process.env.SUBWAY_DB_PASS;
 const mongoUser = process.env.SUBWAY_DB_USER;
 let mongoConn;
 if (mongoPass === '') {
-  mongoConn = `mongdb://${mongoHost}:${mongoPort}/${mongoName}`;
+  mongoConn = `mongodb://${mongoHost}:${mongoPort}/${mongoName}`;
 } else {
-  mongoConn = `mongdb://${mongoUser}:${mongoPass}@${mongoHost}:${mongoPort}/${mongoName}`;
+  mongoConn = `mongodb+srv://${mongoUser}:${mongoPass}@${mongoHost}:${mongoPort}/${mongoName}`;
 }
 
 const redisHost = process.env.SUBWAY_REDIS_HOST || '127.0.0.1';
