@@ -22,5 +22,4 @@ if (process.env.SUBWAY_STUDENT_PARTNER_MANIFESTS === '') {
   studentManifestsYaml = process.env.SUBWAY_STUDENT_PARTNER_MANIFESTS
 }
 
-
 export const studentPartnerManifests = YAML.parse(studentManifestsYaml)
