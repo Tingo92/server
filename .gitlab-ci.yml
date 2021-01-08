@@ -37,7 +37,7 @@ build:
     - |
       pack build "$image_tagged" \
         --clear-cache \
-        --builder "$builder" \
+        --builder heroku/buildpacks:20 \
         --buildpack registry.gitlab.com/upchieve/doppler-buildpack \
         --buildpack heroku/nodejs \
         --buildpack heroku/procfile \
