@@ -19,6 +19,7 @@ image_latest="$CI_APPLICATION_REPOSITORY:latest"
 builder=${AUTO_DEVOPS_BUILD_IMAGE_CNB_BUILDER:-"heroku/buildpacks:18"}
 echo "Building Cloud Native Buildpack-based application with builder ${builder}..."
 pack build "$image_tagged" \
+  --clear-cache \
   --builder "$builder" \
   --buildpack registry.gitlab.com/upchieve/doppler-buildpack \
   --buildpack heroku/nodejs \
