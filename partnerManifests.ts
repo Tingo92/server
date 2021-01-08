@@ -6,9 +6,6 @@ import YAML from 'yaml';
 let volunteerManifestsYaml
 let studentManifestsYaml
 
-console.log(process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFESTS)
-console.log(process.env.SUBWAY_STUDENT_PARTNER_MANIFESTS)
-
 if (process.env.SUBWAY_VOLUNTEER_PARTNER_MANIFESTS === '') {
   const volunteerManifestsPath = path.join(__dirname, config.volunteerPartnerManifestPath)
   volunteerManifestsYaml = fs.readFileSync(volunteerManifestsPath, 'utf8')
