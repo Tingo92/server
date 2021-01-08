@@ -1,9 +1,20 @@
 include:
   - template: Auto-DevOps.gitlab-ci.yml
 
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .npm
+    - node_modules
+
+variables:
+  AUTO_DEVOPS_BUILD_IMAGE_CNB_ENABLED: "true"
+  AUTO_DEVOPS_BUILD_IMAGE_CNB_BUILDER: "heroku/buildpacks:20"
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+
 build:
   stage: build
-  image: "registry.gitlab.com/gitlab-org/cluster-integration/auto-build-image:v0.4.0"
+  image: "docker:19.03.12"
   cache: {}
   variables:
     DOCKER_TLS_CERTDIR: ""
@@ -21,17 +32,6 @@ build:
     - ./bin/build.sh
   rules:
     - if: '$CI_COMMIT_TAG || $CI_COMMIT_BRANCH'
-
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - .npm
-    - node_modules
-
-variables:
-  AUTO_DEVOPS_BUILD_IMAGE_CNB_ENABLED: "true"
-  AUTO_DEVOPS_BUILD_IMAGE_CNB_BUILDER: "heroku/buildpacks:20"
-  npm_config_cache: "$CI_PROJECT_DIR/.npm"
 
 test:
   stage: test

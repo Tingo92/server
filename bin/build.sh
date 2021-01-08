@@ -2,6 +2,9 @@
 
 # build stage script for Auto-DevOps
 
+apk add --update curl tar
+(curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.15.1/pack-v0.15.1-linux.tgz" | tar -C /usr/local/bin/ --no-same-owner -xzv pack)
+
 if ! docker info &>/dev/null; then
   if [ -z "$DOCKER_HOST" ] && [ "$KUBERNETES_PORT" ]; then
     export DOCKER_HOST='tcp://localhost:2375'
