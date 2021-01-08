@@ -34,11 +34,7 @@ module.exports = function(app) {
     })
   }
 
-  // Single page app routing
-  app.use(function(req, res, next) {
-    if (isServerReq(req)) {
-      return next()
-    }
-    res.sendFile(path.join(__dirname, '../dist/index.html'))
+  app.get('/healthz', function (req, res) {
+    res.sendStatus(200)
   })
 }
