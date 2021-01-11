@@ -62,7 +62,7 @@ Docker provides an alternative for local development. A docker-compose file exis
 
 1. Build the container using the command `$ pack build upchieve/subway:local --builder heroku/buildpacks:20`
 1. Navigate to this directory and run `mkdir mongo-volume` to create a directory for the MongoDB volume.
-1. Run `cp config.example.ts config.ts` to copy the default config as your own config.
+1. `config.ts` is the default config. Create a `.env` file in the root directory and add your environment-specific variables if you'd like to override the defaults set in `config.ts`.
 1. Run `docker-compose up` to launch the server.
 1. After any change: Run `docker-compose down --rmi all` to destroy images and containers. Then run `docker-compose up` to see your changes.
 
@@ -108,7 +108,7 @@ docker run -i --rm --name redis -p 6379:6379 -v <Absolute Path to directory on y
 ### Setup
 
 1. Try connecting to your database container by running `mongo` (see Mongo dependency if this will not connect). Run `quit()` to exit the shell. You can also interface with the database using a free MongoDB GUI such as [MongoDB Compass Community](https://docs.mongodb.com/manual/administration/install-community/)
-1. Run `cp config.example.ts config.ts` to copy the default config as your own config.
+1. `config.ts` is the default config. Create a `.env` file in the root directory and add your environment-specific variables if you'd like to override the defaults set in `config.ts`.
 1. Run `npm install` to install the required dependancies.
 1. Run `npx ts-node init` to seed the database with users, quiz questions, schools, and zip codes.
 1. If you want to test Twilio voice calling functionality, set the `host` property to `[your public IP address]:3000` (minus the brackets), and configure your router/firewall to allow connections to port 3000 from the Internet. Twilio will need to connect to your system to obtain TwiML instructions.
