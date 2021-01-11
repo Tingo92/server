@@ -9,21 +9,17 @@ const mongoName = process.env.SUBWAY_DB_NAME || 'upchieve';
 const mongoPass = process.env.SUBWAY_DB_PASS;
 const mongoUser = process.env.SUBWAY_DB_USER;
 let mongoConn;
-if (mongoPass === '') {
-  mongoConn = `mongodb://${mongoHost}:${mongoPort}/${mongoName}`;
-} else {
+if (mongoPass)
   mongoConn = `mongodb+srv://${mongoUser}:${mongoPass}@${mongoHost}/${mongoName}`;
-}
+else mongoConn = `mongodb://${mongoHost}:${mongoPort}/${mongoName}`;
 
 const redisHost = process.env.SUBWAY_REDIS_HOST || '127.0.0.1';
 const redisPort = process.env.SUBWAY_REDIS_PORT || '6379';
 const redisPass = process.env.SUBWAY_REDIS_PASS;
 let redisConn;
-if (redisPass === '') {
-  redisConn = `redis://${redisHost}:${redisPort}`;
-} else {
+if (redisPass)
   redisConn = `redis://${redisHost}:${redisPort}&password=${redisPass}`;
-}
+else redisConn = `redis://${redisHost}:${redisPort}`;
 
 const bannedServiceProviderList =
   process.env.SUBWAY_BANNED_SERVICE_PROVIDERS || 'Example';
@@ -107,12 +103,12 @@ const config: Static<typeof Config> = {
     'localManifests/student.yaml',
 
   // Sentry Data Source Name
-  sentryDsn: process.env.SUBWAY_SENTRY_DSN,
+  sentryDsn: process.env.SUBWAY_SENTRY_DSN || '',
 
   // Twilio Credentials
-  accountSid: process.env.SUBWAY_TWILIO_ACCOUNT_SID,
-  authToken: process.env.SUBWAY_TWILIO_AUTH_TOKEN,
-  sendingNumber: process.env.SUBWAY_TWILIO_SENDING_NUMBER,
+  accountSid: process.env.SUBWAY_TWILIO_ACCOUNT_SID || '',
+  authToken: process.env.SUBWAY_TWILIO_AUTH_TOKEN || '',
+  sendingNumber: process.env.SUBWAY_TWILIO_SENDING_NUMBER || '',
 
   notificationSchedule: [
     5 * 1000,
