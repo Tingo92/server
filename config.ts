@@ -1,7 +1,9 @@
 // Server configuration
 
 import { Static } from 'runtypes';
+import dotenv from 'dotenv';
 import { Config } from './config-type';
+dotenv.config();
 
 const mongoHost = process.env.SUBWAY_DB_HOST || 'mongodb';
 const mongoPort = process.env.SUBWAY_DB_PORT || '27017';
