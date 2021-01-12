@@ -57,6 +57,9 @@ NOTE: Active development on this project has moved to https://gitlab.com/upchiev
 
 Local Development
 -----------------
+## Tooling
+Please visit https://gitlab.com/upchieve/tower-crane to get set up with the proper tooling. 
+
 ## docker-compose
 Docker provides an alternative for local development. A docker-compose file exists, tied to Mongo. Here's how to work in docker-compose.
 
