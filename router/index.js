@@ -1,5 +1,3 @@
-var path = require('path')
-
 module.exports = function(app) {
   console.log('Initializing server routing')
 
@@ -17,24 +15,7 @@ module.exports = function(app) {
   require('./mobile')(app)
   require('./reference')(app)
 
-  // True if incoming request is either a static asset or API request
-  var isServerReq = function(req) {
-    return [
-      '/whiteboard',
-      '/auth',
-      '/api',
-      '/api-public',
-      '/metrics',
-      '/twiml',
-      '/mobile',
-      '/js',
-      '/css'
-    ].some(function(whitelist) {
-      return req.url.substr(0, whitelist.length) === whitelist
-    })
-  }
-
-  app.get('/healthz', function (req, res) {
+  app.get('/healthz', function(req, res) {
     res.sendStatus(200)
   })
 }

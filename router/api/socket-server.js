@@ -1,10 +1,7 @@
 /**
  * Creates the socket server and returns the Server instance
  */
-
-const fs = require('fs')
 const http = require('http')
-const https = require('https')
 const socket = require('socket.io')
 const redisAdapter = require('socket.io-redis')
 const config = require('../../config')
