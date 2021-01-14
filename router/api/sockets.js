@@ -109,7 +109,7 @@ module.exports = function(io, sessionStore) {
         })
 
         const sessionRoom = getSessionRoom(sessionId)
-        const socketIds = await getSocketIdsFromRoom(user._id)
+        const socketIds = await getSocketIdsFromRoom(user._id.toString())
         // Have all of the user's socket connections join the tutoring session room
         for (const id of socketIds) {
           await remoteJoinRoom(id, sessionRoom)
