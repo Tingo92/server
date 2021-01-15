@@ -77,7 +77,6 @@ export const Config = Record({
     projectId: Number
   }),
   bannedServiceProviders: Array(String),
-  unsubscribedSummaryEmailPartners: Array(String),
   awsS3: Record({
     accessKeyId: String,
     secretAccessKey: String,

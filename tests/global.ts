@@ -47,7 +47,6 @@ jest.mock('../config', () => {
         schoolSignupRequired: false
       }
     },
-    bannedServiceProviders: ['Example'],
-    unsubscribedSummaryEmailPartners: ['example']
+    bannedServiceProviders: ['Example']
   };
 });
