@@ -1,3 +1,4 @@
+import moment from 'moment-timezone';
 import faker from 'faker';
 import { Test } from 'supertest';
 import { Types } from 'mongoose';
@@ -14,6 +15,9 @@ import {
 } from '../constants';
 import { Message } from '../models/Message';
 import { Notification } from '../models/Notification';
+import { AvailabilitySnapshot } from '../models/Availability/Snapshot';
+import { AvailabilityHistory } from '../models/Availability/History';
+import { AvailabilityDay } from '../models/Availability/types';
 import {
   User,
   Volunteer,
@@ -36,6 +40,12 @@ export const generateSentence = (): string => faker.lorem.sentence();
 
 const generateReferralCode = (userId): string =>
   base64url(Buffer.from(userId, 'hex'));
+
+export const getDayOfWeek = (): string => {
+  return moment()
+    .tz('America/New_York')
+    .format('dddd');
+};
 
 // @todo: Figure out how to use with MATH_CERTS, SCIENCE_CERTS
 export const buildCertifications = (overrides = {}): Certifications => {
@@ -115,6 +125,37 @@ export const buildAvailability = (overrides = {}): Availability => {
   return mergedAvailability;
 };
 
+export const buildAvailabilitySnapshot = (
+  overrides = {}
+): AvailabilitySnapshot => {
+  const currentDate = new Date();
+  return {
+    _id: Types.ObjectId(),
+    onCallAvailability: buildAvailability(),
+    modifiedAt: currentDate,
+    createdAt: currentDate,
+    timezone: 'America/New_York',
+    volunteerId: Types.ObjectId(),
+    ...overrides
+  };
+};
+
+export const buildAvailabilityHistory = (
+  overrides = {}
+): AvailabilityHistory => {
+  const currentDate = new Date();
+  return {
+    _id: Types.ObjectId(),
+    availability: buildAvailability()[getDayOfWeek()],
+    date: currentDate,
+    modifiedAt: currentDate,
+    createdAt: currentDate,
+    timezone: 'America/New_York',
+    volunteerId: Types.ObjectId(),
+    ...overrides
+  };
+};
+
 export const buildStudent = (overrides = {}): Student => {
   const firstName = getFirstName();
   const lastName = getLastName();
@@ -166,6 +207,7 @@ export const buildVolunteer = (overrides = {}): Volunteer => {
     hoursTutored: Types.Decimal128.fromString('0'),
     timeTutored: 0,
     pastSessions: [],
+    elapsedAvailability: 0,
     ...overrides
   };
 
@@ -326,6 +368,38 @@ export const buildNotification = (overrides = {}): Partial<Notification> => {
   };
 
   return notification;
+};
+
+export const buildAvailabilityDay = (overrides = {}): AvailabilityDay => {
+  const availabilityDay = {
+    '12a': false,
+    '1a': false,
+    '2a': false,
+    '3a': false,
+    '4a': false,
+    '5a': false,
+    '6a': false,
+    '7a': false,
+    '8a': false,
+    '9a': false,
+    '10a': false,
+    '11a': false,
+    '12p': false,
+    '1p': false,
+    '2p': false,
+    '3p': false,
+    '4p': false,
+    '5p': false,
+    '6p': false,
+    '7p': false,
+    '8p': false,
+    '9p': false,
+    '10p': false,
+    '11p': false,
+    ...overrides
+  };
+
+  return availabilityDay;
 };
 
 export const authLogin = (agent, { email, password }: Partial<User>): Test =>

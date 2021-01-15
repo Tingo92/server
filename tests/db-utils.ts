@@ -6,12 +6,20 @@ import UserActionModel from '../models/UserAction';
 import SessionModel from '../models/Session';
 import NotificationModel from '../models/Notification';
 import config from '../config';
+import AvailabilitySnapshotModel, {
+  AvailabilitySnapshot
+} from '../models/Availability/Snapshot';
+import AvailabilityHistoryModel, {
+  AvailabilityHistory
+} from '../models/Availability/History';
 import { Volunteer, Student, Session } from './types';
 import {
   buildNotification,
   buildSession,
   buildStudent,
-  buildVolunteer
+  buildVolunteer,
+  buildAvailabilitySnapshot,
+  buildAvailabilityHistory
 } from './generate';
 
 const hashPassword = async function(password): Promise<Error | string> {
@@ -139,4 +147,22 @@ export const getSession = (
     .select(projection)
     .lean()
     .exec();
+};
+
+export const insertAvailabilitySnapshot = async (
+  overrides = {}
+): Promise<AvailabilitySnapshot> => {
+  const snapshot = buildAvailabilitySnapshot(overrides);
+  const createdSnapshot = await AvailabilitySnapshotModel.create(snapshot);
+  return { ...createdSnapshot.toObject() };
+};
+
+export const insertAvailabilityHistory = async (
+  overrides: Partial<AvailabilityHistory> = {}
+): Promise<AvailabilityHistory> => {
+  const availabilityHistory = buildAvailabilityHistory(overrides);
+  const createdAvailabilityHistory = await AvailabilityHistoryModel.create(
+    availabilityHistory
+  );
+  return { ...createdAvailabilityHistory.toObject() };
 };
