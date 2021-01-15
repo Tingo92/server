@@ -6,6 +6,7 @@ import {
 } from '../../services/VolunteerService';
 import MailService from '../../services/MailService';
 import VolunteerModel from '../../models/Volunteer';
+import config from '../../config';
 
 // Runs weekly at 6am EST on Monday
 export default async (): Promise<void> => {
@@ -14,7 +15,8 @@ export default async (): Promise<void> => {
       isBanned: false,
       isDeactivated: false,
       isFakeUser: false,
-      isTestUser: false
+      isTestUser: false,
+      volunteerPartnerOrg: { nin: config.unsubscribedSummaryEmailPartners }
     },
     {
       firstname: 1,
