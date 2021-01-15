@@ -44,6 +44,17 @@ const didParticipantsChat = (messages, studentId, volunteerId) => {
   return studentSentMessage && volunteerSentMessage
 }
 
+const getMessagesAfterDate = (messages, date) => {
+  if (!date) return []
+
+  for (let i = 0; i < messages.length; i++) {
+    const message = messages[i]
+    if (message.createdAt >= date) return messages.slice(i)
+  }
+
+  return []
+}
+
 const getReviewFlags = session => {
   const flags = []
   const {
@@ -52,15 +63,20 @@ const getReviewFlags = session => {
     volunteer,
     createdAt,
     endedAt,
-    isReported
+    isReported,
+    volunteerJoinedAt
   } = session
   const isStudentsFirstSession = student.pastSessions.length === 0
   const sessionLength =
     new Date(endedAt).getTime() - new Date(createdAt).getTime()
 
   if (volunteer) {
-    const isFullConversation = didParticipantsChat(
+    const messagesAfterVolunteerJoined = getMessagesAfterDate(
       messages,
+      volunteerJoinedAt
+    )
+    const isFullConversation = didParticipantsChat(
+      messagesAfterVolunteerJoined,
       student._id,
       volunteer._id
     )
@@ -432,7 +448,9 @@ module.exports = {
 
     let timeTutored = 0
     if (session.volunteer) {
-      timeTutored = calculateTimeTutored({ ...session, endedAt })
+      // Calculate time tutored if both users were present in the session
+      if (!reviewFlags.includes(SESSION_FLAGS.ABSENT_USER))
+        timeTutored = calculateTimeTutored({ ...session, endedAt })
       await VolunteerModel.updateOne(
         { _id: session.volunteer._id },
         {
@@ -875,5 +893,6 @@ module.exports = {
   // Session Service helpers exposed for testing
   didParticipantsChat,
   getReviewFlags,
-  calculateTimeTutored
+  calculateTimeTutored,
+  getMessagesAfterDate
 }
