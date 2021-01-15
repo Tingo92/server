@@ -19,3 +19,5 @@ export interface Volunteer extends User {
   isApproved: boolean;
   isOnboarded: boolean;
 }
+
+export type Student = User;
