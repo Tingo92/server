@@ -2,31 +2,13 @@ import { Types } from 'mongoose';
 import { USER_ACTION } from '../constants';
 import UserActionModel from '../models/UserAction';
 
-// @todo: this is a temporary interface - use interface from UserAction model file once converted
-export interface UserAction {
-  _id: Types.ObjectId;
-  user: Types.ObjectId;
-  session: Types.ObjectId;
-  createdAt: Date;
-  actionType: string;
-  action: string;
-  quizCategory: string;
-  quizSubcategory: string;
-  device: string;
-  browser: string;
-  browserVersion: string;
-  operatingSystem: string;
-  operatingSystemVersion: string;
-  ipAddress: string;
-  referenceEmail: string;
-  banReason: string;
-}
-
 export const getQuizzesPassedForDateRange = (
-  volunteerId,
-  fromDate,
-  toDate
-): Promise<UserAction[]> =>
+  volunteerId: Types.ObjectId | string,
+  fromDate: Date,
+  toDate: Date
+  // @todo: figure out how to properly type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any> =>
   UserActionModel.find({
     user: volunteerId,
     createdAt: {

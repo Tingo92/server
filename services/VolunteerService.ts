@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import VolunteerModel from '../models/Volunteer';
 import { getTimeTutoredForDateRange } from './SessionService';
 import { getElapsedAvailabilityForDateRange } from './AvailabilityService';
@@ -15,9 +16,9 @@ export const getVolunteers = async (
     .exec();
 
 export const getHourSummaryStats = async (
-  volunteerId,
-  fromDate,
-  toDate
+  volunteerId: Types.ObjectId | string,
+  fromDate: Date,
+  toDate: Date
 ): Promise<{
   totalCoachingHours: number;
   totalQuizzesPassed: number;
