@@ -24,6 +24,12 @@ const bannedServiceProviderList =
   process.env.SUBWAY_BANNED_SERVICE_PROVIDERS || 'Example';
 const bannedServiceProviders = bannedServiceProviderList.split(',');
 
+const unsubscribedSummaryEmailPartnersList =
+  process.env.SUBWAY_UNSUBSCRIBED_SUMMARY_EMAIL_PARTNERS || 'example';
+const unsubscribedSummaryEmailPartners = unsubscribedSummaryEmailPartnersList.split(
+  ','
+);
+
 let nodeEnv = process.env.NODE_ENV;
 if (nodeEnv !== 'dev' && nodeEnv !== 'staging' && nodeEnv !== 'production') {
   nodeEnv = 'dev';
@@ -153,6 +159,7 @@ const config: Static<typeof Config> = {
     projectId: Number(process.env.SUBWAY_FIREBASE_PROJECT_ID) || 123456789012
   },
   bannedServiceProviders: bannedServiceProviders,
+  unsubscribedSummaryEmailPartners,
   awsS3: {
     accessKeyId: process.env.SUBWAY_AWS_ACCESSKEY || 'ACCESSKEY123',
     secretAccessKey:
