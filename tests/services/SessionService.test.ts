@@ -27,6 +27,15 @@ jest.mock('../../services/MailService');
 jest.mock('../../services/WhiteboardService');
 jest.mock('../../services/QuillDocService');
 
+/**
+ * @todo refactor
+ * - some of the test cases are getting too complicated to rely on this function anymore
+ *
+ * some additional notes:
+ * an ABSENT_USER flag gets triggered in some test cases because
+ * the volunteerJoinedAt is greater than the createdAt of the messages. refactor to
+ * allow an easier way to trigger or not trigger ABSENT_USER or LOW_MESSAGES flags
+ */
 const loadMessages = ({
   studentSentMessages,
   volunteerSentMessages,
@@ -313,8 +322,8 @@ describe('getReviewFlags', () => {
     };
 
     const result = SessionService.getReviewFlags(populatedSession);
-    const expected = [SESSION_FLAGS.FIRST_TIME_STUDENT];
-    expect(result).toEqual(expected);
+    const expected = SESSION_FLAGS.FIRST_TIME_STUDENT;
+    expect(result).toContain(expected);
   });
 
   test(`Should trigger ${SESSION_FLAGS.FIRST_TIME_VOLUNTEER} flag for a volunteer's first session`, async () => {
@@ -340,8 +349,8 @@ describe('getReviewFlags', () => {
     };
 
     const result = SessionService.getReviewFlags(populatedSession);
-    const expected = [SESSION_FLAGS.FIRST_TIME_VOLUNTEER];
-    expect(result).toEqual(expected);
+    const expected = SESSION_FLAGS.FIRST_TIME_VOLUNTEER;
+    expect(result).toContain(expected);
   });
 
   test(`Should trigger ${SESSION_FLAGS.UNMATCHED} flag when a volunter does not join the session`, async () => {
@@ -367,17 +376,22 @@ describe('getReviewFlags', () => {
   });
 
   test(`Should trigger ${SESSION_FLAGS.LOW_MESSAGES} flag`, async () => {
-    const { messages, student, volunteer } = loadMessages({
-      studentSentMessages: true,
-      volunteerSentMessages: true,
-      messagesPerUser: 3
-    });
+    const student = buildStudent({ pastSessions: buildPastSessions() });
+    const volunteer = buildVolunteer({ pastSessions: buildPastSessions() });
+    const volunteerJoinedAt = new Date('2020-10-05T12:03:30.000Z');
+
+    const messages = [
+      { user: student._id, createdAt: new Date('2020-10-05T12:04:30.000Z') },
+      { user: volunteer._id, createdAt: new Date('2020-10-05T12:05:30.000Z') }
+    ];
+
     const { session } = await insertSession({
       createdAt: new Date('2020-10-05T12:03:00.000Z'),
       endedAt: new Date('2020-10-05T14:03:00.000Z'),
       student: student._id,
       volunteer,
-      messages
+      messages,
+      volunteerJoinedAt
     });
 
     const populatedSession = {
@@ -460,8 +474,8 @@ describe('getReviewFlags', () => {
     };
 
     const result = SessionService.getReviewFlags(populatedSession);
-    const expected = [SESSION_FLAGS.REPORTED];
-    expect(result).toEqual(expected);
+    const expected = SESSION_FLAGS.REPORTED;
+    expect(result).toContain(expected);
   });
 });
 
@@ -674,16 +688,22 @@ describe('endSession', () => {
     // eslint-disable-next-line quotes
     test("Should add session to past sessions for student and volunteer and update volunteer's hoursTutored", async () => {
       const volunteer = await insertVolunteer();
+      const student = await insertStudent();
       const oneHourAgo = Date.now() - 1000 * 60 * 60 * 1;
       const createdAt = new Date(oneHourAgo);
       const volunteerJoinedAt = new Date(oneHourAgo + 1000 * 60);
-      const { session, student } = await insertSession({
+      const { session } = await insertSession({
+        student: student._id,
         createdAt,
         volunteerJoinedAt,
         volunteer: volunteer._id,
         messages: [
           buildMessage({
             user: volunteer._id,
+            createdAt: new Date()
+          }),
+          buildMessage({
+            user: student._id,
             createdAt: new Date()
           })
         ]
@@ -728,16 +748,27 @@ describe('endSession', () => {
     });
 
     test('Should not add session review flags to the session', async () => {
+      const oneHourAgo = Date.now() - 1000 * 60 * 60 * 1;
+      const createdAt = new Date(oneHourAgo);
+      const volunteerJoinedAt = new Date(oneHourAgo + 1000 * 60);
       const { messages, student, volunteer } = loadMessages({
         studentSentMessages: true,
         volunteerSentMessages: true,
         messagesPerUser: 20
       });
+
+      // avoid LOW_MESSAGES flag by having the createdAt of the messages greater
+      // than the volunteerJoinedAt date
+      const updatedMessages = [];
+      for (const message of messages) {
+        updatedMessages.push({ ...message, createdAt: new Date(oneHourAgo) });
+      }
+
       await insertStudent(student as Student);
       await insertVolunteer(volunteer as Volunteer);
       const { session } = await insertSession({
-        createdAt: new Date(),
-        volunteerJoinedAt: new Date(),
+        createdAt,
+        volunteerJoinedAt,
         student: student._id,
         volunteer: volunteer._id,
         messages: messages
@@ -852,5 +883,84 @@ describe('endSession', () => {
     });
 
     test.todo('Test mock function for QuillDoc was executed');
+  });
+});
+
+describe('getMessagesAfterDate', () => {
+  test('Should return messages after a given date', async () => {
+    const student = buildStudent();
+    const volunteer = buildVolunteer();
+    const volunteerJoinedAt = new Date('2021-01-14T12:00:00.000Z');
+    const messages = [
+      buildMessage({
+        user: student._id,
+        createdAt: new Date('2021-01-14T11:45:00.000Z')
+      }),
+      buildMessage({
+        user: student._id,
+        createdAt: new Date('2021-01-14T11:55:00.000Z')
+      }),
+      buildMessage({
+        user: student._id,
+        createdAt: new Date('2021-01-14T12:00:00.000Z')
+      }),
+      buildMessage({
+        user: volunteer._id,
+        createdAt: new Date('2021-01-14T12:10:00.000Z')
+      }),
+      buildMessage({
+        user: student._id,
+        createdAt: new Date('2021-01-14T12:15:00.000Z')
+      })
+    ];
+
+    const results = SessionService.getMessagesAfterDate(
+      messages,
+      volunteerJoinedAt
+    );
+    expect(results).toHaveLength(3);
+  });
+
+  test('Should return an empty array if no messages were sent', async () => {
+    const volunteerJoinedAt = new Date('2021-01-14T12:00:00.000Z');
+    const messages = [];
+
+    const results = SessionService.getMessagesAfterDate(
+      messages,
+      volunteerJoinedAt
+    );
+
+    expect(results).toHaveLength(0);
+  });
+
+  test('Should return an empty array if no date is provided', async () => {
+    const student = buildStudent();
+    const volunteer = buildVolunteer();
+
+    const messages = [
+      buildMessage({
+        user: student._id,
+        createdAt: new Date('2021-01-14T11:45:00.000Z')
+      }),
+      buildMessage({
+        user: student._id,
+        createdAt: new Date('2021-01-14T11:55:00.000Z')
+      }),
+      buildMessage({
+        user: student._id,
+        createdAt: new Date('2021-01-14T12:00:00.000Z')
+      }),
+      buildMessage({
+        user: volunteer._id,
+        createdAt: new Date('2021-01-14T12:10:00.000Z')
+      }),
+      buildMessage({
+        user: student._id,
+        createdAt: new Date('2021-01-14T12:15:00.000Z')
+      })
+    ];
+
+    const results = SessionService.getMessagesAfterDate(messages);
+    expect(results).toHaveLength(0);
   });
 });
