@@ -6,17 +6,23 @@ import {
 } from '../../services/VolunteerService';
 import MailService from '../../services/MailService';
 import VolunteerModel from '../../models/Volunteer';
-import config from '../../config';
+import { volunteerPartnerManifests } from '../../partnerManifests';
 
 // Runs weekly at 6am EST on Monday
 export default async (): Promise<void> => {
+  const unsubscribedPartners = [];
+  for (const partnerOrg in volunteerPartnerManifests) {
+    if (!volunteerPartnerManifests[partnerOrg].receiveWeeklyHourSummaryEmail)
+      unsubscribedPartners.push(partnerOrg);
+  }
+
   const volunteers = await getVolunteers(
     {
       isBanned: false,
       isDeactivated: false,
       isFakeUser: false,
       isTestUser: false,
-      volunteerPartnerOrg: { $nin: config.unsubscribedSummaryEmailPartners }
+      volunteerPartnerOrg: { $nin: unsubscribedPartners }
     },
     {
       firstname: 1,
