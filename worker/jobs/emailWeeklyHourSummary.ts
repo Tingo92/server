@@ -16,7 +16,7 @@ export default async (): Promise<void> => {
       isDeactivated: false,
       isFakeUser: false,
       isTestUser: false,
-      volunteerPartnerOrg: { nin: config.unsubscribedSummaryEmailPartners }
+      volunteerPartnerOrg: { $nin: config.unsubscribedSummaryEmailPartners }
     },
     {
       firstname: 1,
