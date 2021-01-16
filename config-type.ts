@@ -83,5 +83,8 @@ export const Config = Record({
     region: String,
     photoIdBucket: String,
     sessionPhotoBucket: String
-  })
+  }),
+  unleashId: String,
+  unleashName: String,
+  unleashUrl: String
 });

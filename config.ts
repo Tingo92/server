@@ -161,7 +161,12 @@ const config: Static<typeof Config> = {
     photoIdBucket: process.env.SUBWAY_PHOTO_ID_BUCKET || 'photo-id-bucket',
     sessionPhotoBucket:
       process.env.SUBWAY_SESSION_PHOTO_BUCKET || 'session-photo-bucket'
-  }
+  },
+  unleashId: process.env.SUBWAY_UNLEASH_ID || 'djwdKPaf7s3oxMgDrRrd',
+  unleashName: process.env.SUBWAY_UNLEASH_NAME || 'dev',
+  unleashUrl:
+    process.env.SUBWAY_UNLEASH_URL ||
+    'https://gitlab.com/api/v4/feature_flags/unleash/23285197'
 };
 
 module.exports = config;
