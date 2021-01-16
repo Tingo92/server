@@ -50,3 +50,9 @@ jest.mock('../config', () => {
     bannedServiceProviders: ['Example']
   };
 });
+
+jest.mock('unleash-client', () => {
+  return {
+    isEnabled: (): boolean => true
+  };
+});
