@@ -98,6 +98,7 @@ const getFormattedHourSummaryTime = time => {
   if (hour && minute) format += ' and '
   if (minute > 1) format += `${minute} minutes`
   if (minute === 1) format += `${minute} minute`
+  if (hour === 0 && minute === 0) format += '0'
 
   return format
 }
