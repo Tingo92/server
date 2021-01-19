@@ -5,8 +5,8 @@ const http = require('http')
 const socket = require('socket.io')
 const redisAdapter = require('socket.io-redis')
 const config = require('../../config')
-import logger from '../../logger';
-import expressPino from 'express-pino-logger';
+const logger = require('../../logger')
+const expressPino = require('express-pino-logger')
 
 // Create an HTTPS server if in production, otherwise use HTTP.
 const createServer = app => {
