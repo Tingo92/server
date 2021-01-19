@@ -5,6 +5,8 @@ const http = require('http')
 const socket = require('socket.io')
 const redisAdapter = require('socket.io-redis')
 const config = require('../../config')
+import logger from '../../logger';
+import expressPino from 'express-pino-logger';
 
 // Create an HTTPS server if in production, otherwise use HTTP.
 const createServer = app => {
@@ -28,5 +30,11 @@ module.exports = function(app) {
 
   const redisUrl = new URL(config.redisConnectionString)
   io.adapter(redisAdapter({ host: redisUrl.hostname, port: redisUrl.port }))
+
+  // initiate logging on the socket connections following https://socket.io/docs/v2/namespaces/#Namespace-middleware
+  const wrap = middleware => (socket, next) => middleware(socket.request, {}, next);
+  const expressLogger = expressPino({ logger })
+  io.use(wrap(expressLogger))
+
   return io
 }
