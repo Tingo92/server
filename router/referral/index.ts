@@ -4,7 +4,7 @@ import UserService from '../../services/UserService';
 const referralRouter = function(app): void {
   const router: any = express.Router(); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-  router.get('/user/referral/:referralCode', async function(req, res, next) {
+  router.get('/:referralCode', async function(req, res, next) {
     const { referralCode } = req.params;
 
     try {
