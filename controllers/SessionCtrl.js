@@ -4,7 +4,9 @@ const TwilioService = require('../services/twilio')
 const SessionService = require('../services/SessionService')
 const Sentry = require('@sentry/node')
 const PushTokenService = require('../services/PushTokenService')
+const AnalyticsService = require('../services/AnalyticsService')
 const PushToken = require('../models/PushToken')
+const { EVENTS } = require('../constants')
 
 module.exports = {
   create: async function(options) {
@@ -97,6 +99,11 @@ module.exports = {
         ipAddress
       ).catch(error => Sentry.captureException(error))
 
+      AnalyticsService.captureEvent(user._id, EVENTS.SESSION_JOINED, {
+        action: EVENTS.SESSION_JOINED,
+        sessionId: session._id.toString()
+      })
+
       const pushTokens = await PushToken.find({ user: session.student })
         .lean()
         .exec()
@@ -119,6 +126,10 @@ module.exports = {
         userAgent,
         ipAddress
       ).catch(error => Sentry.captureException(error))
+      AnalyticsService.captureEvent(user._id, EVENTS.SESSION_REJOINED, {
+        action: EVENTS.SESSION_REJOINED,
+        sessionId: session._id.toString()
+      })
     }
   },
 

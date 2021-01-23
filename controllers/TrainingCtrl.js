@@ -1,5 +1,6 @@
 const _ = require('lodash')
-const UserActionCtrl = require('../controllers/UserActionCtrl')
+const UserActionCtrl = require('./UserActionCtrl')
+const AnalyticsService = require('../services/AnalyticsService')
 const Question = require('../models/Question')
 const Volunteer = require('../models/Volunteer')
 const {
@@ -11,7 +12,8 @@ const {
   SAT_CERTS,
   SUBJECT_TYPES,
   COLLEGE_CERTS,
-  COLLEGE_SUBJECTS
+  COLLEGE_SUBJECTS,
+  EVENTS
 } = require('../constants')
 const getSubjectType = require('../utils/getSubjectType')
 const MailService = require('../services/MailService')
@@ -108,8 +110,13 @@ module.exports = {
 
       // Create a user action for every subject unlocked
       for (const subject of unlockedSubjects) {
-        if (!user.subjects.includes(subject))
+        if (!user.subjects.includes(subject)) {
           UserActionCtrl.unlockedSubject(user._id, subject, ip)
+          AnalyticsService.captureEvent(user._id, EVENTS.SUBJECT_UNLOCKED, {
+            action: EVENTS.SUBJECT_UNLOCKED,
+            subject
+          })
+        }
       }
 
       userUpdates.$addToSet = { subjects: unlockedSubjects }
@@ -121,6 +128,9 @@ module.exports = {
       ) {
         userUpdates.isOnboarded = true
         UserActionCtrl.accountOnboarded(user._id, ip)
+        AnalyticsService.captureEvent(user._id, EVENTS.ACCOUNT_ONBOARDED, {
+          action: EVENTS.ACCOUNT_ONBOARDED
+        })
       }
     }
 
