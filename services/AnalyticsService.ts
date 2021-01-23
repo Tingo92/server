@@ -10,7 +10,13 @@ export const captureEvent = (
   userId: string | Types.ObjectId,
   eventName: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  properties: any
+  properties: {
+    action?: string;
+    sessionId?: string;
+    subject?: string;
+    referenceEmail?: string;
+    banReason?: string;
+  }
 ): void => {
   let distinctId = '';
   if (Types.ObjectId.isValid(userId)) distinctId = userId.toString();
